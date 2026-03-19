@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Chat.Controls.ChatBubble"
+             xmlns:controls="clr-namespace:HY.MAUI.Pages.Chat.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+
+    <Grid ColumnDefinitions="50,*,50" RowDefinitions="Auto" Margin="5">
+
+        <!--<toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="34" HeightRequest="34" HorizontalOptions="Center" VerticalOptions="Start" Padding="0" Margin="0">
+            <toolkit:AvatarView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                <TapGestureRecognizer Command="{Binding Path=BindingContext.ContactDetailCommand, Source={x:Reference _MessagePage}}" CommandParameter="{Binding .}"/>
+            </toolkit:AvatarView.GestureRecognizers>
+        </toolkit:AvatarView>-->
+
+        <!--左头像--> 
+        <Image
+            x:Name="LeftAvatar"
+            Grid.Column="0"
+            WidthRequest="40"
+            HeightRequest="40"
+            Margin="5"
+            IsVisible="False"
+            Aspect="AspectFill"/>
+
+         <!--气泡--> 
+        <Border
+            x:Name="Bubble"
+            Grid.Column="1"
+            Padding="0"
+            BackgroundColor="Black"
+            HorizontalOptions="Start">
+
+            <Border.StrokeShape>
+                <RoundRectangle x:Name="BubbleRadius" CornerRadius="5"/>
+            </Border.StrokeShape>
+
+            <!--可复制文本--> 
+            <!--<controls:SelectableEditor
+                x:Name="MessageEditor"
+                FontSize="16"
+                TextColor="White"
+                IsReadOnly="True"
+                MinimumWidthRequest="0"
+                MinimumHeightRequest="34"
+                BackgroundColor="Transparent"
+                AutoSize="TextChanges"
+                IsSpellCheckEnabled="False"
+                IsTextPredictionEnabled="False"
+                Margin="0"/>-->
+
+            <Editor
+                x:Name="MessageEditor"
+                TextColor="White"
+                BackgroundColor="Transparent"
+                IsReadOnly="True"
+                AutoSize="TextChanges"
+                IsSpellCheckEnabled="False"
+                IsTextPredictionEnabled="False"
+                FontSize="14"/>
+        </Border>
+
+         <!--右头像--> 
+        <Image
+            x:Name="RightAvatar"
+            Grid.Column="2"
+            WidthRequest="40"
+            HeightRequest="40"
+            Margin="5"
+            IsVisible="False"
+            Aspect="AspectFill"/>
+    </Grid>
+</ContentView>

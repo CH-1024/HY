@@ -1,0 +1,15 @@
+﻿using HY.MAUI.PageModels.Login;
+using HY.MAUI.Pages.Login;
+
+namespace HY.MAUI.Pages.Login
+{
+    public partial class LoginPage : ContentPage
+    {
+        public LoginPage(LoginPageModel login)
+        {
+            InitializeComponent();
+
+            BindingContext = login;
+        }
+    }
+}

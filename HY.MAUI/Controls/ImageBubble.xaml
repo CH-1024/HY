@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Controls.ImageBubble"
+             x:Name="_ImageBubble"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="msgvm:ImageMessageVM">
+
+    
+    <ContentView.Triggers>
+
+        <DataTrigger TargetType="ContentView" Binding="{Binding Message_Status}" Value="Deleted">
+            <Setter Property="IsVisible" Value="False"/>
+        </DataTrigger>
+
+    </ContentView.Triggers>
+
+
+    <Grid ColumnDefinitions="50,*,50" Margin="0,6">
+
+        <!-- ================== 头像 ================== -->
+        <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="37" HeightRequest="37" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
+
+            <!-- 绑定头像 -->
+            <!--<Image.Source>
+                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
+            </Image.Source>-->
+            <!--<toolkit:AvatarView.ImageSource>
+                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
+            </toolkit:AvatarView.ImageSource>-->
+
+            <toolkit:AvatarView.Triggers>
+
+                <!-- 自己的消息头像在右 -->
+                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
+                    <Setter Property="Grid.Column" Value="2"/>
+                    <Setter Property="IsVisible" Value="True"/>
+                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
+                </DataTrigger>
+                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
+                    <Setter Property="Grid.Column" Value="0"/>
+                    <Setter Property="IsVisible" Value="True"/>
+                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
+                </DataTrigger>
+
+                <!-- 撤回时隐藏头像 -->
+                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding Message_Status}" Value="Recalled">
+                    <Setter Property="IsVisible" Value="False"/>
+                </DataTrigger>
+
+            </toolkit:AvatarView.Triggers>
+
+            <toolkit:AvatarView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="ContactDetail_Tapped"/>
+            </toolkit:AvatarView.GestureRecognizers>
+
+        </toolkit:AvatarView>
+
+        <!-- ================== 消息区域 ================== -->
+        <Grid Grid.Column="1" ColumnDefinitions="auto,*,auto" HorizontalOptions="Start">
+
+            <Grid.Triggers>
+
+                <!-- 自己的消息在右 -->
+                <DataTrigger TargetType="Grid" Binding="{Binding IsSelf}" Value="True">
+                    <Setter Property="HorizontalOptions" Value="End"/>
+                </DataTrigger>
+
+                <!-- 撤回时居中提示 -->
+                <DataTrigger TargetType="Grid" Binding="{Binding Message_Status}" Value="Recalled">
+                    <Setter Property="HorizontalOptions" Value="Center"/>
+                </DataTrigger>
+
+            </Grid.Triggers>
+
+            <!-- 发送进度 -->
+            <controls:CircularProgressBar Grid.Column="2" IsVisible="False" WidthRequest="30" HeightRequest="30" Progress="{Binding UploadProgress}" ShowTrack="False" StrokeThickness="2" ProgressColor="DodgerBlue" TrackColor="#33000000">
+                
+                <controls:CircularProgressBar.Triggers>
+
+                    <DataTrigger TargetType="controls:CircularProgressBar" Binding="{Binding IsSelf}" Value="True">
+                        <Setter Property="Grid.Column" Value="0"/>
+                    </DataTrigger>
+
+                    <DataTrigger TargetType="controls:CircularProgressBar" Binding="{Binding Message_Status}" Value="Sending">
+                        <Setter Property="IsVisible" Value="True"/>
+                    </DataTrigger>
+
+                </controls:CircularProgressBar.Triggers>
+
+            </controls:CircularProgressBar>
+            
+            <!-- 重试按钮 -->
+            <Button Grid.Column="2" Text="↻" IsVisible="False" TextColor="DarkGray" FontSize="Medium" BackgroundColor="Transparent" WidthRequest="34" HeightRequest="34">
+
+                <Button.Triggers>
+
+                    <DataTrigger TargetType="Button" Binding="{Binding IsSelf}" Value="True">
+                        <Setter Property="Grid.Column" Value="0"/>
+                    </DataTrigger>
+
+                    <DataTrigger TargetType="Button" Binding="{Binding Message_Status}" Value="Failed">
+                        <Setter Property="IsVisible" Value="True"/>
+                    </DataTrigger>
+
+                </Button.Triggers>
+
+            </Button>
+
+            <!-- 气泡 -->
+            <Border Grid.Column="1" BackgroundColor="Black" StrokeThickness="0" Padding="0" WidthRequest="100" HeightRequest="150">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Image_Tapped" Buttons="Primary"/>
+                    <TapGestureRecognizer Tapped="Bubble_Secondary_Tapped" Buttons="Secondary"/>
+                </Border.GestureRecognizers>
+
+                <!-- 圆角 -->
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8,8,8,8">
+                        <!--<RoundRectangle.Triggers>
+
+                            <DataTrigger TargetType="RoundRectangle" Binding="{Binding IsSelf}" Value="True">
+                                <Setter Property="CornerRadius" Value="8,0,8,8"/>
+                            </DataTrigger>
+
+                        </RoundRectangle.Triggers>-->
+                    </RoundRectangle>
+                </Border.StrokeShape>
+
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding Message_Status}" Value="Recalled">
+                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                    </DataTrigger>
+                </Border.Triggers>
+
+                <!-- 内容 -->
+                <Image Aspect="AspectFit" Source="{Binding Thumbnail_Image_Url}"/>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+</ContentView>

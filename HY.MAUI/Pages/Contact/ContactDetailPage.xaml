@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Contact.ContactDetailPage"
+             x:Name="_ContactDetailPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Contact"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             x:DataType="pm:ContactDetailPageModel">
+
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+    
+    <!--<Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="联系人资料" TextColor="{StaticResource PrimaryDark}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+    <Shell.TitleView>
+        <Label Text="联系人资料" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="备注" Order="Secondary" Priority="0" />
+        <ToolbarItem Text="拉黑" Order="Secondary" Priority="0" />
+        <ToolbarItem Text="删除" Order="Secondary" Priority="1" />
+    </ContentPage.ToolbarItems>
+
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="12" Padding="20">
+
+            <!-- 头像 + 昵称 -->
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
+                <toolkit:AvatarView ImageSource="{Binding ContactInfo.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="18" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+                <Label
+                    Text="{Binding ContactInfo.Nickname}"
+                    FontSize="20"
+                    HorizontalOptions="Center"
+                    FontAttributes="Bold"/>
+            </VerticalStackLayout>
+
+            <!-- 信息卡片 -->
+            <Border StrokeShape="RoundRectangle 10" Padding="15">
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="HYID：" TextColor="Gray"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.HYid}"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="状态：" TextColor="Gray"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Status}"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="地区：" TextColor="Gray"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Region}"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="备注：" TextColor="Gray"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Remark}" LineBreakMode="WordWrap"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 操作按钮 -->
+            <VerticalStackLayout Spacing="10">
+                <Button
+                    Text="发消息"
+                    HeightRequest="48"
+                    CornerRadius="8"
+                    Command="{Binding SendMessageCommand}"/>
+
+                <Button
+                    Text="音视频通话"
+                    HeightRequest="48"
+                    CornerRadius="8"
+                    BackgroundColor="#EDEDED"
+                    TextColor="Black"/>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+    
+    
+    <!--<VerticalStackLayout>
+
+        <toolkit:AvatarView Grid.RowSpan="2" Text="{Binding Avatar}" BackgroundColor="Black" CornerRadius="5" WidthRequest="40" HeightRequest="40" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+        <Label 
+            Text="Welcome to .NET MAUI!"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+    </VerticalStackLayout>-->
+
+
+    <!--<FlexLayout Direction="Column">
+
+         Header 
+        <Label Text="HEADER"
+               FontSize="18"
+               BackgroundColor="Aqua"
+               HorizontalTextAlignment="Center" />
+
+         Body 
+        <FlexLayout FlexLayout.Grow="1">
+
+             Content 
+            <Label Text="CONTENT"
+                   FontSize="18"
+                   BackgroundColor="Gray"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   FlexLayout.Grow="1" />
+
+             Navigation items
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="-2"
+                     Color="Green" />
+
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="-1"
+                     Color="Blue" />
+
+             Aside items 
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="0"
+                     Color="Green" />
+
+             Aside items 
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="1"
+                     Color="Blue" />
+
+        </FlexLayout>
+
+        <FlexLayout FlexLayout.Grow="1">
+
+             Content 
+            <Label Text="CONTENT"
+                   FontSize="18"
+                   BackgroundColor="Gray"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   FlexLayout.Grow="1" />
+
+             Navigation items
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="-2"
+                     Color="Blue" />
+
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="-1"
+                     Color="Green" />
+
+             Aside items 
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="0"
+                     Color="Blue" />
+
+             Aside items 
+            <BoxView FlexLayout.Basis="50"
+                     FlexLayout.Order="1"
+                     Color="Green" />
+
+        </FlexLayout>
+
+         Footer 
+        <Label Text="FOOTER"
+               FontSize="18"
+               BackgroundColor="Pink"
+               HorizontalTextAlignment="Center" />
+    </FlexLayout>-->
+</ContentPage>

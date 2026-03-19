@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Login.LoadingPage"
+             x:Name="_LoadingPage"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Login"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             x:DataType="pm:LoadingPageModel">
+
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _LoadingPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _LoadingPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _LoadingPage}, x:DataType=ContentPage}" />
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference LoadingPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+        <Grid>
+            <toolkit:AvatarView ImageSource="{Binding CurrentUser.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <ActivityIndicator IsRunning="True" Color="White" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+        
+        <Label Text="Loading..." VerticalOptions="Center" HorizontalOptions="Center" />
+    </VerticalStackLayout>
+    
+</ContentPage>

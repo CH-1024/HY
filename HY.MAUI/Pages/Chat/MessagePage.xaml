@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Chat.MessagePage"
+             xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
+             x:Name="_MessagePage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             x:DataType="pm:MessagePageModel">
+    
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <!--<Setter Property="HeightRequest" Value="45"/>-->
+                <Setter Property="WidthRequest" Value="35"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#242424, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="CornerRadius" Value="3"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+            <Style x:Key="IconBtn2" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <!--<Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>-->
+                <!--<Setter Property="WidthRequest" Value="{OnIdiom Desktop=130, Phone=60}"/>-->
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#242424, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="5"/>
+                <!--<Setter Property="Padding" Value="5"/>-->
+                <Setter Property="CornerRadius" Value="3"/>
+                <Setter Property="FontSize" Value="Body"/>
+                <Setter Property="TextColor" Value="#BBBBBB"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" />
+        <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" />
+        <toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" />
+    </ContentPage.Behaviors>
+
+    <!--<Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="{Binding Title}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" TextColor="{StaticResource White}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+
+    <Shell.TitleView>
+        <Label Text="{Binding Title}" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="查找聊天内容" Order="Secondary" Priority="0" />
+        <ToolbarItem Text="消息免打扰" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="提醒" Order="Secondary" Priority="2" />
+        <ToolbarItem Text="清空聊天记录" Order="Secondary" Priority="3" />
+        <ToolbarItem Text="弹出测试" Order="Secondary" Priority="4" Clicked="Button_Clicked"/>
+    </ContentPage.ToolbarItems>
+
+
+
+
+    <Grid RowDefinitions="*, auto, auto">
+
+        <!--<CollectionView x:Name="collectionView" ItemsSource="{Binding MessageCollection}" SelectionMode="None" ItemsUpdatingScrollMode="KeepLastItemInView" Margin="5">
+
+            <CollectionView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+            </CollectionView.GestureRecognizers>
+
+            <CollectionView.Behaviors>
+                <toolkit:EventToCommandBehavior EventName="Scrolled" Command="{Binding ScrolledCommand}" CommandParameter="{Binding Source={x:Reference collectionView}}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=CollectionView}"/>
+                <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding CollectionViewLoadedCommand}" CommandParameter="{Binding Source={x:Reference collectionView}}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=CollectionView}"/>
+            </CollectionView.Behaviors>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="{OnIdiom Desktop=5, Phone=10}" Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:MessageVM">
+                    <Grid ColumnDefinitions="50,*,50" >
+
+                        <toolkit:AvatarView Grid.Column="{Binding Avatar_InColumn}" ImageSource="{Binding Sender_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="34" HeightRequest="34" HorizontalOptions="Center" VerticalOptions="Start" Padding="0" Margin="0">
+                            <toolkit:AvatarView.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                                <TapGestureRecognizer Command="{Binding Path=BindingContext.ContactDetailCommand, Source={x:Reference _MessagePage}}" CommandParameter="{Binding .}"/>
+                            </toolkit:AvatarView.GestureRecognizers>
+                        </toolkit:AvatarView>
+
+                        <Label Grid.Column="1" Text="{Binding Content}" FontSize="Micro" MinimumHeightRequest="34" MinimumWidthRequest="0" HorizontalOptions="{Binding Content_Horizontal}" BackgroundColor="Black"/>
+
+                        <Grid Grid.Column="1" toolkit:StateContainer.CurrentState="{Binding Type}">
+                            <toolkit:StateContainer.StateViews>
+                                <Label toolkit:StateView.StateKey="Text" Text="{Binding Content}" FontSize="Micro" MinimumHeightRequest="34" BackgroundColor="Black"/>
+                                <controls:TextMessage toolkit:StateView.StateKey="Text" Text="{Binding Content}" FontSize="Micro" MinimumHeight="34" MessageBackground="Black" MessageCornerRadius="5" HorizontalOptions="{Binding Content_Horizontal}"/>
+                            </toolkit:StateContainer.StateViews>
+                        </Grid>
+
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>-->
+
+
+        <ActivityIndicator IsRunning="True" IsVisible="{Binding RefreshCommand.IsRunning}" ZIndex="2" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,0,0,0"/>
+
+        <CollectionView x:Name="collectionView" ItemsSource="{Binding MessageCollection}" SelectionMode="None" ItemsUpdatingScrollMode="KeepScrollOffset">
+
+            <CollectionView.Behaviors>
+                <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding CollectionViewLoadedCommand}" CommandParameter="{Binding Source={x:Reference collectionView}}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}"/>
+                <toolkit:EventToCommandBehavior EventName="Scrolled" Command="{Binding CollectionViewScrolledCommand}" x:TypeArguments="ItemsViewScrolledEventArgs" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}"/>
+            </CollectionView.Behaviors>
+
+            <CollectionView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+            </CollectionView.GestureRecognizers>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" SnapPointsType="Mandatory"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <controls:MessageTemplateSelector>
+
+                    <controls:MessageTemplateSelector.TextTemplate>
+                        <DataTemplate x:DataType="msgvm:TextMessageVM">
+                            <controls:TextBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.TextTemplate>
+
+                    <controls:MessageTemplateSelector.ImageTemplate>
+                        <DataTemplate x:DataType="msgvm:ImageMessageVM">
+                            <controls:ImageBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.ImageTemplate>
+
+                    <controls:MessageTemplateSelector.VoiceTemplate>
+                        <DataTemplate x:DataType="msgvm:VoiceMessageVM">
+
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.VoiceTemplate>
+
+                    <controls:MessageTemplateSelector.SystemTemplate>
+                        <DataTemplate x:DataType="msgvm:SystemMessageVM">
+
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.SystemTemplate>
+
+                </controls:MessageTemplateSelector>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        
+        <Border IsVisible="{Binding ShowUnread}" StrokeThickness="0" StrokeShape="RoundRectangle 20,0,20,0" HorizontalOptions="End" VerticalOptions="End" Margin="20,20,0,20" Opacity="0.9">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,0" Radius="20" Opacity="1"/>
+            </Border.Shadow>
+
+            <Button Text="{Binding UnreadCount,StringFormat='⇊{0}条新消息'}" Command="{Binding ShowBottomCommand}" BackgroundColor="Gray" CornerRadius="0" Padding="10" HeightRequest="40"/>
+        </Border>
+        
+
+        <!--底部栏-->
+        <Grid Grid.Row="1" ColumnDefinitions="auto,*,auto,auto" ColumnSpacing="5" BackgroundColor="#141414" Padding="10" MinimumHeightRequest="0">
+
+            <Button Style="{StaticResource IconBtn1}" Text="录" Grid.Column="0" Clicked="Record_Btn_Clicked"/>
+
+            <controls:ChatEditor Grid.Column="1" Text="{Binding InputText}" SendCommand="{Binding SendTextCommand}" AutoSize="TextChanges" Keyboard="Chat" MaxLength="500" MaximumHeightRequest="300" BackgroundColor="#2F2F2F" TextColor="White" FontSize="Micro" />
+
+            <Button Style="{StaticResource IconBtn1}" Text="折" Grid.Column="2" Clicked="Switch_Expander_Clicked"/>
+
+            <Button Style="{StaticResource IconBtn1}" Text="发" Grid.Column="3" Clicked="Send_Text_Clicked"/>
+
+        </Grid>
+
+
+        <!--弹出栏-->
+        <toolkit:UniformItemsLayout x:Name="expander" Grid.Row="2" Padding="0" Margin="0" HeightRequest="0" IsClippedToBounds="True">
+
+            <Button Style="{StaticResource IconBtn2}" Text="发送图片" Clicked="Send_Image_Clicked"/>
+
+            <Button Style="{StaticResource IconBtn2}" Text="发送视频" Command="{Binding VideoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+
+            <Button Style="{StaticResource IconBtn2}" Text="拍摄图片" Command="{Binding TakePhotoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+
+            <Button Style="{StaticResource IconBtn2}" Text="拍摄视频" Command="{Binding TakeVideoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+
+            <Button Style="{StaticResource IconBtn2}" Text="语音电话" Command="{Binding AudioCallCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+
+            <Button Style="{StaticResource IconBtn2}" Text="视频电话" Command="{Binding VideoCallCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+
+        </toolkit:UniformItemsLayout>
+
+
+    </Grid>
+
+</ContentPage>

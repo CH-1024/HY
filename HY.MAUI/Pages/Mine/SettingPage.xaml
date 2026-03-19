@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Mine.SettingPage"
+             x:Name="_SettingPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Mine"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             x:DataType="pm:SettingPageModel">
+
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#111111, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}"/>
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <!--<Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="设置" TextColor="{StaticResource PrimaryDark}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+    <Shell.TitleView>
+        <Label Text="设置" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>
+
+    <!--<ContentPage.ToolbarItems>
+        <ToolbarItem Text="设置" Order="Secondary" Priority="0" Command="{Binding SettingCommand}"/>
+        <ToolbarItem Text="退出" Order="Secondary" Priority="100" />
+    </ContentPage.ToolbarItems>-->
+
+
+    <VerticalStackLayout Spacing="10">
+        <Button Style="{StaticResource IconBtn1}" Text="个人资料" Command="{Binding ProfileCommand}" Margin="10"/>
+
+        <Grid ColumnDefinitions="auto,auto,auto" HorizontalOptions="Center">
+            <Label x:Name="dark" Grid.Column="0" Text="Dark" MinimumWidthRequest="0" WidthRequest="48" VerticalOptions="Center"/>
+            <Switch Grid.Column="1" Margin="0" MinimumWidthRequest="0" WidthRequest="52" VerticalOptions="Center" Scale="1.5" Toggled="OnToggled">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="On">
+                                <VisualState.Setters>
+                                    <Setter Property="ThumbColor" Value="MediumSpringGreen" />
+                                    <Setter TargetName="dark" Property="Opacity" Value="0.5" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Off">
+                                <VisualState.Setters>
+                                    <Setter Property="ThumbColor" Value="Black" />
+                                    <Setter TargetName="light" Property="Opacity" Value="0.5" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </Switch>
+            <Label x:Name="light" Grid.Column="2" Text="Light" MinimumWidthRequest="0" VerticalOptions="Center"/>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

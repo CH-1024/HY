@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Login.RegisterPage"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Login"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             x:DataType="pm:RegisterPageModel">
+
+
+    <ScrollView>
+        <VerticalStackLayout Padding="40" Spacing="20">
+
+
+            <Label Text="创建新账号" FontSize="Title" FontAttributes="Bold" HorizontalOptions="Center" />
+
+            <Entry Placeholder="昵称" Text="{Binding Nickname}"/>
+
+            <Entry Placeholder="用户名" Text="{Binding Username}"/>
+
+            <Entry Placeholder="邮箱" Keyboard="Email" Text="{Binding Email}" />
+
+            <Entry Placeholder="电话" Keyboard="Email" Text="{Binding Phone}" />
+
+            <Entry Placeholder="密码" IsPassword="True" Text="{Binding Password}" />
+
+            <Entry Placeholder="确认密码" IsPassword="True" Text="{Binding ConfirmPassword}" />
+
+
+            <Button Text="注册" Command="{Binding RegisterCommand}" HeightRequest="50" />
+
+            <Button Text="返回登录" Command="{Binding BackCommand}" StyleClass="Secondary" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

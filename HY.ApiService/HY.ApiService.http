@@ -1,0 +1,6 @@
+@HY.ApiService_HostAddress = http://localhost:5176
+
+GET {{HY.ApiService_HostAddress}}/User/Login?username=123&password=123
+Accept: application/json
+
+###

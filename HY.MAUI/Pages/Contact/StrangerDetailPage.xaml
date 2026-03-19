@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Contact.StrangerDetailPage"
+             x:Name="_StrangerDetailPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Contact"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             x:DataType="pm:StrangerDetailPageModel">
+
+
+
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _StrangerDetailPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _StrangerDetailPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _StrangerDetailPage}, x:DataType=ContentPage}"/>
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _StrangerDetailPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <!--<Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _StrangerDetailPage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="用户资料" TextColor="{StaticResource PrimaryDark}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+    <Shell.TitleView>
+        <Label Text="用户资料" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="添加" Order="Secondary" Priority="0" />
+        <ToolbarItem Text="拉黑" Order="Secondary" Priority="0" />
+    </ContentPage.ToolbarItems>
+
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="12" Padding="20">
+
+            <!-- 头像 + 昵称 -->
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
+                <toolkit:AvatarView ImageSource="{Binding StrangerInfo.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="18" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+                <Label
+                    Text="{Binding StrangerInfo.Nickname}"
+                    FontSize="20"
+                    HorizontalOptions="Center"
+                    FontAttributes="Bold"/>
+            </VerticalStackLayout>
+
+            <!-- 信息卡片 -->
+            <Border StrokeShape="RoundRectangle 10" Padding="15">
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="状态：" TextColor="Gray"/>
+                        <Label Grid.Column="1" Text="{Binding StrangerInfo.Status}"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 操作按钮 -->
+            <VerticalStackLayout Spacing="10">
+                <Button
+                    Text="添加为联系人"
+                    HeightRequest="48"
+                    CornerRadius="8"
+                    Command="{Binding SendContactCommand}"/>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HY.ApiService/HY.ApiService.csproj" />
+  <Project Path="HY.MAUI/HY.MAUI.csproj" Id="cec2025d-9a75-4c20-99bf-ad566eeb3e76">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

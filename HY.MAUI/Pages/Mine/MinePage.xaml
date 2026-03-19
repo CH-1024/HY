@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Mine.MinePage"
+             x:Name="_MinePage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="{OnIdiom Phone=True, Desktop=False}"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Mine"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             Padding="{OnIdiom Phone=0, Desktop=5}"
+             x:DataType="pm:MinePageModel">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#111111, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MinePage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MinePage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MinePage}, x:DataType=ContentPage}" />
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MinePage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <Shell.TitleView>
+        <Label Text="我的" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>
+
+    <!--<ContentPage.ToolbarItems>
+        <ToolbarItem Text="设置" Order="Secondary" Priority="0" Command="{Binding SettingCommand}"/>
+        <ToolbarItem Text="退出" Order="Secondary" Priority="100" Command="{Binding LogoutCommand}"/>
+    </ContentPage.ToolbarItems>-->
+
+
+
+    <Grid RowDefinitions="auto,auto,auto" RowSpacing="10" Padding="0,10,0,0" BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+
+        <Grid Grid.Row="0" RowDefinitions="*,*" ColumnDefinitions="120,*" Padding="20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Source={x:Reference _MinePage}, Path=BindingContext.ProfileCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Image Grid.RowSpan="2" Grid.Column="0" Source="{Binding CurrentUser.Avatar}" HeightRequest="100" WidthRequest="100" HorizontalOptions="Center" VerticalOptions="Center" Aspect="AspectFit" BackgroundColor="Gray"/>
+
+            <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center" Text="{Binding CurrentUser.Nickname}" FontSize="Medium"/>
+            <Label Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center" Text="{Binding CurrentUser.Status}" FontSize="Caption"/>
+        </Grid>
+
+
+        <VerticalStackLayout Grid.Row="1" Spacing="1">
+
+            <Button Style="{StaticResource IconBtn1}" Text="收藏"/>
+            <Button Style="{StaticResource IconBtn1}" Text="朋友圈"/>
+            <Button Style="{StaticResource IconBtn1}" Text="表情"/>
+
+        </VerticalStackLayout>
+
+
+        <VerticalStackLayout Grid.Row="2" Spacing="1">
+
+            <Button Style="{StaticResource IconBtn1}" Text="设置" Command="{Binding SettingCommand}"/>
+            <Button Style="{StaticResource IconBtn1}" Text="退出登录" Command="{Binding LogoutCommand}"/>
+
+        </VerticalStackLayout>
+
+    </Grid>
+    
+</ContentPage>
