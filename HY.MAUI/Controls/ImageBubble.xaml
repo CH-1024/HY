@@ -88,6 +88,11 @@
                         <Setter Property="IsVisible" Value="True"/>
                     </DataTrigger>
 
+                    <!--<DataTrigger TargetType="controls:CircularProgressBar" Binding="{Binding Message_Status}" Value="Recalling">
+                        <Setter Property="Color" Value="Red"/>
+                        <Setter Property="IsVisible" Value="True"/>
+                    </DataTrigger>-->
+
                 </controls:CircularProgressBar.Triggers>
 
             </controls:CircularProgressBar>
@@ -131,13 +136,54 @@
 
                 <Border.Triggers>
                     <DataTrigger TargetType="Border" Binding="{Binding Message_Status}" Value="Recalled">
-                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                        <Setter Property="IsVisible" Value="False"/>
                     </DataTrigger>
                 </Border.Triggers>
 
                 <!-- 内容 -->
                 <Image Aspect="AspectFit" Source="{Binding Thumbnail_Image_Url}"/>
             </Border>
+
+            <!--撤回提示-->
+            <Label IsVisible="False" Grid.Column="1" TextColor="Gray" FontSize="Body" MinimumHeightRequest="0" Padding="0" LineBreakMode="WordWrap">
+
+                <Label.Triggers>
+
+                    <MultiTrigger TargetType="Label">
+                        <MultiTrigger.Conditions>
+                            <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                            <BindingCondition Binding="{Binding Message_Status}" Value="Recalled"/>
+                        </MultiTrigger.Conditions>
+
+                        <Setter Property="IsVisible" Value="True"/>
+                        <Setter Property="Text" Value="[你撤回了一条消息]"/>
+                    </MultiTrigger>
+
+                    <MultiTrigger TargetType="Label">
+                        <MultiTrigger.Conditions>
+                            <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                            <BindingCondition Binding="{Binding Message_Status}" Value="Recalled"/>
+                            <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                        </MultiTrigger.Conditions>
+
+                        <Setter Property="IsVisible" Value="True"/>
+                        <Setter Property="Text" Value="[对方撤回了一条消息]"/>
+                    </MultiTrigger>
+
+                    <MultiTrigger TargetType="Label">
+                        <MultiTrigger.Conditions>
+                            <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                            <BindingCondition Binding="{Binding Message_Status}" Value="Recalled"/>
+                            <BindingCondition Binding="{Binding Chat_Type}" Value="Group"/>
+                        </MultiTrigger.Conditions>
+
+                        <Setter Property="IsVisible" Value="True"/>
+                        <Setter Property="Text" Value="{Binding Sender_Nickname, StringFormat='[{0}撤回了一条消息]'}"/>
+                    </MultiTrigger>
+
+                </Label.Triggers>
+
+            </Label>
 
         </Grid>
 

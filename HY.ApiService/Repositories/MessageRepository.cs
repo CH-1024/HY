@@ -102,6 +102,7 @@ namespace HY.ApiService.Repositories
             var result = await db.Updateable<MessageEntity>()
                 .SetColumns(m => m.Message_Status == MessageStatus.Recalled)
                 .SetColumns(m => m.Content == null)
+                .SetColumns(m => m.Extra == null)
                 .Where(m => m.Id == messageId)
                 .ExecuteCommandAsync();
             return result > 0;

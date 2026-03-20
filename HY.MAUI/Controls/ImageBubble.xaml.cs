@@ -43,6 +43,29 @@ public partial class ImageBubble : ContentView
         }
     }
 
+    private async void Image_Tapped(object sender, TappedEventArgs e)
+    {
+        if (sender is not Border border)
+            return;
+
+        if (border.BindingContext is not ImageMessageVM msg)
+            return;
+
+        if (msg.Message_Status == MessageStatus.Recalled)
+            return;
+
+        var param = new MessageCommandInvocation
+        {
+            Command = CommandNames.TapImageMessage,
+            Message = msg,
+        };
+
+        if (Command != null && Command.CanExecute(param))
+        {
+            await Command.ExecuteAsync(param);
+        }
+    }
+
     private void Bubble_Secondary_Tapped(object sender, TappedEventArgs e)
     {
         if (sender is not Border border)
@@ -100,20 +123,6 @@ public partial class ImageBubble : ContentView
         else
         {
             _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "你只能撤回自己的消息", "确定");
-        }
-    }
-
-    private async void Image_Tapped(object sender, TappedEventArgs e)
-    {
-        var param = new MessageCommandInvocation
-        {
-            Command = CommandNames.TapImageMessage,
-            Message = sender is Border border ? (ImageMessageVM)border.BindingContext : null,
-        };
-
-        if (Command != null && Command.CanExecute(param))
-        {
-            await Command.ExecuteAsync(param);
         }
     }
 
