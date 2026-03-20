@@ -25,8 +25,7 @@ namespace HY.ApiService.Hubs
 
         // 使用静态字典来保存用户ID和ConnectionId的映射
         //public static readonly ConcurrentDictionary<long, string> _iceMap = new();
-        public static readonly ConcurrentDictionary<(long UserId, string DeviceId), string> _connectionIdMap = new();
-
+        public static readonly ConcurrentDictionary<(long UserId, string DevicePlatform), string> _connectionIdMap = new();
 
 
         public ChatHub(ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService)
@@ -46,10 +45,11 @@ namespace HY.ApiService.Hubs
 
             var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var deviceId = Context.User?.FindFirst("DeviceId")?.Value!;
+            var devicePlatform = Context.User?.FindFirst("DevicePlatform")?.Value!;
 
             if (long.TryParse(userIdStr, out var userId))
             {
-                var key = (userId, deviceId);
+                var key = (userId, devicePlatform);
 
                 if (_connectionIdMap.ContainsKey(key))
                 {
@@ -75,10 +75,11 @@ namespace HY.ApiService.Hubs
 
             var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var deviceId = Context.User?.FindFirst("DeviceId")?.Value!;
+            var devicePlatform = Context.User?.FindFirst("DevicePlatform")?.Value!;
 
             if (long.TryParse(userIdStr, out var userId))
             {
-                var key = (userId, deviceId);
+                var key = (userId, devicePlatform);
 
                 // 只有当当前断开的连接就是 map 中的连接时才删除
                 if (_connectionIdMap.TryGetValue(key, out var storedConnectionId) && storedConnectionId == Context.ConnectionId)
@@ -176,8 +177,8 @@ namespace HY.ApiService.Hubs
             // 只有发送者才能撤回消息
             if (messageDto.Sender_Id != currentUserId) return false;
 
-            // 更新消息状态为已撤回
-            var result = await _messageService.UpdateMessageStatus(messageId, MessageStatus.Recalled);
+            // 撤回消息
+            var result = await _messageService.RecallMessage(messageId);
             if (!result) return false;
 
             // 通知接收者撤回消息
