@@ -4,6 +4,7 @@ using HY.ApiService.Enums;
 using HY.ApiService.Repositories;
 using HY.ApiService.Tools;
 using Mapster;
+using System.Net.NetworkInformation;
 
 namespace HY.ApiService.Services
 {
@@ -16,7 +17,7 @@ namespace HY.ApiService.Services
         Task<List<MessageDto>> GetPrivateChatMessages(long currentUserId, long targetUserId, long skipMessageId, int take);
         Task<List<MessageDto>> GetGroupChatMessages(long currentUserId, long groupId, long skipMessageId, int take);
 
-        Task<bool> UpdateMessageStatus(long messageId, MessageStatus status);
+        Task<bool> RecallMessage(long messageId);
     }
 
     public class MessageService : IMessageService
@@ -123,11 +124,9 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task<bool> UpdateMessageStatus(long messageId, MessageStatus status)
+        public async Task<bool> RecallMessage(long messageId)
         {
-            return await _messageRepository.UpdateMessageStatus(messageId, status);
+            return await _messageRepository.RecallMessage(messageId);
         }
-
-
     }
 }
