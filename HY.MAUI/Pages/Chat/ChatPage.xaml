@@ -34,9 +34,9 @@
 
             <Grid RowDefinitions="Auto,*" RowSpacing="10">
 
-                <SearchBar Margin="{OnIdiom Phone=0, Desktop=5}"/>
+                <SearchBar Margin="0"/>
 
-                <CollectionView Grid.Row="1" ItemsSource="{Binding ChatCollection}" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+                <CollectionView Grid.Row="1" ItemsSource="{Binding ChatCollection}" SelectedItem="{Binding SelectedChat}" SelectionChangedCommand="{Binding SelectionChangedCommand}" SelectionMode="Single">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>

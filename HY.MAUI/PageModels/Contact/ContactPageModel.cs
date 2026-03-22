@@ -38,6 +38,12 @@ namespace HY.MAUI.PageModels.Contact
             set { SetProperty(ref contactCollection, value); }
         }
 
+        private ContactVM? selectedContact = null;
+        public ContactVM? SelectedContact
+        {
+            get { return selectedContact; }
+            set { SetProperty(ref selectedContact, value); }
+        }
 
         public ContactPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ContactStore contactStore)
         {
@@ -62,7 +68,11 @@ namespace HY.MAUI.PageModels.Contact
         }
 
         [RelayCommand]
-        void NavigatedTo() => _isNavigatedTo = true;
+        void NavigatedTo()
+        {
+            _isNavigatedTo = true;
+            SelectedContact = null;
+        }
 
         [RelayCommand]
         void NavigatedFrom() => _isNavigatedTo = false;
@@ -97,15 +107,27 @@ namespace HY.MAUI.PageModels.Contact
 
 
         [RelayCommand]
-        async Task SelectionChanged(ContactVM contact)
+        async Task SelectionChanged()
         {
+            if (SelectedContact == null) return;
+
             var parameters = new Dictionary<string, object>
             {
-                { "ContactInfo", contact }
+                { "ContactInfo", SelectedContact }
             };
             await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
         }
 
+
+        [RelayCommand]
+        async Task AddContact()
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                //{ "ContactInfo", SelectedContact }
+            };
+            await Shell.Current.GoToAsync(nameof(SearchContactPage), true, parameters);
+        }
 
 
     }

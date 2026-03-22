@@ -14,6 +14,7 @@ namespace HY.ApiService.Repositories
         Task<UserEntity?> GetUserById(long id);
         Task<UserEntity?> GetUserByUsername(string username);
         Task<List<UserEntity>> GetUsersByIds(List<long> userIds);
+        Task<List<UserEntity>> GetUserByHYidOrUsername(string identity);
 
         Task<bool> ExistsUsername(string username);
         Task<bool> ExistsEmail(string email);
@@ -91,6 +92,12 @@ namespace HY.ApiService.Repositories
             return await db.Queryable<UserEntity>().In(userIds).ToListAsync();
         }
 
+        public async Task<List<UserEntity>> GetUserByHYidOrUsername(string identity)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
+            return await db.Queryable<UserEntity>().Where(u => u.HYid == identity || u.Username == identity).ToListAsync();
+        }
 
 
 
