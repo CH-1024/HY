@@ -40,6 +40,13 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref chatCollection, value); }
         }
 
+        private ChatVM? selectedChat = null;
+        public ChatVM? SelectedChat
+        {
+            get { return selectedChat; }
+            set { SetProperty(ref selectedChat, value); }
+        }
+
         public ChatPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ChatApi chatApi, ChatStore chatStore)
         {
             _serviceProvider = serviceProvider;
@@ -63,7 +70,11 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         [RelayCommand]
-        void NavigatedTo() => _isNavigatedTo = true;
+        void NavigatedTo()
+        {
+            _isNavigatedTo = true;
+            SelectedChat = null;
+        }
 
         [RelayCommand]
         void NavigatedFrom() => _isNavigatedTo = false;
@@ -98,11 +109,13 @@ namespace HY.MAUI.PageModels.Chat
 
 
         [RelayCommand]
-        async Task SelectionChanged(ChatVM chat)
+        async Task SelectionChanged()
         {
+            if (SelectedChat == null) return;
+
             var parameters = new Dictionary<string, object>
             {
-                { "ChatInfo", chat }
+                { "ChatInfo", SelectedChat }
             };
             await Shell.Current.GoToAsync(nameof(MessagePage), true, parameters);
         }

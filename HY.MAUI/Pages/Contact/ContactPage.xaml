@@ -14,6 +14,8 @@
 
 
     <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
         <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}" />
         <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
@@ -24,7 +26,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="扫一扫" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="添加联系人" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="添加联系人" Order="Secondary" Priority="1" Command="{Binding AddContactCommand}"/>
     </ContentPage.ToolbarItems>
 
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
@@ -32,16 +34,16 @@
 
             <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
 
-                <SearchBar Margin="{OnIdiom Phone=0, Desktop=5}"/>
+                <SearchBar Margin="0"/>
 
-                <Picker Grid.Row="1" Margin="5" Title="类型：">
+                <Picker Grid.Row="1" Margin="0" Title="类型：">
                     <Picker.Items>
                         <x:String>好友</x:String>
                         <x:String>群组</x:String>
                     </Picker.Items>
                 </Picker>
 
-                <CollectionView Grid.Row="2" ItemsSource="{Binding ContactCollection}" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+                <CollectionView Grid.Row="2" ItemsSource="{Binding ContactCollection}" SelectedItem="{Binding SelectedContact}" SelectionMode="Single" SelectionChangedCommand="{Binding SelectionChangedCommand}">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>

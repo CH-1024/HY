@@ -40,6 +40,17 @@ namespace HY.ApiService.Controllers
             });
         }
 
+        [Authorize]
+        [HttpGet("search/contact")]
+        public async Task<IActionResult> SearchContact(string identity)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var user = await _contactService.GetContactByHYidOrUsername(userId, identity);
+            return null;
+        }
 
         [Authorize]
         [HttpGet("get/stranger")]

@@ -7,17 +7,17 @@ namespace HY.MAUI.Communication
     public static class ApiUrl
     {
         // 开发环境
-        //#if WINDOWS || MACCATALYST || IOS
-        //        public static string HttpBaseUrl => "https://localhost:8003";
-        //        public static string SignalRBaseUrl => "https://localhost:8003";
-        //#elif ANDROID
-        //        public static string HttpBaseUrl => "https://10.0.2.2:8003";
-        //        public static string SignalRBaseUrl => "https://10.0.2.2:8003";
-        //#endif
+#if WINDOWS || MACCATALYST || IOS
+                public static string HttpBaseUrl => "https://localhost:8003";
+                public static string SignalRBaseUrl => "https://localhost:8003";
+#elif ANDROID
+        public static string HttpBaseUrl => "https://10.0.2.2:8003";
+        public static string SignalRBaseUrl => "https://10.0.2.2:8003";
+#endif
 
         // 生产环境
-        public static string HttpBaseUrl => "https://hoyi.net.cn:8003";
-        public static string SignalRBaseUrl => "https://hoyi.net.cn:8003";
+        //public static string HttpBaseUrl => "https://hoyi.net.cn:8003";
+        //public static string SignalRBaseUrl => "https://hoyi.net.cn:8003";
 
 
         public static string ChatHub => $"{SignalRBaseUrl}/chatHub/";
@@ -49,6 +49,7 @@ namespace HY.MAUI.Communication
 
         // Contact
         public static string GetContacts => $"{HttpBaseUrl}/contact/get/contacts/";
+        public static string SearchContact => $"{HttpBaseUrl}/contact/search/contact/";
         public static string GetStranger => $"{HttpBaseUrl}/contact/get/stranger/";
 
 

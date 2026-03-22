@@ -7,6 +7,7 @@ namespace HY.ApiService.Repositories
     public interface IContactRepository
     {
         Task<List<ContactEntity>> GetContactsByUserId(long userId);
+        Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> userIds);
     }
 
 
@@ -31,6 +32,16 @@ namespace HY.ApiService.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> userIds)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
+            return await db.Queryable<ContactEntity>()
+                .Where(c => c.User_Id == currentUserId && userIds.Contains(c.Contact_Id))
+                .ToListAsync();
 
+
+
+        }
     }
 }

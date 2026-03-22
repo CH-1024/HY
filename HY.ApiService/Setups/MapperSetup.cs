@@ -47,7 +47,7 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.Contact_Id, src => src.Contact_Id)
                 .Map(dest => dest.Remark, src => src.Remark)
-                .Map(dest => dest.Status, src => src.Status)
+                .Map(dest => dest.Relation_Status, src => src.Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
                 .Ignore(dest => dest.HYid)
                 .Ignore(dest => dest.Nickname)
@@ -129,7 +129,7 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.Contact_Id, src => src.Contact_Id)
                 .Map(dest => dest.Remark, src => src.Remark)
-                .Map(dest => dest.Status, src => src.Status)
+                .Map(dest => dest.Status, src => src.Relation_Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
                 .Ignore(dest => dest.User_Id);
 
