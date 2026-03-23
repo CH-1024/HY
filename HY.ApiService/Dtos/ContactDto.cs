@@ -8,7 +8,6 @@ namespace HY.ApiService.Dtos
 {
     public class ContactDto
     {
-        public long Id { get; set; }
         public long Contact_Id { get; set; }
         public string? HYid { get; set; }
         public string? Nickname { get; set; }

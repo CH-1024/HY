@@ -19,14 +19,19 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync(ApiUrl.GetContacts);
         }
 
+        public async Task<Response?> GetContact(long targetId)
+        {
+            return await GetAsync($"{ApiUrl.GetContact}?targetId={targetId}");
+        }
+
         public async Task<Response?> SearchContact(string identity)
         {
             return await GetAsync($"{ApiUrl.SearchContact}?identity={identity}");
         }
 
-        public async Task<Response?> GetStrangerDetailAsync(long userId)
+        public async Task<Response?> AddContact(string hyid)
         {
-            return await GetAsync($"{ApiUrl.GetStranger}?strangerId={userId}");
+            return await GetAsync($"{ApiUrl.AddContact}?hyid={hyid}");
         }
     }
 

@@ -7,7 +7,8 @@ namespace HY.ApiService.Repositories
     public interface IContactRepository
     {
         Task<List<ContactEntity>> GetContactsByUserId(long userId);
-        Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> userIds);
+        Task<ContactEntity?> GetUserContactByUserId(long currentUserId, long contactId);
+        Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> contactIds);
     }
 
 
@@ -32,12 +33,21 @@ namespace HY.ApiService.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> userIds)
+        public async Task<ContactEntity?> GetUserContactByUserId(long currentUserId, long contactId)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
             return await db.Queryable<ContactEntity>()
-                .Where(c => c.User_Id == currentUserId && userIds.Contains(c.Contact_Id))
+                .Where(c => c.User_Id == currentUserId && c.Contact_Id == contactId)
+                .SingleAsync();
+        }
+
+        public async Task<List<ContactEntity>> GetUserContactByUserIds(long currentUserId, List<long> contactIds)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
+            return await db.Queryable<ContactEntity>()
+                .Where(c => c.User_Id == currentUserId && contactIds.Contains(c.Contact_Id))
                 .ToListAsync();
 
 

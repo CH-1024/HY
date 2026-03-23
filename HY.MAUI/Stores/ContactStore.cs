@@ -12,12 +12,12 @@ namespace HY.MAUI.Stores
 
         public ContactVM? GetChat(long contactId)
         {
-            return Contacts.FirstOrDefault(x => x.Id == contactId);
+            return Contacts.FirstOrDefault(x => x.Contact_Id == contactId);
         }
 
         public void Upsert(ContactVM contact)
         {
-            var old = Contacts.FirstOrDefault(x => x.Id == contact.Id);
+            var old = Contacts.FirstOrDefault(x => x.Contact_Id == contact.Contact_Id);
             if (old == null) Contacts.Add(contact);
             else Contacts.Insert(Contacts.IndexOf(old), contact);
         }

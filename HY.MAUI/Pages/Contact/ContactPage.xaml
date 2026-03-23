@@ -26,7 +26,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="扫一扫" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="添加联系人" Order="Secondary" Priority="1" Command="{Binding AddContactCommand}"/>
+        <ToolbarItem Text="添加联系人" Order="Secondary" Priority="1" Command="{Binding SearchContactCommand}"/>
     </ContentPage.ToolbarItems>
 
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">

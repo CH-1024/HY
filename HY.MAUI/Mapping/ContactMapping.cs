@@ -12,14 +12,14 @@ namespace HY.MAUI.Mapping
         {
             return new ContactVM
             {
-                Id = dto.Id,
                 Contact_Id = dto.Contact_Id,
                 HYid = dto.HYid,
                 Nickname = dto.Nickname,
                 Avatar = dto.Avatar,
                 Region = dto.Region,
                 Remark = dto.Remark,
-                Status = dto.Status
+                Contact_Status = dto.Contact_Status,
+                Relation_Status = dto.Relation_Status
             };
         }
     }

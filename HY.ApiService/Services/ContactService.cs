@@ -1,4 +1,5 @@
 ﻿using HY.ApiService.Dtos;
+using HY.ApiService.Enums;
 using HY.ApiService.Repositories;
 using Mapster;
 
@@ -7,8 +8,10 @@ namespace HY.ApiService.Services
     public interface IContactService
     {
         Task<List<ContactDto>> GetContactsByUserId(long userId);
-        Task<StrangerDto> GetStrangerByUserId(long strangerId);
-        Task<List<ContactDto>> GetContactByHYidOrUsername(long currentUserId, string identity);
+        Task<ContactDto> GetContactByUserId(long currentUserId, long targetId);
+        Task<List<ContactDto>> GetContactByHYidOrPhone(long currentUserId, string identity);
+
+        Task AddContact(long userId, string hyid);
     }
 
 
@@ -50,16 +53,31 @@ namespace HY.ApiService.Services
             return contactDtos;
         }
 
-        public async Task<StrangerDto> GetStrangerByUserId(long strangerId)
+        public async Task<ContactDto> GetContactByUserId(long currentUserId, long targetId)
         {
-            var userEntity = await _userRepository.GetUserById(strangerId);
-            var strangerDto = userEntity.Adapt<StrangerDto>();
-            return strangerDto;
+            var userEntity = await _userRepository.GetUserById(targetId);
+
+            var contactEntity = await _contactRepository.GetUserContactByUserId(currentUserId, targetId);
+
+            if (contactEntity != null)
+            {
+                var contactDto = contactEntity.Adapt<ContactDto>();
+                contactDto.HYid = userEntity.HYid;
+                contactDto.Nickname = userEntity.Nickname;
+                contactDto.Avatar = userEntity.Avatar;
+                contactDto.Region = userEntity.Region;
+                contactDto.Contact_Status = userEntity.Status;
+                return contactDto;
+            }
+            else
+            {
+                return CreatNoneRelationContact(userEntity.HYid, userEntity.Nickname, userEntity.Avatar, userEntity.Region);
+            }
         }
 
-        public async Task<List<ContactDto>> GetContactByHYidOrUsername(long currentUserId, string identity)
+        public async Task<List<ContactDto>> GetContactByHYidOrPhone(long currentUserId, string identity)
         {
-            var userEntities = await _userRepository.GetUserByHYidOrUsername(identity);
+            var userEntities = await _userRepository.GetUserByHYidOrPhone(identity);
 
             var userIds = userEntities.Select(u => u.Id).Distinct().ToList();
 
@@ -67,35 +85,70 @@ namespace HY.ApiService.Services
 
             var contactDtos = new List<ContactDto>();
 
-            foreach (var user in userEntities)
+            foreach (var userEntity in userEntities)
             {
-                if (contactMap.TryGetValue(user.Id, out var contactEntity))
+                if (contactMap.TryGetValue(userEntity.Id, out var contactEntity))
                 {
                     var contactDto = contactEntity.Adapt<ContactDto>();
-                    contactDto.HYid = user.HYid;
-                    contactDto.Nickname = user.Nickname;
-                    contactDto.Avatar = user.Avatar;
-                    contactDto.Region = user.Region;
+                    contactDto.HYid = userEntity.HYid;
+                    contactDto.Nickname = userEntity.Nickname;
+                    contactDto.Avatar = userEntity.Avatar;
+                    contactDto.Region = userEntity.Region;
+                    contactDto.Contact_Status = userEntity.Status;
                     contactDtos.Add(contactDto);
                 }
                 else
                 {
-                    var contactDto = new ContactDto
-                    {
-                        Contact_Id = 0,
-                        HYid = user.HYid,
-                        Nickname = user.Nickname,
-                        Avatar = user.Avatar,
-                        Region = user.Region,
-                        Contact_Status = UserStatus.Active,
-                        Relation_Status = RelationStatus.None,
-                        Created_At = DateTime.UtcNow
-                    };
+                    var contactDto = CreatNoneRelationContact(userEntity.HYid, userEntity.Nickname, userEntity.Avatar, userEntity.Region);
                     contactDtos.Add(contactDto);
                 }
             }
 
             return contactDtos;
+        }
+
+
+        public async Task AddContact(long senderId, string targetHYid)
+        {
+            var target = await _userRepository.GetUserByHYid(targetHYid);
+            if (target == null) throw new Exception("用户不存在");
+
+            var senderContact = await _contactRepository.GetUserContactByUserId(senderId, target.Id);
+            if (senderContact != null)
+            {
+                // 更新联系人记录
+
+                senderContact.Relation_Status = RelationStatus.Pending;
+            }
+            else
+            {
+                // 创建联系人记录
+            }
+
+
+            var contactEntity = new ContactEntity
+            {
+                User_Id = senderId,
+                Contact_Id = target.Id,
+                Created_At = DateTime.UtcNow
+            };
+            await _contactRepository.AddContact(contactEntity);
+        }
+
+
+        ContactDto CreatNoneRelationContact(string? hyid, string? nickname, string? avatar, string? region)
+        {
+            return new ContactDto
+            {
+                Contact_Id = 0,
+                HYid = hyid,
+                Nickname = nickname,
+                Avatar = avatar,
+                Region = region,
+                Contact_Status = UserStatus.Unknown,
+                Relation_Status = RelationStatus.None,
+                Created_At = DateTime.UtcNow
+            };
         }
 
     }
