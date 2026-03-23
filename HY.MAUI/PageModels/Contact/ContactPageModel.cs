@@ -120,7 +120,7 @@ namespace HY.MAUI.PageModels.Contact
 
 
         [RelayCommand]
-        async Task AddContact()
+        async Task SearchContact()
         {
             var parameters = new Dictionary<string, object>
             {

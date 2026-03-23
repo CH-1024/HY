@@ -12,6 +12,28 @@
              x:DataType="pm:ContactDetailPageModel">
 
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#111111, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    
     <ContentPage.Behaviors>
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
@@ -68,7 +90,7 @@
 
                     <Grid ColumnDefinitions="50,*">
                         <Label Text="状态：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding ContactInfo.Status}"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Relation_Status}"/>
                     </Grid>
 
                     <Grid ColumnDefinitions="50,*">
@@ -86,18 +108,9 @@
 
             <!-- 操作按钮 -->
             <VerticalStackLayout Spacing="10">
-                <Button
-                    Text="发消息"
-                    HeightRequest="48"
-                    CornerRadius="8"
-                    Command="{Binding SendMessageCommand}"/>
+                <Button Style="{StaticResource IconBtn1}" Text="发消息" Command="{Binding SendMessageCommand}"/>
 
-                <Button
-                    Text="音视频通话"
-                    HeightRequest="48"
-                    CornerRadius="8"
-                    BackgroundColor="#EDEDED"
-                    TextColor="Black"/>
+                <Button Style="{StaticResource IconBtn1}" Text="音视频通话"/>
             </VerticalStackLayout>
 
         </VerticalStackLayout>

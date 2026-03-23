@@ -330,27 +330,23 @@ namespace HY.MAUI.PageModels.Chat
             }
             else
             {
-                var contact = _contactStore.Contacts.FirstOrDefault(v => v.Contact_Id == message.Sender_Id);
-                if (contact != null)
+                var resp = await _contactApi.GetContact(message.Sender_Id);
+                if (resp?.IsSucc == true)
                 {
-                    // 是联系人
-                    parameters.Add("ContactInfo", contact);
-                    await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
-                    return;
-                }
-                else
-                {
-                    // 是陌生人
-                    var resp = await _contactApi.GetStrangerDetailAsync(message.Sender_Id);
-                    if (resp?.IsSucc == true)
+                    var contactDto = resp.GetValue<ContactDto>("Contact");
+
+                    if (contactDto.Relation_Status == RelationStatus.Accepted)
                     {
-                        var strangerDto = resp.GetValue<StrangerDto>("Stranger");
-
-                        parameters.Add("StrangerInfo", strangerDto.ToVM());
-
+                        // 是联系人
+                        parameters.Add("ContactInfo", contactDto.ToVM());
+                        await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
+                    }
+                    else if (contactDto.Relation_Status == RelationStatus.None)
+                    {
+                        // 是陌生人
+                        parameters.Add("ContactInfo", contactDto.ToVM());
                         await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
                     }
-                    return;
                 }
             }
         }

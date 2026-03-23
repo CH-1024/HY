@@ -44,22 +44,15 @@ namespace HY.ApiService.Setups
 
 
             TypeAdapterConfig<ContactEntity, ContactDto>.NewConfig()
-                .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.Contact_Id, src => src.Contact_Id)
                 .Map(dest => dest.Remark, src => src.Remark)
-                .Map(dest => dest.Relation_Status, src => src.Status)
+                .Map(dest => dest.Relation_Status, src => src.Relation_Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
                 .Ignore(dest => dest.HYid)
                 .Ignore(dest => dest.Nickname)
                 .Ignore(dest => dest.Avatar)
-                .Ignore(dest => dest.Region);
-
-
-            TypeAdapterConfig<UserEntity, StrangerDto>.NewConfig()
-                .Map(dest => dest.Stranger_Id, src => src.Id)
-                .Map(dest => dest.Nickname, src => src.Nickname)
-                .Map(dest => dest.Avatar, src => src.Avatar)
-                .Map(dest => dest.Status, src => src.Status);
+                .Ignore(dest => dest.Region)
+                .Ignore(dest => dest.Contact_Status);
 
 
             TypeAdapterConfig<ChatEntity, ChatDto>.NewConfig()
@@ -126,10 +119,9 @@ namespace HY.ApiService.Setups
 
 
             TypeAdapterConfig<ContactDto, ContactEntity>.NewConfig()
-                .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.Contact_Id, src => src.Contact_Id)
                 .Map(dest => dest.Remark, src => src.Remark)
-                .Map(dest => dest.Status, src => src.Relation_Status)
+                .Map(dest => dest.Relation_Status, src => src.Relation_Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
                 .Ignore(dest => dest.User_Id);
 

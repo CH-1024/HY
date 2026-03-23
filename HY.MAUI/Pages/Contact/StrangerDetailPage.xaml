@@ -12,6 +12,26 @@
              x:DataType="pm:StrangerDetailPageModel">
 
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#111111, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
 
     <ContentPage.Behaviors>
@@ -59,7 +79,7 @@
             </VerticalStackLayout>
 
             <!-- 信息卡片 -->
-            <Border StrokeShape="RoundRectangle 10" Padding="15">
+            <!--<Border StrokeShape="RoundRectangle 10" Padding="15">
                 <VerticalStackLayout Spacing="12">
 
                     <Grid ColumnDefinitions="50,*">
@@ -68,15 +88,11 @@
                     </Grid>
 
                 </VerticalStackLayout>
-            </Border>
+            </Border>-->
 
             <!-- 操作按钮 -->
             <VerticalStackLayout Spacing="10">
-                <Button
-                    Text="添加为联系人"
-                    HeightRequest="48"
-                    CornerRadius="8"
-                    Command="{Binding SendContactCommand}"/>
+                <Button Style="{StaticResource IconBtn1}" Text="添加为联系人" Command="{Binding AddContactCommand}"/>
             </VerticalStackLayout>
 
         </VerticalStackLayout>

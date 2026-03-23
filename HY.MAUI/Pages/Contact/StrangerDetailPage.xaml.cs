@@ -1,9 +1,13 @@
+using HY.MAUI.PageModels.Contact;
+
 namespace HY.MAUI.Pages.Contact;
 
 public partial class StrangerDetailPage : ContentPage
 {
-	public StrangerDetailPage()
-	{
-		InitializeComponent();
-	}
+	public StrangerDetailPage(StrangerDetailPageModel strangerDetail)
+    {
+        InitializeComponent();
+
+        BindingContext = strangerDetail;
+    }
 }

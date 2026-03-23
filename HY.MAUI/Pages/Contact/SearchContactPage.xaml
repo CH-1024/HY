@@ -14,8 +14,8 @@
 
 
     <ContentPage.Behaviors>
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}"/>-->
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}"/>
         <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}"/>
         <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SearchContactPage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
@@ -42,9 +42,31 @@
         <ToolbarItem Text="拉黑" Order="Secondary" Priority="0" />
     </ContentPage.ToolbarItems>-->
 
-    <Grid RowDefinitions="auto,*">
+    <ScrollView>
 
-        <SearchBar Margin="0" SearchCommand="{Binding SearchContactCommand}" SearchCommandParameter="{Binding Text, Source={RelativeSource Self}}" Placeholder="请输入HYID/手机号" />
+        <Grid RowDefinitions="Auto,*" RowSpacing="10">
 
-    </Grid>
+            <SearchBar Margin="0" SearchCommand="{Binding SearchContactCommand}" SearchCommandParameter="{Binding Text, Source={RelativeSource Self}}" Placeholder="请输入HYID/手机号" />
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding ContactCollection}" SelectedItem="{Binding SelectedContact}" SelectionMode="Single" SelectionChangedCommand="{Binding SelectionChangedCommand}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:ContactVM">
+                        <Border Padding="5" StrokeThickness="0.5">
+                            <HorizontalStackLayout Spacing="5" HeightRequest="50">
+                                <toolkit:AvatarView ImageSource="{Binding Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+                                <Label Text="{Binding Nickname}" FontAttributes="Bold" FontSize="16" Padding="0" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
+
+    </ScrollView>
+
 </ContentPage>

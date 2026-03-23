@@ -6,6 +6,7 @@ namespace HY.MAUI.Enums
 {
     public enum UserStatus
     {
+        Unknown = 0,
         Registered,    // 已注册	    已完成基础注册，但未验证或信息不全	    邮箱/手机注册后，等待验证
         Active,        // 活跃          核心正常状态，可正常使用所有功能	    完成验证、信息完善的用户
         Inactive,      // 未活跃        系统判定长期未登录或未操作	            用于用户召回策略

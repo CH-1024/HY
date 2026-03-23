@@ -41,6 +41,25 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
+        [HttpGet("get/contact")]
+        public async Task<IActionResult> GetContact(long targetId)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var contact = await _contactService.GetContactByUserId(userId, targetId);
+
+            return Ok(new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "Contact",  contact }
+                }
+            });
+        }
+
+        [Authorize]
         [HttpGet("search/contact")]
         public async Task<IActionResult> SearchContact(string identity)
         {
@@ -48,24 +67,36 @@ namespace HY.ApiService.Controllers
 
             var userId = long.Parse(userIdStr!);
 
-            var user = await _contactService.GetContactByHYidOrUsername(userId, identity);
-            return null;
-        }
-
-        [Authorize]
-        [HttpGet("get/stranger")]
-        public async Task<IActionResult> GetStranger(long strangerId)
-        {
-            var stranger = await _contactService.GetStrangerByUserId(strangerId);
+            var contacts = await _contactService.GetContactByHYidOrPhone(userId, identity);
 
             return Ok(new Response(true)
             {
                 Data = new Dictionary<string, object?>
                 {
-                    { "Stranger",  stranger }
+                    { "Contacts",  contacts }
                 }
             });
         }
+
+        [Authorize]
+        [HttpGet("add/contact")]
+        public async Task<IActionResult> AddContact(string hyid)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var contact = await _contactService.AddContact(userId, hyid);
+
+            return Ok(new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "Contacts",  contacts }
+                }
+            });
+        }
+
 
     }
 
