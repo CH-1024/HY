@@ -8,7 +8,7 @@ namespace HY.ApiService.Tools
 {
     public static class TokenGenerator
     {
-        public static string GenerateAccessToken(long userId, string deviceId, string devicePlatform, out DateTime expires)
+        public static string GenerateAccessToken(long userId, string hyid, string deviceId, string devicePlatform, out DateTime expires)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key-at-least-16-chars"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -17,6 +17,7 @@ namespace HY.ApiService.Tools
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim("HYid", hyid),
                 new Claim("DeviceId", deviceId),
                 new Claim("DevicePlatform", devicePlatform),
                 //new Claim(ClaimTypes.Name, user.Username),

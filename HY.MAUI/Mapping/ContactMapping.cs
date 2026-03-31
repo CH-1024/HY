@@ -19,6 +19,7 @@ namespace HY.MAUI.Mapping
                 Region = dto.Region,
                 Remark = dto.Remark,
                 Contact_Status = dto.Contact_Status,
+                Relation_Request_Status = dto.Relation_Request_Status,
                 Relation_Status = dto.Relation_Status
             };
         }

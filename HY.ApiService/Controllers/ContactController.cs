@@ -79,24 +79,30 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
-        [HttpGet("add/contact")]
-        public async Task<IActionResult> AddContact(string hyid)
+        [HttpPost("request/contact")]
+        public async Task<IActionResult> RequestContact(ContactRequest contactRequest)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             var userId = long.Parse(userIdStr!);
 
-            var contact = await _contactService.AddContact(userId, hyid);
+            await _contactService.RequestContact(userId, contactRequest.HYid);
 
-            return Ok(new Response(true)
-            {
-                Data = new Dictionary<string, object?>
-                {
-                    { "Contacts",  contacts }
-                }
-            });
+            return Ok(new Response(false));
         }
 
+        [Authorize]
+        [HttpPost("response/contact")]
+        public async Task<IActionResult> ResponseContact(ContactRequest contactRequest)
+        {
+            var userIdStr = User.FindFirst("HYid")?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            await _contactService.ResponseContact(userId, contactRequest.HYid);
+
+            return Ok(new Response(false));
+        }
 
     }
 

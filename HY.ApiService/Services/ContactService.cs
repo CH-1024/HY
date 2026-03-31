@@ -11,7 +11,8 @@ namespace HY.ApiService.Services
         Task<ContactDto> GetContactByUserId(long currentUserId, long targetId);
         Task<List<ContactDto>> GetContactByHYidOrPhone(long currentUserId, string identity);
 
-        Task AddContact(long userId, string hyid);
+        Task RequestContact(long userId, string hyid);
+        Task ResponseContact(long userId, string hyid);
     }
 
 
@@ -19,12 +20,14 @@ namespace HY.ApiService.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IContactRepository _contactRepository;
+        private readonly IContactRequestRepository _contactRequestRepository;
 
 
-        public ContactService(IUserRepository userRepository, IContactRepository contactRepository)
+        public ContactService(IUserRepository userRepository, IContactRepository contactRepository, IContactRequestRepository contactRequestRepository)
         {
             _userRepository = userRepository;
             _contactRepository = contactRepository;
+            _contactRequestRepository = contactRequestRepository;
         }
 
 
@@ -35,18 +38,25 @@ namespace HY.ApiService.Services
 
             var contactDtos = contactEntities.Adapt<List<ContactDto>>();
 
-            var contactIds = contactDtos.Select(c => c.Contact_Id).Distinct().ToList();
+            var contactIds = contactEntities.Select(c => c.Contact_Id).Distinct().ToList();
+            var contactRequestIds = contactEntities.Select(c => c.Contact_Request_Id).ToList();
 
-            var userMap = (await _userRepository.GetUsersByIds(contactIds)).ToDictionary(x => x.Id);
+            var contactMap = (await _userRepository.GetUsersByIds(contactIds)).ToDictionary(x => x.Id);
+            var contactRequestMap = (await _contactRequestRepository.GetContactRequestsByIds(contactRequestIds)).ToDictionary(x => x.Id);
 
             foreach (var contactDto in contactDtos)
             {
-                if (userMap.TryGetValue(contactDto.Contact_Id, out var user)) // 单聊
+                if (contactMap.TryGetValue(contactDto.Contact_Id.Value, out var contact))
                 {
-                    contactDto.HYid = user.HYid;
-                    contactDto.Nickname = user.Nickname;
-                    contactDto.Avatar = user.Avatar;
-                    contactDto.Region = user.Region;
+                    contactDto.HYid = contact.HYid;
+                    contactDto.Nickname = contact.Nickname;
+                    contactDto.Avatar = contact.Avatar;
+                    contactDto.Region = contact.Region;
+                }
+
+                if (contactRequestMap.TryGetValue(contactDto.Contact_Request_Id.Value, out var contactRequest))
+                {
+                    contactDto.Relation_Request_Status = contactRequest.Relation_Request_Status;
                 }
             }
 
@@ -55,23 +65,28 @@ namespace HY.ApiService.Services
 
         public async Task<ContactDto> GetContactByUserId(long currentUserId, long targetId)
         {
-            var userEntity = await _userRepository.GetUserById(targetId);
+            var target = await _userRepository.GetUserById(targetId);
+            if (target == null) throw new Exception("用户不存在");
 
             var contactEntity = await _contactRepository.GetUserContactByUserId(currentUserId, targetId);
+            var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactEntity.Contact_Request_Id);
 
             if (contactEntity != null)
             {
                 var contactDto = contactEntity.Adapt<ContactDto>();
-                contactDto.HYid = userEntity.HYid;
-                contactDto.Nickname = userEntity.Nickname;
-                contactDto.Avatar = userEntity.Avatar;
-                contactDto.Region = userEntity.Region;
-                contactDto.Contact_Status = userEntity.Status;
+                contactDto.HYid = target.HYid;
+                contactDto.Nickname = target.Nickname;
+                contactDto.Avatar = target.Avatar;
+                contactDto.Region = target.Region;
+                contactDto.Contact_Status = target.Status;
+
+                contactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
+
                 return contactDto;
             }
             else
             {
-                return CreatNoneRelationContact(userEntity.HYid, userEntity.Nickname, userEntity.Avatar, userEntity.Region);
+                return CreatNoneRelationContact(target.HYid, target.Nickname, target.Avatar, target.Region);
             }
         }
 
@@ -83,11 +98,15 @@ namespace HY.ApiService.Services
 
             var contactMap = (await _contactRepository.GetUserContactByUserIds(currentUserId, userIds)).ToDictionary(c => c.Contact_Id);
 
+            var contactRequestIds = contactMap.Values.Select(c => c.Contact_Request_Id).Distinct().ToList();
+
+            var contactRequestMap = (await _contactRequestRepository.GetContactRequestsByIds(contactRequestIds)).ToDictionary(x => x.Id);
+
             var contactDtos = new List<ContactDto>();
 
             foreach (var userEntity in userEntities)
             {
-                if (contactMap.TryGetValue(userEntity.Id, out var contactEntity))
+                if (contactMap.TryGetValue(userEntity.Id, out var contactEntity) && contactRequestMap.TryGetValue(contactEntity.Contact_Request_Id, out var contactRequest))
                 {
                     var contactDto = contactEntity.Adapt<ContactDto>();
                     contactDto.HYid = userEntity.HYid;
@@ -95,6 +114,9 @@ namespace HY.ApiService.Services
                     contactDto.Avatar = userEntity.Avatar;
                     contactDto.Region = userEntity.Region;
                     contactDto.Contact_Status = userEntity.Status;
+
+                    contactDto.Relation_Request_Status = contactRequest.Relation_Request_Status;
+
                     contactDtos.Add(contactDto);
                 }
                 else
@@ -108,7 +130,7 @@ namespace HY.ApiService.Services
         }
 
 
-        public async Task AddContact(long senderId, string targetHYid)
+        public async Task RequestContact(long senderId, string targetHYid)
         {
             var target = await _userRepository.GetUserByHYid(targetHYid);
             if (target == null) throw new Exception("用户不存在");
@@ -117,8 +139,6 @@ namespace HY.ApiService.Services
             if (senderContact != null)
             {
                 // 更新联系人记录
-
-                senderContact.Relation_Status = RelationStatus.Pending;
             }
             else
             {
@@ -126,28 +146,39 @@ namespace HY.ApiService.Services
             }
 
 
-            var contactEntity = new ContactEntity
-            {
-                User_Id = senderId,
-                Contact_Id = target.Id,
-                Created_At = DateTime.UtcNow
-            };
-            await _contactRepository.AddContact(contactEntity);
+            //var contactEntity = new ContactEntity
+            //{
+            //    User_Id = senderId,
+            //    Contact_Id = target.Id,
+            //    Created_At = DateTime.UtcNow
+            //};
+            //await _contactRepository.AddContact(contactEntity);
         }
+
+        public async Task ResponseContact(long senderId, string targetHYid)
+        {
+        
+        }
+
+
+
+
 
 
         ContactDto CreatNoneRelationContact(string? hyid, string? nickname, string? avatar, string? region)
         {
             return new ContactDto
             {
-                Contact_Id = 0,
+                Contact_Id = null,
                 HYid = hyid,
                 Nickname = nickname,
                 Avatar = avatar,
                 Region = region,
-                Contact_Status = UserStatus.Unknown,
+                Remark = null,
+                Contact_Status = null,
+                Relation_Request_Status = RelationRequestStatus.None,
                 Relation_Status = RelationStatus.None,
-                Created_At = DateTime.UtcNow
+                Created_At = null
             };
         }
 

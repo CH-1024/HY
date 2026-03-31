@@ -82,7 +82,7 @@ namespace HY.MAUI.PageModels.Contact
         {
             if (SelectedContact == null) return;
 
-            if (SelectedContact.Relation_Status == RelationStatus.Accepted)
+            if (SelectedContact.Relation_Status == RelationStatus.Friend)
             {
                 // 是联系人
                 var parameters = new Dictionary<string, object>
@@ -92,7 +92,7 @@ namespace HY.MAUI.PageModels.Contact
 
                 await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
             }
-            else if (SelectedContact.Relation_Status == RelationStatus.None)
+            else
             {
                 // 是陌生人
                 var parameters = new Dictionary<string, object>
