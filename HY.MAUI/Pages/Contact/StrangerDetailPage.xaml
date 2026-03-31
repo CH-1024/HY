@@ -92,7 +92,7 @@
 
             <!-- 操作按钮 -->
             <VerticalStackLayout Spacing="10">
-                <Button Style="{StaticResource IconBtn1}" Text="添加为联系人" Command="{Binding AddContactCommand}"/>
+                <Button Style="{StaticResource IconBtn1}" Text="添加为联系人" Command="{Binding RequestContactCommand}"/>
             </VerticalStackLayout>
 
         </VerticalStackLayout>

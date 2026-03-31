@@ -335,13 +335,13 @@ namespace HY.MAUI.PageModels.Chat
                 {
                     var contactDto = resp.GetValue<ContactDto>("Contact");
 
-                    if (contactDto.Relation_Status == RelationStatus.Accepted)
+                    if (contactDto.Relation_Status == RelationStatus.Friend)
                     {
                         // 是联系人
                         parameters.Add("ContactInfo", contactDto.ToVM());
                         await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
                     }
-                    else if (contactDto.Relation_Status == RelationStatus.None)
+                    else
                     {
                         // 是陌生人
                         parameters.Add("ContactInfo", contactDto.ToVM());

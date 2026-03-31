@@ -1,4 +1,5 @@
-﻿using HY.MAUI.Models;
+﻿using HY.MAUI.Communication.Requests;
+using HY.MAUI.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
@@ -29,9 +30,15 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync($"{ApiUrl.SearchContact}?identity={identity}");
         }
 
-        public async Task<Response?> AddContact(string hyid)
+        public async Task<Response?> RequestContact(string hyid, string msg)
         {
-            return await GetAsync($"{ApiUrl.AddContact}?hyid={hyid}");
+            var param = new ContactRequest
+            {
+                HYid = hyid,
+                Message = msg
+            };
+
+            return await PostAsJsonAsync(ApiUrl.RequestContact, param);
         }
     }
 

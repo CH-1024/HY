@@ -68,19 +68,14 @@ namespace HY.ApiService.Repositories
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
 
-            // A -> B
-            var q1 = db.Queryable<MessageEntity>()
+            var baseQuery = db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
-                .Where((m, a) => a.Message_Id == null && m.Sender_Id == currentUserId && m.Target_Id == targetUserId && m.Chat_Type == ChatType.Private)
-                .WhereIF(skipMessageId > 0, (m, a) => m.Id < skipMessageId)
-                .Select((m, a) => m);
+                .Where((m, a) => a.Message_Id == null)   // 过滤已删除
+                .Where((m, a) => m.Chat_Type == ChatType.Private)
+                .WhereIF(skipMessageId > 0, (m, a) => m.Id < skipMessageId);
 
-            // B -> A
-            var q2 = db.Queryable<MessageEntity>()
-                .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
-                .Where((m, a) => a.Message_Id == null && m.Sender_Id == targetUserId && m.Target_Id == currentUserId && m.Chat_Type == ChatType.Private)
-                .WhereIF(skipMessageId > 0, (m, a) => m.Id < skipMessageId)
-                .Select((m, a) => m);
+            var q1 = baseQuery.Clone().Where((m, a) => m.Sender_Id == currentUserId && m.Target_Id == targetUserId).Select((m, a) => m);
+            var q2 = baseQuery.Clone().Where((m, a) => m.Sender_Id == targetUserId && m.Target_Id == currentUserId).Select((m, a) => m);
 
             // UNION ALL 合并
             return await db.UnionAll(q1, q2).OrderBy(m => m.Id, OrderByType.Desc).Take(take).ToListAsync();

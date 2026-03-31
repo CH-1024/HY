@@ -49,9 +49,6 @@ namespace HY.ApiService.Repositories
             return await db.Queryable<ContactEntity>()
                 .Where(c => c.User_Id == currentUserId && contactIds.Contains(c.Contact_Id))
                 .ToListAsync();
-
-
-
         }
     }
 }

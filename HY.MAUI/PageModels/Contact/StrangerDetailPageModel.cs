@@ -46,9 +46,9 @@ namespace HY.MAUI.PageModels.Contact
 
 
         [RelayCommand]
-        async Task AddContact()
+        async Task RequestContact()
         {
-            var resp = await _contactApi.AddContact(StrangerInfo.HYid);
+            var resp = await _contactApi.RequestContact(StrangerInfo.HYid, "Hi, let's be friends!");
             if (resp?.IsSucc == true)
             {
                 await Shell.Current.DisplayAlertAsync("Success", "Friend request sent successfully.", "OK");
