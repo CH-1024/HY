@@ -27,35 +27,18 @@ namespace HY.ApiService.Hubs
         readonly IContactService _contactService;
 
 
-        private record ConnectionKey(long UserId, string HYid, string DevicePlatform);
+        private record ConnectionKey(long UserId, string DevicePlatform);
 
         // 使用静态字典来保存用户ID和ConnectionId的映射
         //public static readonly ConcurrentDictionary<long, string> _iceMap = new();
         private static readonly ConcurrentDictionary<ConnectionKey, string> _connectionIdMap = new();
 
         private long _userId => long.TryParse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : throw new Exception("UserId not found in claims");
-        private string _hyid => Context.User?.FindFirst("HYid")?.Value ?? throw new Exception("HYid not found in claims");
         private string _deviceId => Context.User?.FindFirst("DeviceId")?.Value ?? throw new Exception("DeviceId not found in claims");
         private string _devicePlatform => Context.User?.FindFirst("DevicePlatform")?.Value ?? throw new Exception("DevicePlatform not found in claims");
 
         private ConnectionKey? GetConnectionIdMapKey(long userId, string devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.UserId == userId && k.DevicePlatform == devicePlatform);
-        private ConnectionKey? GetConnectionIdMapKey(string hyid, string devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.HYid == hyid && k.DevicePlatform == devicePlatform);
-
-        private List<ConnectionKey> GetConnectionIdMapKeysByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).ToList();
-        private List<ConnectionKey> GetConnectionIdMapKeysByHyid(string hyid) => _connectionIdMap.Keys.Where(k => k.HYid == hyid).ToList();
-
-        private List<string> GetConnectionIdsByUserId(long userId)
-        {
-            var keys = GetConnectionIdMapKeysByUserId(userId);
-            return keys.Select(k => _connectionIdMap[k]).ToList();
-        }
-
-        private List<string> GetConnectionIdsByHYid(string hyid)
-        {
-            var keys = GetConnectionIdMapKeysByHyid(hyid);
-            return keys.Select(k => _connectionIdMap[k]).ToList();
-        }
-
+        private List<string> GetConnectionIdsByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).Select(k => _connectionIdMap[k]).ToList();
 
 
         public ChatHub(ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
@@ -86,7 +69,7 @@ namespace HY.ApiService.Hubs
             }
             else
             {
-                key = new ConnectionKey(_userId, _hyid, _devicePlatform);
+                key = new ConnectionKey(_userId, _devicePlatform);
 
                 // 如果不存在，则添加新的映射
                 _connectionIdMap.TryAdd(key, Context.ConnectionId);
