@@ -8,8 +8,8 @@ namespace HY.MAUI.Communication
     {
         // 开发环境
 #if WINDOWS || MACCATALYST || IOS
-                public static string HttpBaseUrl => "https://localhost:8003";
-                public static string SignalRBaseUrl => "https://localhost:8003";
+        public static string HttpBaseUrl => "https://localhost:8003";
+        public static string SignalRBaseUrl => "https://localhost:8003";
 #elif ANDROID
         public static string HttpBaseUrl => "https://10.0.2.2:8003";
         public static string SignalRBaseUrl => "https://10.0.2.2:8003";
@@ -49,9 +49,9 @@ namespace HY.MAUI.Communication
 
         // Contact
         public static string GetContacts => $"{HttpBaseUrl}/contact/get/contacts/";
+        public static string GetContactRequests => $"{HttpBaseUrl}/contact/get/contactrequests/";
         public static string GetContact => $"{HttpBaseUrl}/contact/get/contact/";
         public static string SearchContact => $"{HttpBaseUrl}/contact/search/contact/";
-        public static string RequestContact => $"{HttpBaseUrl}/contact/request/contact/";
 
 
         // User

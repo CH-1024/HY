@@ -32,10 +32,12 @@ namespace HY.MAUI.PageModels.Login
         private readonly ChatHubSignalR _chatHub;
 
         private readonly ChatApi _chatApi;
-        private readonly ChatStore _chatStore;
         private readonly ContactApi _contactApi;
-        private readonly ContactStore _contactStore;
         private readonly MessageApi _messageApi;
+
+        private readonly ChatStore _chatStore;
+        private readonly ContactStore _contactStore;
+        private readonly ContactRequestStore _contactRequestStore;
         private readonly MessageStore _messageStore;
 
 
@@ -50,8 +52,8 @@ namespace HY.MAUI.PageModels.Login
 
 
         public LoadingPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider, 
-                                IAuthService authService, ChatHubSignalR chatHub, ChatApi chatApi, ChatStore chatStore, 
-                                ContactApi contactApi, ContactStore contactStore, MessageApi messageApi, MessageStore messageStore)
+                                IAuthService authService, ChatHubSignalR chatHub, ChatApi chatApi, ContactApi contactApi, MessageApi messageApi,
+                                ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
@@ -62,10 +64,12 @@ namespace HY.MAUI.PageModels.Login
             _chatHub = chatHub;
 
             _chatApi = chatApi;
-            _chatStore = chatStore;
             _contactApi = contactApi;
-            _contactStore = contactStore;
             _messageApi = messageApi;
+
+            _chatStore = chatStore;
+            _contactStore = contactStore;
+            _contactRequestStore = contactRequestStore;
             _messageStore = messageStore;
         }
 
@@ -104,6 +108,8 @@ namespace HY.MAUI.PageModels.Login
 
             await LoadContact();
 
+            await LoadContactRequest();
+
             await LoadChats();
 
             await LoadMessage();
@@ -135,6 +141,21 @@ namespace HY.MAUI.PageModels.Login
                 foreach (var contactDto in contactDtos)
                 {
                     _contactStore.Upsert(contactDto.ToVM());
+                }
+            }
+        }
+
+        private async Task LoadContactRequest()
+        {
+            _contactRequestStore.Clear();
+
+            var resp = await _contactApi.GetContactRequests();
+            if (resp?.IsSucc == true)
+            {
+                var contactRequestDtos = resp.GetValue<List<ContactRequestDto>>("ContactRequests") ?? [];
+                foreach (var contactRequestDto in contactRequestDtos)
+                {
+                    _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
                 }
             }
         }

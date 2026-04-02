@@ -2,11 +2,14 @@
 using HY.ApiService.Dtos;
 using HY.ApiService.Entities;
 using HY.ApiService.Enums;
+using HY.ApiService.Models;
 using HY.ApiService.Repositories;
 using HY.ApiService.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.SignalR;
+using SqlSugar;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -21,20 +24,48 @@ namespace HY.ApiService.Hubs
         readonly IMessageActionService _messageActionService;
         readonly IChatService _chatService;
         readonly IGroupMemberService _groupMemberService;
+        readonly IContactService _contactService;
 
+
+        private record ConnectionKey(long UserId, string HYid, string DevicePlatform);
 
         // 使用静态字典来保存用户ID和ConnectionId的映射
         //public static readonly ConcurrentDictionary<long, string> _iceMap = new();
-        public static readonly ConcurrentDictionary<(long UserId, string DevicePlatform), string> _connectionIdMap = new();
+        private static readonly ConcurrentDictionary<ConnectionKey, string> _connectionIdMap = new();
+
+        private long _userId => long.TryParse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : throw new Exception("UserId not found in claims");
+        private string _hyid => Context.User?.FindFirst("HYid")?.Value ?? throw new Exception("HYid not found in claims");
+        private string _deviceId => Context.User?.FindFirst("DeviceId")?.Value ?? throw new Exception("DeviceId not found in claims");
+        private string _devicePlatform => Context.User?.FindFirst("DevicePlatform")?.Value ?? throw new Exception("DevicePlatform not found in claims");
+
+        private ConnectionKey? GetConnectionIdMapKey(long userId, string devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.UserId == userId && k.DevicePlatform == devicePlatform);
+        private ConnectionKey? GetConnectionIdMapKey(string hyid, string devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.HYid == hyid && k.DevicePlatform == devicePlatform);
+
+        private List<ConnectionKey> GetConnectionIdMapKeysByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).ToList();
+        private List<ConnectionKey> GetConnectionIdMapKeysByHyid(string hyid) => _connectionIdMap.Keys.Where(k => k.HYid == hyid).ToList();
+
+        private List<string> GetConnectionIdsByUserId(long userId)
+        {
+            var keys = GetConnectionIdMapKeysByUserId(userId);
+            return keys.Select(k => _connectionIdMap[k]).ToList();
+        }
+
+        private List<string> GetConnectionIdsByHYid(string hyid)
+        {
+            var keys = GetConnectionIdMapKeysByHyid(hyid);
+            return keys.Select(k => _connectionIdMap[k]).ToList();
+        }
 
 
-        public ChatHub(ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService)
+
+        public ChatHub(ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
         {
             _loginService = loginService;
             _messageService = messageService;
             _messageActionService = messageActionService;
             _chatService = chatService;
             _groupMemberService = groupMemberService;
+            _contactService = contactService;
         }
 
 
@@ -43,28 +74,23 @@ namespace HY.ApiService.Hubs
         {
             await base.OnConnectedAsync();
 
-            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var deviceId = Context.User?.FindFirst("DeviceId")?.Value!;
-            var devicePlatform = Context.User?.FindFirst("DevicePlatform")?.Value!;
+            var key = GetConnectionIdMapKey(_userId, _devicePlatform);
 
-            if (long.TryParse(userIdStr, out var userId))
+            if (key != null && _connectionIdMap.ContainsKey(key))
             {
-                var key = (userId, devicePlatform);
+                var oldConnectionId = _connectionIdMap[key];
+                await Clients.Client(oldConnectionId).SendAsync("ForceLogout", "您的账号在其他设备登录了");
 
-                if (_connectionIdMap.ContainsKey(key))
-                {
-                    var oldConnectionId = _connectionIdMap[key];
-                    await Clients.Client(oldConnectionId).SendAsync("ForceLogout", "您的账号在其他设备登录了");
+                // 如果已经存在，则更新ConnectionId
+                _connectionIdMap[key] = Context.ConnectionId;
+            }
+            else
+            {
+                key = new ConnectionKey(_userId, _hyid, _devicePlatform);
 
-                    // 如果已经存在，则更新ConnectionId
-                    _connectionIdMap[key] = Context.ConnectionId;
-                }
-                else
-                {
-                    // 如果不存在，则添加新的映射
-                    _connectionIdMap.TryAdd(key, Context.ConnectionId);
-                    await _loginService.UpdateLoginDeviceOnline(userId, deviceId, true);
-                }
+                // 如果不存在，则添加新的映射
+                _connectionIdMap.TryAdd(key, Context.ConnectionId);
+                await _loginService.UpdateLoginDeviceOnline(_userId, _deviceId, true);
             }
         }
 
@@ -73,20 +99,13 @@ namespace HY.ApiService.Hubs
         {
             await base.OnDisconnectedAsync(exception);
 
-            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var deviceId = Context.User?.FindFirst("DeviceId")?.Value!;
-            var devicePlatform = Context.User?.FindFirst("DevicePlatform")?.Value!;
+            var key = GetConnectionIdMapKey(_userId, _devicePlatform);
 
-            if (long.TryParse(userIdStr, out var userId))
+            // 只有当当前断开的连接就是 map 中的连接时才删除
+            if (_connectionIdMap.TryGetValue(key, out var storedConnectionId) && storedConnectionId == Context.ConnectionId)
             {
-                var key = (userId, devicePlatform);
-
-                // 只有当当前断开的连接就是 map 中的连接时才删除
-                if (_connectionIdMap.TryGetValue(key, out var storedConnectionId) && storedConnectionId == Context.ConnectionId)
-                {
-                    _connectionIdMap.TryRemove(key, out _);
-                    await _loginService.UpdateLoginDeviceOnline(userId, deviceId, false);
-                }
+                _connectionIdMap.TryRemove(key, out _);
+                await _loginService.UpdateLoginDeviceOnline(_userId, _deviceId, false);
             }
         }
 
@@ -115,10 +134,8 @@ namespace HY.ApiService.Hubs
             {
                 // 单人
 
-                var targetKeys = _connectionIdMap.Keys.Where(k => k.UserId == messageDto.Target_Id);
-
-                var receiverConnectionIds = targetKeys.Select(k => _connectionIdMap[k]).ToList();
-
+                // 通知对方所有在线设备
+                var receiverConnectionIds = GetConnectionIdsByUserId(messageDto.Target_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
@@ -141,12 +158,9 @@ namespace HY.ApiService.Hubs
                 .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
                 .ForAll(member =>
                 {
-                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 可以考虑发送给发送者自己
+                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 发送给发送者的其他在线设备
 
-                    var memberKeys = _connectionIdMap.Keys.Where(k => k.UserId == member.User_Id);
-
-                    var receiverConnectionIds = memberKeys.Select(k => _connectionIdMap[k]).ToList();
-
+                    var receiverConnectionIds = GetConnectionIdsByUserId(member.User_Id);
                     foreach (var receiver in receiverConnectionIds)
                     {
                         _ = Clients.Client(receiver).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
@@ -168,14 +182,11 @@ namespace HY.ApiService.Hubs
         [HubMethodName("RecallMessage")]
         public async Task<bool> OnRecallMessage(long messageId)
         {
-            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!long.TryParse(userIdStr, out var currentUserId)) return false;
-
-            var messageDto = await _messageService.GetMessageById(currentUserId, messageId);
+            var messageDto = await _messageService.GetMessageById(_userId, messageId);
             if (messageDto == null) return false;
 
             // 只有发送者才能撤回消息
-            if (messageDto.Sender_Id != currentUserId) return false;
+            if (messageDto.Sender_Id != _userId) return false;
 
             // 撤回消息
             var result = await _messageService.RecallMessage(messageId);
@@ -184,15 +195,11 @@ namespace HY.ApiService.Hubs
             // 通知接收者撤回消息
             if (messageDto.Chat_Type == ChatType.Private)
             {
-                var targetKeys = _connectionIdMap.Keys.Where(k => k.UserId == messageDto.Target_Id);
-
-                var receiverConnectionIds = targetKeys.Select(k => _connectionIdMap[k]).ToList();
-
+                var receiverConnectionIds = GetConnectionIdsByUserId(messageDto.Target_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
                 }
-
             }
             else if (messageDto.Chat_Type == ChatType.Group)
             {
@@ -202,12 +209,9 @@ namespace HY.ApiService.Hubs
                 .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
                 .ForAll(member =>
                 {
-                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者
+                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 发送给发送者的其他在线设备
 
-                    var memberKeys = _connectionIdMap.Keys.Where(k => k.UserId == member.User_Id);
-
-                    var receiverConnectionIds = memberKeys.Select(k => _connectionIdMap[k]).ToList();
-
+                    var receiverConnectionIds = GetConnectionIdsByUserId(member.User_Id);
                     foreach (var receiver in receiverConnectionIds)
                     {
                         _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
@@ -222,13 +226,37 @@ namespace HY.ApiService.Hubs
         [HubMethodName("DeleteMessage")]
         public async Task<bool> OnDeleteMessage(long messageId)
         {
-            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!long.TryParse(userIdStr, out var currentUserId)) return false;
-
-            var messageDto = await _messageService.GetMessageById(currentUserId, messageId);
+            var messageDto = await _messageService.GetMessageById(_userId, messageId);
             if (messageDto == null) return false;
 
-            return await _messageActionService.InsertMessageAction(currentUserId, messageId, MessageActionType.Delete);
+            return await _messageActionService.InsertMessageAction(_userId, messageId, MessageActionType.Delete);
+        }
+
+        [Authorize]
+        [HubMethodName("RequestContact")]
+        public async Task<ContactRequestDto?> OnRequestContact(long contactId, string source, string message)
+        {
+            var contactRequestDto = await _contactService.RequestContact(_userId, contactId, source, message);
+            if (contactRequestDto != null)
+            {
+                // 通知对方所有在线设备
+                var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
+                foreach (var receiver in receiverConnectionIds)
+                {
+                    _ = Clients.Client(receiver).SendAsync("RequestContact", contactRequestDto);
+                }
+            }
+            return contactRequestDto;
+        }
+
+        [Authorize]
+        [HubMethodName("RespondContact")]
+        public async Task OnRespondContact(string hyid, bool isAccept, string message)
+        {
+            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdStr, out var userId)) return;
+
+            //var result = await _contactService.RespondContact(userId, hyid, isAccept, message);
         }
 
         [Authorize]
@@ -246,7 +274,6 @@ namespace HY.ApiService.Hubs
 
             return result.ToString();
         }
-
 
     }
 }

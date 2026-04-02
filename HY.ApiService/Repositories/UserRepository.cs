@@ -79,7 +79,7 @@ namespace HY.ApiService.Repositories
             return await db.Queryable<UserEntity>().InSingleAsync(id);
         }
 
-        public async Task<UserEntity> GetUserByHYid(string hyid)
+        public async Task<UserEntity?> GetUserByHYid(string hyid)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
