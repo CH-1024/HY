@@ -20,6 +20,24 @@ namespace HY.ApiService.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet("get/contactrequests")]
+        public async Task<IActionResult> GetContactRequests()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var result = await _contactService.GetAllContactRequestsByUserId(userId);
+
+            return Ok(new Response(result.IsSucc, result.Error)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "ContactRequests", result.ContactRequests },
+                }
+            });
+        }
 
         [Authorize]
         [HttpGet("get/contacts")]
@@ -29,13 +47,13 @@ namespace HY.ApiService.Controllers
 
             var userId = long.Parse(userIdStr!);
 
-            var list = await _contactService.GetContactsByUserId(userId);
+            var result = await _contactService.GetAllContactsByUserId(userId);
 
-            return Ok(new Response(true)
+            return Ok(new Response(result.IsSucc, result.Error)
             {
                 Data = new Dictionary<string, object?>
                 {
-                    { "Contacts",  list }
+                    { "Contacts", result.Contacts },
                 }
             });
         }
@@ -48,13 +66,13 @@ namespace HY.ApiService.Controllers
 
             var userId = long.Parse(userIdStr!);
 
-            var contact = await _contactService.GetContactByUserId(userId, targetId);
+            var result = await _contactService.GetContactByUserId(userId, targetId);
 
-            return Ok(new Response(true)
+            return Ok(new Response(result.IsSucc, result.Error)
             {
                 Data = new Dictionary<string, object?>
                 {
-                    { "Contact",  contact }
+                    { "Contact", result.Contact },
                 }
             });
         }
@@ -67,43 +85,16 @@ namespace HY.ApiService.Controllers
 
             var userId = long.Parse(userIdStr!);
 
-            var contacts = await _contactService.GetContactByHYidOrPhone(userId, identity);
+            var result = await _contactService.GetContactByHYidOrPhone(userId, identity);
 
-            return Ok(new Response(true)
+            return Ok(new Response(result.IsSucc, result.Error)
             {
                 Data = new Dictionary<string, object?>
                 {
-                    { "Contacts",  contacts }
+                    { "Contacts", result.Contacts },
                 }
             });
         }
 
-        [Authorize]
-        [HttpPost("request/contact")]
-        public async Task<IActionResult> RequestContact(ContactRequest contactRequest)
-        {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
-
-            await _contactService.RequestContact(userId, contactRequest.HYid);
-
-            return Ok(new Response(false));
-        }
-
-        [Authorize]
-        [HttpPost("response/contact")]
-        public async Task<IActionResult> ResponseContact(ContactRequest contactRequest)
-        {
-            var userIdStr = User.FindFirst("HYid")?.Value;
-
-            var userId = long.Parse(userIdStr!);
-
-            await _contactService.ResponseContact(userId, contactRequest.HYid);
-
-            return Ok(new Response(false));
-        }
-
     }
-
 }

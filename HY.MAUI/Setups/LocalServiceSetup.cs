@@ -16,6 +16,7 @@ namespace HY.MAUI.Setups
 
             services.AddSingleton<ChatStore>();
             services.AddSingleton<ContactStore>();
+            services.AddSingleton<ContactRequestStore>();
             services.AddSingleton<MessageStore>();
         }
     }

@@ -22,6 +22,7 @@ namespace HY.MAUI.PageModels.Contact
         private readonly IGlobalCache _globalCache;
         private readonly ContactApi _contactApi;
         private readonly ContactStore _contactStore;
+        private readonly ContactRequestStore _contactRequestStore;
 
 
         private bool isBusy;
@@ -38,6 +39,13 @@ namespace HY.MAUI.PageModels.Contact
             set { SetProperty(ref contactCollection, value); }
         }
 
+        private ObservableCollection<ContactRequestVM> contactRequestCollection = null;
+        public ObservableCollection<ContactRequestVM> ContactRequestCollection
+        {
+            get { return contactRequestCollection; }
+            set { SetProperty(ref contactRequestCollection, value); }
+        }
+
         private ContactVM? selectedContact = null;
         public ContactVM? SelectedContact
         {
@@ -45,12 +53,13 @@ namespace HY.MAUI.PageModels.Contact
             set { SetProperty(ref selectedContact, value); }
         }
 
-        public ContactPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ContactStore contactStore)
+        public ContactPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ContactStore contactStore, ContactRequestStore contactRequestStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _contactApi = contactApi;
             _contactStore = contactStore;
+            _contactRequestStore = contactRequestStore;
         }
 
         private async Task LoadData()
@@ -83,6 +92,7 @@ namespace HY.MAUI.PageModels.Contact
             if (!_dataLoaded)
             {
                 ContactCollection = _contactStore.Contacts;
+                ContactRequestCollection = _contactRequestStore.ContactRequests;
                 _dataLoaded = true;
             }
             //else if (!_isNavigatedTo)

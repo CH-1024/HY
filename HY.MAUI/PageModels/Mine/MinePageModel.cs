@@ -64,22 +64,8 @@ namespace HY.MAUI.PageModels.Mine
             var confirm = await Application.Current!.Windows[0].Page!.DisplayAlertAsync("Confirm Logout", "Are you sure you want to logout?", "Yes", "No");
             if (!confirm) return;
 
-            var logoutResp = await _loginApi.Logout();
-            if (logoutResp?.IsSucc == true)
-            {
-                await _chatHub.StopAsync();
-
-                //_loginService.Logout();
-                //_tokenProvider.Clear();
-
-                //var loginPage = _serviceProvider.GetRequiredService<LoginPage>();
-                //Application.Current!.Windows[0].Page = new NavigationPage(loginPage);
-            }
-            else
-            {
-                await Shell.Current.DisplayAlertAsync("Logout Failed", logoutResp?.Msg ?? "Unknown error", "OK");
-                return;
-            }
+            _ = _loginApi.Logout();
+            await _chatHub.StopAsync();
         }
 
 

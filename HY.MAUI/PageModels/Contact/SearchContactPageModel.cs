@@ -51,7 +51,6 @@ namespace HY.MAUI.PageModels.Contact
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _contactApi = contactApi;
-
         }
 
 
@@ -94,12 +93,11 @@ namespace HY.MAUI.PageModels.Contact
             }
             else
             {
-                // 是陌生人
                 var parameters = new Dictionary<string, object>
                 {
-                    { "ContactInfo", SelectedContact }
+                    { "ContactInfo", SelectedContact },
+                    { "Source", "Search" },
                 };
-
                 await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
             }
         }

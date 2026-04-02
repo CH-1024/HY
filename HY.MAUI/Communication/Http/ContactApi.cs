@@ -30,16 +30,12 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync($"{ApiUrl.SearchContact}?identity={identity}");
         }
 
-        public async Task<Response?> RequestContact(string hyid, string msg)
-        {
-            var param = new ContactRequest
-            {
-                HYid = hyid,
-                Message = msg
-            };
 
-            return await PostAsJsonAsync(ApiUrl.RequestContact, param);
+        public async Task<Response?> GetContactRequests()
+        {
+            return await GetAsync(ApiUrl.GetContactRequests);
         }
+
     }
 
 }

@@ -27,13 +27,14 @@ namespace HY.MAUI.Communication.SignalR
 
         private readonly ChatStore _chatStore;
         private readonly ContactStore _contactStore;
+        private readonly ContactRequestStore _contactRequestStore;
         private readonly MessageStore _messageStore;
 
         private HubConnection? _connection = null;
         private readonly SemaphoreSlim _initLock = new(1, 1);
 
 
-        public ChatHubSignalR(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider, ChatStore chatStore, ContactStore contactStore, MessageStore messageStore)
+        public ChatHubSignalR(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider, ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
@@ -41,6 +42,7 @@ namespace HY.MAUI.Communication.SignalR
             _tokenProvider = tokenProvider;
             _chatStore = chatStore;
             _contactStore = contactStore;
+            _contactRequestStore = contactRequestStore;
             _messageStore = messageStore;
         }
 
@@ -180,6 +182,22 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
+        public async Task RequestContact(long contactId, string source, string message)
+        {
+            var contactRequestDto = await _connection!.InvokeAsync<ContactRequestDto>("RequestContact", contactId, source, message);
+            if (contactRequestDto == null) return;
+
+            var currentUser = _globalCache.GetCurrentUser();
+
+            var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
+            _contactRequestStore.Upsert(contactRequestVM);
+        }
+
+        public async Task RespondContact(string hyid, bool isAccept, string message)
+        {
+            await _connection!.SendAsync("RespondContact", hyid, isAccept, message);
+        }
+
 
         public async ValueTask DisposeAsync()
         {
@@ -280,6 +298,7 @@ namespace HY.MAUI.Communication.SignalR
         {
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
+            _connection?.On<ContactRequestDto>("RequestContact", OnRequestContact);
             _connection?.On<string, bool>("ForceLogout", OnForceLogout);
         }
 
@@ -295,6 +314,7 @@ namespace HY.MAUI.Communication.SignalR
         {
             _connection?.Remove("ReceiveMessage");
             _connection?.Remove("RecallMessage");
+            _connection?.Remove("RequestContact");
             _connection?.Remove("ForceLogout");
         }
 
@@ -398,6 +418,14 @@ namespace HY.MAUI.Communication.SignalR
                     chat.Is_Deleted = false;
                 }
             }
+        }
+
+        private void OnRequestContact(ContactRequestDto contactRequestDto)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+
+            var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
+            _contactRequestStore.Upsert(contactRequestVM);
         }
 
         private bool OnForceLogout(string message)

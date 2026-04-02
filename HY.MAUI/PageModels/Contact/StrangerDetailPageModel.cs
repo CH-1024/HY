@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication.Http;
+using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Models;
 using HY.MAUI.Services.Interfaces;
 using System;
@@ -11,11 +12,13 @@ namespace HY.MAUI.PageModels.Contact
 {
     public partial class StrangerDetailPageModel : ObservableObject, IQueryAttributable
     {
+        string? _source = null;
+
         private readonly IServiceProvider _serviceProvider;
         private readonly IGlobalCache _globalCache;
         private readonly ContactApi _contactApi;
 
-
+        private readonly ChatHubSignalR _chatHub;
 
         private ContactVM strangerInfo = null;
         public ContactVM StrangerInfo
@@ -26,15 +29,18 @@ namespace HY.MAUI.PageModels.Contact
 
 
 
-        public StrangerDetailPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi)
+        public StrangerDetailPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ChatHubSignalR chatHub)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _contactApi = contactApi;
+
+            _chatHub = chatHub;
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            _source = (string)query["Source"];
             StrangerInfo = (ContactVM)query["ContactInfo"];
         }
 
@@ -48,15 +54,7 @@ namespace HY.MAUI.PageModels.Contact
         [RelayCommand]
         async Task RequestContact()
         {
-            var resp = await _contactApi.RequestContact(StrangerInfo.HYid, "Hi, let's be friends!");
-            if (resp?.IsSucc == true)
-            {
-                await Shell.Current.DisplayAlertAsync("Success", "Friend request sent successfully.", "OK");
-            }
-            else
-            {
-                await Shell.Current.DisplayAlertAsync("Error", $"Failed to send friend request: {resp?.Msg ?? "Unknown error"}", "OK");
-            }
+            await _chatHub.RequestContact(StrangerInfo.Contact_Id.Value, _source, "Hi, let's be friends!");
         }
 
     }

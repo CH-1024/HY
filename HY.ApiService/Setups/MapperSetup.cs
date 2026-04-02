@@ -1,5 +1,6 @@
 ﻿using HY.ApiService.Dtos;
 using HY.ApiService.Entities;
+using HY.ApiService.Enums;
 using Mapster;
 
 namespace HY.ApiService.Setups
@@ -49,12 +50,26 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Remark, src => src.Remark)
                 .Map(dest => dest.Relation_Status, src => src.Relation_Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
-                .Ignore(dest => dest.HYid)
                 .Ignore(dest => dest.Nickname)
                 .Ignore(dest => dest.Avatar)
                 .Ignore(dest => dest.Region)
                 .Ignore(dest => dest.Contact_Status)
                 .Ignore(dest => dest.Relation_Request_Status);
+
+
+            TypeAdapterConfig<ContactRequestEntity, ContactRequestDto>.NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.Sender_Id, src => src.Sender_Id)
+                .Map(dest => dest.Receiver_Id, src => src.Receiver_Id)
+                .Map(dest => dest.Message, src => src.Message)
+                .Map(dest => dest.Source, src => src.Source)
+                .Map(dest => dest.Relation_Request_Status, src => src.Relation_Request_Status)
+                .Map(dest => dest.Created_At, src => src.Created_At)
+                .Map(dest => dest.Handled_At, src => src.Handled_At)
+                .Ignore(dest => dest.Sender_Avatar)
+                .Ignore(dest => dest.Sender_Nickname)
+                .Ignore(dest => dest.Receiver_Avatar)
+                .Ignore(dest => dest.Receiver_Nickname);
 
 
             TypeAdapterConfig<ChatEntity, ChatDto>.NewConfig()
@@ -127,6 +142,17 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Relation_Status, src => src.Relation_Status)
                 .Map(dest => dest.Created_At, src => src.Created_At)
                 .Ignore(dest => dest.User_Id);
+
+
+            TypeAdapterConfig<ContactRequestDto, ContactRequestEntity>.NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.Sender_Id, src => src.Sender_Id)
+                .Map(dest => dest.Receiver_Id, src => src.Receiver_Id)
+                .Map(dest => dest.Message, src => src.Message)
+                .Map(dest => dest.Source, src => src.Source)
+                .Map(dest => dest.Relation_Request_Status, src => src.Relation_Request_Status)
+                .Map(dest => dest.Created_At, src => src.Created_At)
+                .Map(dest => dest.Handled_At, src => src.Handled_At);
 
 
             TypeAdapterConfig<ChatDto, ChatEntity>.NewConfig()
