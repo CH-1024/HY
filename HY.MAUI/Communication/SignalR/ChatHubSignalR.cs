@@ -193,9 +193,9 @@ namespace HY.MAUI.Communication.SignalR
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
-        public async Task RespondContact(string hyid, bool isAccept, string message)
+        public async Task RespondContact(long contactId, bool isAccept, string message)
         {
-            await _connection!.SendAsync("RespondContact", hyid, isAccept, message);
+            await _connection!.SendAsync("RespondContact", contactId, isAccept, message);
         }
 
 

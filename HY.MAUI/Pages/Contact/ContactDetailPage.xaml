@@ -83,10 +83,10 @@
             <Border StrokeShape="RoundRectangle 10" Padding="15">
                 <VerticalStackLayout Spacing="12">
 
-                    <Grid ColumnDefinitions="50,*">
+                    <!--<Grid ColumnDefinitions="50,*">
                         <Label Text="HYID：" TextColor="Gray"/>
                         <Label Grid.Column="1" Text="{Binding ContactInfo.HYid}"/>
-                    </Grid>
+                    </Grid>-->
 
                     <Grid ColumnDefinitions="50,*">
                         <Label Text="状态：" TextColor="Gray"/>

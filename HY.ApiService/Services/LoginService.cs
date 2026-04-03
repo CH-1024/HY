@@ -76,7 +76,7 @@ namespace HY.ApiService.Services
                 await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
             }
 
-            var newAccessToken = TokenGenerator.GenerateAccessToken(user.Id, user.HYid, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
+            var newAccessToken = TokenGenerator.GenerateAccessToken(user.Id, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
             await _redisTokenService.SaveAsync(user.Id, param.DeviceId, newAccessToken, accessExpires);
 
             var tokenResult = new TokenResult(newAccessToken, newRefreshToken, accessExpires);
@@ -132,7 +132,7 @@ namespace HY.ApiService.Services
                 await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
             }
 
-            var accessToken = TokenGenerator.GenerateAccessToken(user.Id, user.HYid, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
+            var accessToken = TokenGenerator.GenerateAccessToken(user.Id, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
             await _redisTokenService.SaveAsync(user.Id, param.DeviceId, accessToken, accessExpires);
 
             var tokenResult = new TokenResult(accessToken, refreshToken, accessExpires);
