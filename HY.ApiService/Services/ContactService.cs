@@ -16,7 +16,7 @@ namespace HY.ApiService.Services
         Task<ContactResult> GetContactByHYidOrPhone(long currentUserId, string identity);
 
         Task<ContactRequestDto?> RequestContact(long userId, long contactId, string source, string message);
-        Task RespondContact(long userId, string hyid, string messag);
+        Task RespondContact(long userId, long contactId, string messag);
     }
 
 
@@ -208,9 +208,9 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task RespondContact(long senderId, string targetHYid, string messag)
+        public async Task RespondContact(long senderId, long contactId, string messag)
         {
-            var target = await _userRepository.GetUserByHYid(targetHYid);
+            //var target = await _userRepository.GetUserByHYid(targetHYid);
             //if (target == null) return new ContactResult(false, "用户不存在");
 
         }

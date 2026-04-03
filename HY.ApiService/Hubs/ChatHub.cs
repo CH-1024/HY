@@ -234,7 +234,7 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task OnRespondContact(string hyid, bool isAccept, string message)
+        public async Task OnRespondContact(long contactId, bool isAccept, string message)
         {
             var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!long.TryParse(userIdStr, out var userId)) return;
