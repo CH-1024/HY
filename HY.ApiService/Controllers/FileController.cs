@@ -29,17 +29,19 @@ namespace HY.ApiService.Controllers
         [HttpPost("upload/image")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
-            if (file == null) return BadRequest(new Response(false, "File is required"));
+            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
-
-            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
+            var userId = long.Parse(userIdStr!);
 
             UploadResult result;
 
-            if (type == "Local")
+            if (file == null)
+            {
+                result = new UploadResult(false, "File is required");
+            }
+            else if (type == "Local")
             {
                  result = await _mediaService.UploadImageToLocal(userId, file);
             }
@@ -73,17 +75,19 @@ namespace HY.ApiService.Controllers
         [HttpPost("upload/head")]
         public async Task<IActionResult> UploadHead(IFormFile file)
         {
-            if (file == null) return BadRequest(new Response(false, "File is required"));
+            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
-
-            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
+            var userId = long.Parse(userIdStr!);
 
             UploadResult result;
 
-            if (type == "Local")
+            if (file == null)
+            {
+                result = new UploadResult(false, "File is required");
+            }
+            else if (type == "Local")
             {
                 result = await _mediaService.UploadHeadToLocal(userId, file);
             }

@@ -5,6 +5,7 @@ using HY.ApiService.Models;
 using HY.ApiService.Repositories;
 using HY.ApiService.Tools;
 using Mapster;
+using SqlSugar;
 
 namespace HY.ApiService.Services
 {
@@ -20,18 +21,22 @@ namespace HY.ApiService.Services
 
     public class LoginService : ILoginService
     {
-        private readonly IUserService _userService;
+        private readonly ISqlSugarClient _db;
+
         private readonly IRedisTokenService _redisTokenService;
 
+        private readonly IUserRepository _userRepository;
         private readonly ILoginTokenRepository _loginTokenRepository;
         private readonly ILoginDeviceRepository _loginDeviceRepository;
 
 
-        public LoginService(IUserService userService, IRedisTokenService redisTokenService, ILoginTokenRepository loginTokenRepository, ILoginDeviceRepository loginDeviceRepository)
+        public LoginService(ISqlSugarClient db, IRedisTokenService redisTokenService, IUserRepository userRepository, ILoginTokenRepository loginTokenRepository, ILoginDeviceRepository loginDeviceRepository)
         {
-            _userService = userService;
+            _db = db;
+
             _redisTokenService = redisTokenService;
 
+            _userRepository = userRepository;
             _loginTokenRepository = loginTokenRepository;
             _loginDeviceRepository = loginDeviceRepository;
         }
@@ -46,7 +51,7 @@ namespace HY.ApiService.Services
                 return new RefreshResult(false, "无效的刷新请求!");
             }
 
-            var user = await _userService.GetUserById(loginTokenEntity.User_Id);
+            var user = await _userRepository.GetUserById(loginTokenEntity.User_Id);
             if (user == null)
             {
                 return new RefreshResult(false, "用户不存在!");
@@ -73,7 +78,8 @@ namespace HY.ApiService.Services
                 loginTokenEntity.Refresh_Token = newRefreshToken;
                 loginTokenEntity.Refresh_Expired = DateTime.UtcNow.AddDays(20);
 
-                await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
+                var bol = await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
+                if (!bol) return new RefreshResult(bol);
             }
 
             var newAccessToken = TokenGenerator.GenerateAccessToken(user.Id, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
@@ -86,7 +92,7 @@ namespace HY.ApiService.Services
 
         public async Task<LoginResult> Login(string ip, LoginRequest param)
         {
-            var user = await _userService.Login(param.Username, param.Password);
+            var user = await _userRepository.GetUserByUsername(param.Username);
             if (user == null)
             {
                 return new LoginResult(false, "用户名或密码错误!");
@@ -104,89 +110,117 @@ namespace HY.ApiService.Services
                 return new LoginResult(false, "用户已注销!");
             }
 
-            #region 更新LoginToken
-
-            var refreshToken = TokenGenerator.GenerateRefreshToken();
-
-            var loginTokenEntity = await _loginTokenRepository.GetLoginTokenByUserIdAndDeviceId(user.Id, param.DeviceId);
-            if (loginTokenEntity == null)
+            bool isValid = PBKDF2PasswordHasher.Verify(param.Password, user.Password_Hash!, user.Password_Salt!);
+            if (!isValid)
             {
-                loginTokenEntity = new LoginTokenEntity
+                return new LoginResult(false, "用户名或密码错误!");
+            }
+
+            string accessToken = null;
+            string refreshToken = null;
+            DateTime accessExpires = default;
+
+            // 开启事务
+            var result = await _db.Ado.UseTranAsync(async () =>
+            {
+                #region LoginToken
+
+                refreshToken = TokenGenerator.GenerateRefreshToken();
+
+                var loginTokenEntity = await _loginTokenRepository.GetLoginTokenByUserIdAndDeviceId(user.Id, param.DeviceId);
+                if (loginTokenEntity == null)
                 {
-                    User_Id = user.Id,
-                    Device_Id = param.DeviceId,
-                    Refresh_Token = refreshToken,
-                    Refresh_Expired = DateTime.UtcNow.AddDays(30),
-                    Revoked = false,
-                    Created_At = DateTime.UtcNow,
-                };
+                    loginTokenEntity = new LoginTokenEntity
+                    {
+                        User_Id = user.Id,
+                        Device_Id = param.DeviceId,
+                        Refresh_Token = refreshToken,
+                        Refresh_Expired = DateTime.UtcNow.AddDays(30),
+                        Revoked = false,
+                        Created_At = DateTime.UtcNow,
+                    };
 
-                await _loginTokenRepository.CreateLoginToken(loginTokenEntity);
-            }
-            else
+                    var id = await _loginTokenRepository.CreateLoginToken(loginTokenEntity);
+                    if (id <= 0) throw new Exception("创建登录令牌失败!");
+                }
+                else
+                {
+                    loginTokenEntity.Refresh_Token = refreshToken;
+                    loginTokenEntity.Refresh_Expired = DateTime.UtcNow.AddDays(30);
+                    loginTokenEntity.Revoked = false;
+
+                    var bol = await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
+                    if (!bol) throw new Exception("更新登录令牌失败!");
+                }
+
+                #endregion
+
+                #region LoginDevice
+
+                var device = await _loginDeviceRepository.GetLoginDeviceByUserIdAndDeviceId(user.Id, param.DeviceId);
+                if (device == null)
+                {
+                    device = new LoginDeviceEntity
+                    {
+                        User_Id = user.Id,
+                        Device_Id = param.DeviceId,
+                        Device_Platform = param.DevicePlatform,
+                        Device_Type = param.DeviceType,
+                        Device_Name = param.DeviceName,
+                        Last_Login_Ip = ip,
+                        Last_Login_At = DateTime.UtcNow,
+                        //Is_Online = true,                   // IsOnline只在ChatHub实时更新
+                    };
+
+                    var id = await _loginDeviceRepository.CreateLoginDevice(device);
+                    if (id <= 0) throw new Exception("创建登录设备失败!");
+                }
+                else
+                {
+                    device.Device_Platform = param.DevicePlatform;
+                    device.Device_Type = param.DeviceType;
+                    device.Device_Name = param.DeviceName;
+                    device.Last_Login_Ip = ip;
+                    device.Last_Login_At = DateTime.UtcNow;
+                    //device.Is_Online = true;       // IsOnline只在ChatHub实时更新
+
+                    var bol = await _loginDeviceRepository.UpdateLoginDevice(device);
+                    if (!bol) throw new Exception("更新登录设备失败!");
+                }
+
+                var devices = await _loginDeviceRepository.GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(user.Id, param.DevicePlatform);
+                foreach (var d in devices)
+                {
+                    // Todo: 下线处理
+                    d.Is_Online = false;
+                    var bol = await _loginDeviceRepository.UpdateLoginDevice(d);
+                    if (!bol) throw new Exception("更新登录设备状态失败!");
+                }
+
+                #endregion
+
+                accessToken = TokenGenerator.GenerateAccessToken(user.Id, param.DeviceId, param.DevicePlatform, out accessExpires);
+            });
+
+            // ---------- 事务结束 ----------
+            if (!result.IsSuccess)
             {
-                loginTokenEntity.Refresh_Token = refreshToken;
-                loginTokenEntity.Refresh_Expired = DateTime.UtcNow.AddDays(30);
-                loginTokenEntity.Revoked = false;
-
-                await _loginTokenRepository.UpdateLoginToken(loginTokenEntity);
+                return new LoginResult(false, "登录失败：" + result.ErrorMessage);
             }
 
-            var accessToken = TokenGenerator.GenerateAccessToken(user.Id, param.DeviceId, param.DevicePlatform, out DateTime accessExpires);
+            // Redis 不放事务里
             await _redisTokenService.SaveAsync(user.Id, param.DeviceId, accessToken, accessExpires);
 
             var tokenResult = new TokenResult(accessToken, refreshToken, accessExpires);
 
-            #endregion
-
-            #region 更新LoginDevice
-
-            var loginingDevice = await _loginDeviceRepository.GetLoginDeviceByUserIdAndDeviceId(user.Id, param.DeviceId);
-            if (loginingDevice == null)
-            {
-                var loginDeviceEntity = new LoginDeviceEntity
-                {
-                    User_Id = user.Id,
-                    Device_Id = param.DeviceId,
-                    Device_Platform = param.DevicePlatform,
-                    Device_Type = param.DeviceType,
-                    Device_Name = param.DeviceName,
-                    Last_Login_Ip = ip,
-                    Last_Login_At = DateTime.UtcNow,
-                    //Is_Online = true,                   // IsOnline只在ChatHub实时更新
-                };
-
-                await _loginDeviceRepository.CreateLoginDevice(loginDeviceEntity);
-            }
-            else
-            {
-                loginingDevice.Device_Platform = param.DevicePlatform;
-                loginingDevice.Device_Type = param.DeviceType;
-                loginingDevice.Device_Name = param.DeviceName;
-                loginingDevice.Last_Login_Ip = ip;
-                loginingDevice.Last_Login_At = DateTime.UtcNow;
-                //loginingDevice.Is_Online = true;       // IsOnline只在ChatHub实时更新
-
-                await _loginDeviceRepository.UpdateLoginDevice(loginingDevice);
-            }
-
-            var logedInDevices = await _loginDeviceRepository.GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(user.Id, param.DevicePlatform);
-            foreach (var logedInDevice in logedInDevices)
-            {
-                // Todo: 下线处理
-                logedInDevice.Is_Online = false;
-                await _loginDeviceRepository.UpdateLoginDevice(logedInDevice);
-            }
-
-            #endregion
-
-            return new LoginResult(true, string.Empty, user, tokenResult);
+            return new LoginResult(true, string.Empty, user.Adapt<UserDto>(), tokenResult);
         }
 
         public async Task<bool> Logout(long userId, string deviceId)
         {
             // 删除Redis中的Token
             await _redisTokenService.RemoveAsync(userId, deviceId);
+
             // 更新登录令牌状态
             return await _loginTokenRepository.UpdateLoginTokenRevoked(userId, deviceId);
         }

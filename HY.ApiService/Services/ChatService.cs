@@ -1,8 +1,12 @@
-﻿using HY.ApiService.Dtos;
+﻿using Azure.Core;
+using HY.ApiService.Dtos;
 using HY.ApiService.Entities;
 using HY.ApiService.Enums;
+using HY.ApiService.Models;
 using HY.ApiService.Repositories;
+using HY.ApiService.Tools;
 using Mapster;
+using SqlSugar;
 
 namespace HY.ApiService.Services
 {
@@ -10,7 +14,7 @@ namespace HY.ApiService.Services
     {
         Task<List<ChatDto>> GetChatsByUserId(long userId);
 
-        Task UpdateChatLastMessage(MessageDto messageDto);
+        Task<bool> UpdateChatLastMessage(MessageDto messageDto);
         Task<bool> UpdateChatUnread(long chat_Id);
         Task<bool> UpdateChatUnread(long userId, long targetId, ChatType chatType);
     }
@@ -18,6 +22,8 @@ namespace HY.ApiService.Services
 
     public class ChatService : IChatService
     {
+        private readonly ISqlSugarClient _db;
+
         private readonly IChatRepository _chatRepository;
         private readonly IUserRepository _userRepository;
         private readonly IGroupRepository _groupRepository;
@@ -26,8 +32,10 @@ namespace HY.ApiService.Services
 
 
 
-        public ChatService(IChatRepository chatRepository, IUserRepository userRepository, IGroupRepository groupRepository, IGroupMemberRepository groupMemberRepository, IMessageRepository messageRepository)
+        public ChatService(ISqlSugarClient db, IChatRepository chatRepository, IUserRepository userRepository, IGroupRepository groupRepository, IGroupMemberRepository groupMemberRepository, IMessageRepository messageRepository)
         {
+            _db = db;
+
             _chatRepository = chatRepository;
             _userRepository = userRepository;
             _groupRepository = groupRepository;
@@ -53,6 +61,7 @@ namespace HY.ApiService.Services
             foreach (var chatEntity in chatEntities)
             {
                 var chatDto = chatEntity.Adapt<ChatDto>();
+
                 if (chatDto.Type == ChatType.Private && userMap.TryGetValue(chatDto.Target_Id, out var user)) // 单聊
                 {
                     chatDto.Target_Name = user.Nickname;
@@ -92,31 +101,40 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task UpdateChatLastMessage(MessageDto messageDto)
+        public async Task<bool> UpdateChatLastMessage(MessageDto messageDto)
         {
             if (messageDto.Chat_Type == ChatType.Private)
             {
                 // 单人
 
-                var senderChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Sender_Id, messageDto.Target_Id, ChatType.Private);
-                if (senderChatEntity != null)
+                // 开启事务
+                var result = await _db.Ado.UseTranAsync(async () =>
                 {
-                    senderChatEntity.Is_Deleted = false;
-                    senderChatEntity.Last_Msg_Id = messageDto.Id;
-                    //senderChatEntity.Unread_Count = 0;
-                    senderChatEntity.Last_Msg_Time = messageDto.Created_At;
-                    await _chatRepository.UpdateChat(senderChatEntity);
-                }
+                    var senderChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Sender_Id, messageDto.Target_Id, ChatType.Private);
+                    if (senderChatEntity != null)
+                    {
+                        senderChatEntity.Is_Deleted = false;
+                        senderChatEntity.Last_Msg_Id = messageDto.Id;
+                        //senderChatEntity.Unread_Count = 0;
+                        senderChatEntity.Last_Msg_Time = messageDto.Created_At;
+                        var bol = await _chatRepository.UpdateChat(senderChatEntity);
+                        if (!bol) throw new Exception("更新发送者聊天记录失败");
+                    }
 
-                var receiverChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
-                if (receiverChatEntity != null)
-                {
-                    receiverChatEntity.Is_Deleted = false;
-                    receiverChatEntity.Last_Msg_Id = messageDto.Id;
-                    receiverChatEntity.Unread_Count += 1;
-                    receiverChatEntity.Last_Msg_Time = messageDto.Created_At;
-                    await _chatRepository.UpdateChat(receiverChatEntity);
-                }
+                    var receiverChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
+                    if (receiverChatEntity != null)
+                    {
+                        receiverChatEntity.Is_Deleted = false;
+                        receiverChatEntity.Last_Msg_Id = messageDto.Id;
+                        receiverChatEntity.Unread_Count += 1;
+                        receiverChatEntity.Last_Msg_Time = messageDto.Created_At;
+                        var bol = await _chatRepository.UpdateChat(receiverChatEntity);
+                        if (bol) throw new Exception("更新接收者聊天记录失败");
+                    }
+                });
+
+                // ---------- 事务结束 ----------
+                if (!result.IsSuccess) return false;
             }
             else if (messageDto.Chat_Type == ChatType.Group)
             {
@@ -145,8 +163,11 @@ namespace HY.ApiService.Services
                     }
                 }
 
-                await _chatRepository.UpdateChats(memberChatEntities);
+                var bol = await _chatRepository.UpdateChats(memberChatEntities);
+                if (!bol) return false;
             }
+
+            return true;
         }
 
         public async Task<bool> UpdateChatUnread(long chat_Id)

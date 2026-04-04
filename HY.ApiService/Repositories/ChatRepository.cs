@@ -21,47 +21,39 @@ namespace HY.ApiService.Repositories
 
     public class ChatRepository : IChatRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public ChatRepository(IServiceScopeFactory scopeFactory)
+        public ChatRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
 
         public async Task<ChatEntity> GetChatByChatId(long chatId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ChatEntity>()
+            return await _db.Queryable<ChatEntity>()
                 .Where(c => c.Id == chatId)
                 .SingleAsync();
         }
 
         public async Task<ChatEntity> GetChatByUserIdAndType(long userId, long targetId, ChatType chatType)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ChatEntity>()
+            return await _db.Queryable<ChatEntity>()
                 .Where(c => c.User_Id == userId && c.Target_Id == targetId && c.Type == chatType)
                 .SingleAsync();
         }
 
         public async Task<List<ChatEntity>> GetChatsByUserIdsAndType(List<long> userIds, long target_Id, ChatType chatType)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ChatEntity>()
+            return await _db.Queryable<ChatEntity>()
                 .Where(c => userIds.Contains(c.User_Id) && c.Target_Id == target_Id && c.Type == chatType)
                 .ToListAsync();
         }
 
         public async Task<List<ChatEntity>> GetChatsByUserId(long userId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ChatEntity>()
+            return await _db.Queryable<ChatEntity>()
                 .Where(c => c.User_Id == userId)
                 .OrderBy(c => c.Last_Msg_Time, OrderByType.Desc)
                 .ToListAsync();
@@ -71,17 +63,13 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateChat(ChatEntity senderChatEntity)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable(senderChatEntity).ExecuteCommandAsync();
+            var result = await _db.Updateable(senderChatEntity).ExecuteCommandAsync();
             return result > 0;
         }
 
         public async Task<bool> UpdateChatUnread(long chatId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable<ChatEntity>()
+            var result = await _db.Updateable<ChatEntity>()
                 .SetColumns(c => c.Unread_Count == 0)
                 .Where(c => c.Id == chatId)
                 .ExecuteCommandAsync();
@@ -90,9 +78,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateChats(List<ChatEntity> memberChatEntities)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable(memberChatEntities).ExecuteCommandAsync();
+            var result = await _db.Updateable(memberChatEntities).ExecuteCommandAsync();
             return result > 0;
         }
 

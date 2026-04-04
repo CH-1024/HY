@@ -19,11 +19,11 @@ namespace HY.ApiService.Repositories
 
     public class LoginDeviceRepository : ILoginDeviceRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public LoginDeviceRepository(IServiceScopeFactory scopeFactory)
+        public LoginDeviceRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
@@ -31,9 +31,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<long> CreateLoginDevice(LoginDeviceEntity loginDevice)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            loginDevice.Id = await db.Insertable(loginDevice).ExecuteReturnBigIdentityAsync();
+            loginDevice.Id = await _db.Insertable(loginDevice).ExecuteReturnBigIdentityAsync();
             return loginDevice.Id;
         }
 
@@ -42,27 +40,21 @@ namespace HY.ApiService.Repositories
 
         public async Task<LoginDeviceEntity?> GetLoginDeviceById(long id)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<LoginDeviceEntity>()
+            return await _db.Queryable<LoginDeviceEntity>()
                 .Where(ld => ld.Id == id)
                 .SingleAsync();
         }
 
         public async Task<List<LoginDeviceEntity>> GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(long userId, string devicePlatform)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<LoginDeviceEntity>()
+            return await _db.Queryable<LoginDeviceEntity>()
                 .Where(ld => ld.User_Id == userId && ld.Device_Platform == devicePlatform && ld.Is_Online)
                 .ToListAsync();
         }
 
         public async Task<LoginDeviceEntity?> GetLoginDeviceByUserIdAndDeviceId(long userId, string deviceId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<LoginDeviceEntity>()
+            return await _db.Queryable<LoginDeviceEntity>()
                 .Where(ld => ld.User_Id == userId && ld.Device_Id == deviceId)
                 .SingleAsync();
         }
@@ -72,17 +64,13 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateLoginDevice(LoginDeviceEntity loginDevice)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable(loginDevice).ExecuteCommandAsync();
+            var result = await _db.Updateable(loginDevice).ExecuteCommandAsync();
             return result > 0;
         }
 
         public async Task<bool> UpdateLoginDeviceOnline(long userId, string deviceId, bool isOnline)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable<LoginDeviceEntity>()
+            var result = await _db.Updateable<LoginDeviceEntity>()
                 .SetColumns(ld => ld.Is_Online == isOnline)
                 .Where(ld => ld.User_Id == userId && ld.Device_Id == deviceId)
                 .ExecuteCommandAsync();

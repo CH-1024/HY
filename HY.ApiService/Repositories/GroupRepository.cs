@@ -13,28 +13,24 @@ namespace HY.ApiService.Repositories
 
     public class GroupRepository : IGroupRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public GroupRepository(IServiceScopeFactory scopeFactory)
+        public GroupRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
         public async Task<GroupEntity> GetGroupById(long groupId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<GroupEntity>()
+            return await _db.Queryable<GroupEntity>()
                 .Where(g => g.Id == groupId)
                 .SingleAsync();
         }
 
         public async Task<List<GroupEntity>> GetGroupsByIds(List<long> groupIds)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<GroupEntity>().In(groupIds).ToListAsync();
+            return await _db.Queryable<GroupEntity>().In(groupIds).ToListAsync();
         }
 
     }

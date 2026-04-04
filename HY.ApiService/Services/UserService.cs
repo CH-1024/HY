@@ -11,9 +11,8 @@ namespace HY.ApiService.Services
 {
     public interface IUserService
     {
-        Task<UserDto?> CreateUser(string nickname, string username, string password, string phone, string email);
+        Task<long> CreateUser(RegisterRequest registerRequest);
 
-        Task<UserDto?> Login(string username, string password);
         Task<UserDto?> GetUserById(long id);
 
         Task<bool> ExistsUsername(string username);
@@ -35,52 +34,30 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task<UserDto?> CreateUser(string nickname, string username, string password, string phone, string email)
+        public async Task<long> CreateUser(RegisterRequest registerRequest)
         {
-            var hash = PBKDF2PasswordHasher.Hash(password, out string salt);
+            var hash = PBKDF2PasswordHasher.Hash(registerRequest.Password, out string salt);
             var hyid = Guid.NewGuid().ToString("N")[..16];
 
             var userEntity = new UserEntity
             {
                 HYid = hyid,
-                Username = username,
-                Nickname = nickname,
+                Username = registerRequest.Username,
+                Nickname = registerRequest.Nickname,
                 Avatar = null,
-                Phone = phone,
-                Email = email,
+                Phone = registerRequest.Phone,
+                Email = registerRequest.Email,
                 Password_Hash = hash,
                 Password_Salt = salt,
                 Status = UserStatus.Registered,
                 Created_At = DateTime.UtcNow
             };
 
-            var userId = await _userRepository.CreateUser(userEntity);
-            if (userId == 0)
-            {
-                return null;
-            }
-
-            return userEntity.Adapt<UserDto>();
+            return await _userRepository.CreateUser(userEntity);
         }
 
 
 
-
-        public async Task<UserDto?> Login(string username, string password)
-        {
-            var userEntity = await _userRepository.GetUserByUsername(username);
-            if (userEntity == null)
-            {
-                return null;
-            }
-            bool isValid = PBKDF2PasswordHasher.Verify(password, userEntity.Password_Hash!, userEntity.Password_Salt!);
-            if (!isValid)
-            {
-                return null;
-            }
-
-            return userEntity?.Adapt<UserDto>();
-        }
 
         public async Task<UserDto?> GetUserById(long id)
         {
