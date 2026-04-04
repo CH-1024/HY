@@ -19,20 +19,17 @@ namespace HY.ApiService.Repositories
 
     public class MediaStorageVariantRepository : IMediaStorageVariantRepository
     {
+        private readonly ISqlSugarClient _db;
 
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public MediaStorageVariantRepository(IServiceScopeFactory scopeFactory)
+        public MediaStorageVariantRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
         public async Task<long> CreateMediaStorageVariant(MediaStorageVariantEntity mediaStorageVariant)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            mediaStorageVariant.Id = await db.Insertable(mediaStorageVariant).ExecuteReturnBigIdentityAsync();
+            mediaStorageVariant.Id = await _db.Insertable(mediaStorageVariant).ExecuteReturnBigIdentityAsync();
             return mediaStorageVariant.Id;
         }
 
@@ -41,9 +38,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<MediaStorageVariantEntity> GetMediaStorageVariantByStorageIdAndVariantType(long storageId, VariantType variantType)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MediaStorageVariantEntity>().Where(msv => msv.Storage_Id == storageId && msv.Variant_Type == variantType).SingleAsync();
+            return await _db.Queryable<MediaStorageVariantEntity>().Where(msv => msv.Storage_Id == storageId && msv.Variant_Type == variantType).SingleAsync();
         }
 
 
@@ -51,9 +46,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateMediaStorageVariant(long storageId, VariantType variantType, string filePath, string mimeType, string bucket, StorageType storageType, int status)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Updateable<MediaStorageVariantEntity>()
+            return await _db.Updateable<MediaStorageVariantEntity>()
                 .SetColumns(msv => msv.File_Path == filePath)
                 .SetColumns(msv => msv.Mime_Type == mimeType)
                 .SetColumns(msv => msv.Storage_Bucket == bucket)
@@ -65,9 +58,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateMediaStorageVariant(MediaStorageVariantEntity mediaStorageVariant)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable(mediaStorageVariant).ExecuteCommandAsync();
+            var result = await _db.Updateable(mediaStorageVariant).ExecuteCommandAsync();
             return result > 0;
         }
 

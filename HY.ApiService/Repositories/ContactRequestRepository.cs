@@ -18,21 +18,18 @@ namespace HY.ApiService.Repositories
 
     public class ContactRequestRepository : IContactRequestRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-
-        public ContactRequestRepository(IServiceScopeFactory scopeFactory)
+        public ContactRequestRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
 
         public async Task<long> CreateContactRequest(ContactRequestEntity contactRequest)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            contactRequest.Id = await db.Insertable(contactRequest).ExecuteReturnBigIdentityAsync();
+            contactRequest.Id = await _db.Insertable(contactRequest).ExecuteReturnBigIdentityAsync();
             return contactRequest.Id;
         }
 
@@ -40,36 +37,28 @@ namespace HY.ApiService.Repositories
 
         public async Task<List<ContactRequestEntity>> GetContactRequestsByUserId(long userId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ContactRequestEntity>()
+            return await _db.Queryable<ContactRequestEntity>()
                 .Where(c => c.Sender_Id == userId || c.Receiver_Id == userId)
                 .ToListAsync();
         }
 
         public async Task<ContactRequestEntity> GetContactRequestById(long contact_Request_Id)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ContactRequestEntity>()
+            return await _db.Queryable<ContactRequestEntity>()
                 .Where(c => c.Id == contact_Request_Id)
                 .SingleAsync();
         }
 
         public async Task<List<ContactRequestEntity>> GetContactRequestsByIds(List<long> contactRequestIds)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ContactRequestEntity>().In(contactRequestIds).ToListAsync();
+            return await _db.Queryable<ContactRequestEntity>().In(contactRequestIds).ToListAsync();
         }
 
 
 
         public async Task<bool> ExistsPendingContactRequest(long senderId, long targetId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<ContactRequestEntity>()
+            return await _db.Queryable<ContactRequestEntity>()
                 .Where(c => c.Sender_Id == senderId && c.Receiver_Id == targetId && c.Relation_Request_Status == RelationRequestStatus.Pending)
                 .AnyAsync();
         }

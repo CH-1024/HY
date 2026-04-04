@@ -13,20 +13,17 @@ namespace HY.ApiService.Repositories
 
     public class MediaFileRepository : IMediaFileRepository
     {
+        private readonly ISqlSugarClient _db;
 
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public MediaFileRepository(IServiceScopeFactory scopeFactory)
+        public MediaFileRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
         public async Task<long> CreateMediaFile(MediaFileEntity mediaFile)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            mediaFile.Id = await db.Insertable(mediaFile).ExecuteReturnBigIdentityAsync();
+            mediaFile.Id = await _db.Insertable(mediaFile).ExecuteReturnBigIdentityAsync();
             return mediaFile.Id;
         }
 
@@ -34,9 +31,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<MediaFileEntity?> GetFileByFileId(string fileId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MediaFileEntity>().Where(mf => mf.File_Id == fileId).SingleAsync();
+            return await _db.Queryable<MediaFileEntity>().Where(mf => mf.File_Id == fileId).SingleAsync();
         }
 
     }

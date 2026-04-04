@@ -21,11 +21,11 @@ namespace HY.ApiService.Repositories
 
     public class MessageRepository : IMessageRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public MessageRepository(IServiceScopeFactory scopeFactory)
+        public MessageRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
@@ -33,9 +33,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<long> InsertMessage(MessageEntity messageEntity)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            messageEntity.Id = await db.Insertable(messageEntity).ExecuteReturnBigIdentityAsync();
+            messageEntity.Id = await _db.Insertable(messageEntity).ExecuteReturnBigIdentityAsync();
             return messageEntity.Id;
         }
 
@@ -43,10 +41,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<MessageEntity> GetMessageById(long currentUserId, long messageId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-
-            return await db.Queryable<MessageEntity>()
+            return await _db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
                 .Where((m, a) => a.Message_Id == null)   // 过滤已删除
                 .InSingleAsync(messageId);
@@ -54,10 +49,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<List<MessageEntity>> GetMessagesByIds(long currentUserId, List<long> msgIds)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-
-            return await db.Queryable<MessageEntity>()
+            return await _db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
                 .Where((m, a) => a.Message_Id == null)   // 过滤已删除
                 .In(msgIds).ToListAsync();
@@ -65,10 +57,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<List<MessageEntity>> GetPrivateChatMessages(long currentUserId, long targetUserId, long skipMessageId, int take)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-
-            var baseQuery = db.Queryable<MessageEntity>()
+            var baseQuery = _db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
                 .Where((m, a) => a.Message_Id == null)   // 过滤已删除
                 .Where((m, a) => m.Chat_Type == ChatType.Private)
@@ -78,15 +67,12 @@ namespace HY.ApiService.Repositories
             var q2 = baseQuery.Clone().Where((m, a) => m.Sender_Id == targetUserId && m.Target_Id == currentUserId).Select((m, a) => m);
 
             // UNION ALL 合并
-            return await db.UnionAll(q1, q2).OrderBy(m => m.Id, OrderByType.Desc).Take(take).ToListAsync();
+            return await _db.UnionAll(q1, q2).OrderBy(m => m.Id, OrderByType.Desc).Take(take).ToListAsync();
         }
 
         public async Task<List<MessageEntity>> GetGroupChatMessages(long currentUserId, long groupId, long skipMessageId, int take)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-
-            return await db.Queryable<MessageEntity>()
+            return await _db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)
                 .Where((m, a) => a.Message_Id == null)   // 过滤已删除
                 .Where((m, a) => m.Target_Id == groupId && m.Chat_Type == ChatType.Group)
@@ -100,9 +86,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> RecallMessage(long messageId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable<MessageEntity>()
+            var result = await _db.Updateable<MessageEntity>()
                 .SetColumns(m => m.Message_Status == MessageStatus.Recalled)
                 .SetColumns(m => m.Content == null)
                 .SetColumns(m => m.Extra == null)

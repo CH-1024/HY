@@ -4,6 +4,7 @@ using HY.ApiService.Enums;
 using HY.ApiService.Models;
 using HY.ApiService.Repositories;
 using Mapster;
+using SqlSugar;
 
 namespace HY.ApiService.Services
 {
@@ -22,13 +23,17 @@ namespace HY.ApiService.Services
 
     public class ContactService : IContactService
     {
+        private readonly ISqlSugarClient _db;
+
         private readonly IUserRepository _userRepository;
         private readonly IContactRepository _contactRepository;
         private readonly IContactRequestRepository _contactRequestRepository;
 
 
-        public ContactService(IUserRepository userRepository, IContactRepository contactRepository, IContactRequestRepository contactRequestRepository)
+        public ContactService(ISqlSugarClient db, IUserRepository userRepository, IContactRepository contactRepository, IContactRequestRepository contactRequestRepository)
         {
+            _db = db;
+
             _userRepository = userRepository;
             _contactRepository = contactRepository;
             _contactRequestRepository = contactRequestRepository;
@@ -195,7 +200,11 @@ namespace HY.ApiService.Services
                     Relation_Request_Status = RelationRequestStatus.Pending,
                     Created_At = DateTime.UtcNow
                 };
-                await _contactRequestRepository.CreateContactRequest(contactRequestEntity);
+                var id = await _contactRequestRepository.CreateContactRequest(contactRequestEntity);
+                if (id <= 0)
+                {
+                    return null;
+                }
 
                 var contactRequestDto = contactRequestEntity.Adapt<ContactRequestDto>();
 

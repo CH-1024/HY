@@ -1,14 +1,18 @@
-﻿using Dm;
+﻿using Azure.Core;
+using Dm;
 using HY.ApiService.Entities;
 using HY.ApiService.Enums;
 using HY.ApiService.Models;
 using HY.ApiService.Repositories;
+using HY.ApiService.Tools;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client.Extensions.Msal;
 using SkiaSharp;
+using SqlSugar;
 using System.Configuration;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using StorageType = HY.ApiService.Enums.StorageType;
 
 namespace HY.ApiService.Services
 {
@@ -30,13 +34,17 @@ namespace HY.ApiService.Services
 
     public class MediaService : IMediaService
     {
+        private readonly ISqlSugarClient _db;
+
         private readonly IConfiguration _configuration;
         private readonly IMediaStorageRepository _mediaStorageRepository;
         private readonly IMediaFileRepository _mediaFileRepository;
         private readonly IMediaStorageVariantRepository _mediaStorageVariantRepository;
 
-        public MediaService(IConfiguration configuration,IMediaStorageRepository mediaStorageRepository, IMediaFileRepository mediaFileRepository, IMediaStorageVariantRepository mediaStorageVariantRepository)
+        public MediaService(ISqlSugarClient db, IConfiguration configuration,IMediaStorageRepository mediaStorageRepository, IMediaFileRepository mediaFileRepository, IMediaStorageVariantRepository mediaStorageVariantRepository)
         {
+            _db = db;
+
             _configuration = configuration;
             _mediaStorageRepository = mediaStorageRepository;
             _mediaFileRepository = mediaFileRepository;
@@ -62,6 +70,7 @@ namespace HY.ApiService.Services
             var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? "upload";
             var basePath = Path.Combine(path, utcNow.ToString("yyyy"), utcNow.ToString("MM"), utcNow.ToString("dd"));
 
+            MediaFileEntity mediaFileEntity;
             try
             {
                 // 保存文件到临时位置并计算MD5
@@ -72,8 +81,34 @@ namespace HY.ApiService.Services
                 {
                     // 文件已存在且可用，增加引用计数
 
-                    mediaStorageEntity.Ref_Count++;
-                    await _mediaStorageRepository.UpdateMediaStorageRefCount(mediaStorageEntity.Id, mediaStorageEntity.Ref_Count);
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
+                    {
+                        mediaStorageEntity.Ref_Count++;
+                        var bol = await _mediaStorageRepository.UpdateMediaStorageRefCount(mediaStorageEntity.Id, mediaStorageEntity.Ref_Count);
+                        if (!bol) throw new Exception("更新引用计数失败");
+
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"增加引用计数失败：{result.ErrorMessage}");
                 }
                 else if (mediaStorageEntity != null && mediaStorageEntity.Status == 0)
                 {
@@ -125,16 +160,44 @@ namespace HY.ApiService.Services
                     #endregion
 
 
-                    mediaStorageEntity.File_Path = filePathWithoutBucket;
-                    mediaStorageEntity.Storage_Bucket = bucket;
-                    mediaStorageEntity.Storage_Type = StorageType.Local;
-                    mediaStorageEntity.Ref_Count = 1;
-                    mediaStorageEntity.Status = 1;
-                    await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
+                    {
+                        mediaStorageEntity.File_Path = filePathWithoutBucket;
+                        mediaStorageEntity.Storage_Bucket = bucket;
+                        mediaStorageEntity.Storage_Type = StorageType.Local;
+                        mediaStorageEntity.Ref_Count = 1;
+                        mediaStorageEntity.Status = 1;
+                        var bol1 = await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
+                        if (!bol1) throw new Exception("恢复文件记录失败");
 
-                    await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        if (!bol2) throw new Exception("更新缩略图记录失败");
 
-                    await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Compress, compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol3 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Compress, compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        if (!bol3) throw new Exception("更新压缩图记录失败");
+
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"更新数据库记录失败：{result.ErrorMessage}");
                 }
                 else
                 {
@@ -186,73 +249,86 @@ namespace HY.ApiService.Services
                     #endregion
 
 
-                    mediaStorageEntity = new MediaStorageEntity
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
                     {
-                        File_MD5 = fileMD5,
-                        File_Path = filePathWithoutBucket,
-                        File_Size = file.Length,
-                        Mime_Type = file.ContentType,
-                        Storage_Bucket = bucket,
-                        Storage_Type = StorageType.Local,
-                        Ref_Count = 1,
-                        Variant_Mask = (int)VariantType.Thumbnail | (int)VariantType.Compress,
-                        Status = 1,
-                        Created_At = DateTime.UtcNow,
-                    };
-                    await _mediaStorageRepository.CreateMediaStorage(mediaStorageEntity);
+                        mediaStorageEntity = new MediaStorageEntity
+                        {
+                            File_MD5 = fileMD5,
+                            File_Path = filePathWithoutBucket,
+                            File_Size = file.Length,
+                            Mime_Type = file.ContentType,
+                            Storage_Bucket = bucket,
+                            Storage_Type = StorageType.Local,
+                            Ref_Count = 1,
+                            Variant_Mask = (int)VariantType.Thumbnail | (int)VariantType.Compress,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id1 = await _mediaStorageRepository.CreateMediaStorage(mediaStorageEntity);
+                        if (id1 <= 0) throw new Exception("创建文件记录失败");
 
-                    var thumb_mediaStorageVariantEntity = new MediaStorageVariantEntity
-                    {
-                        Storage_Id = mediaStorageEntity.Id,
-                        Variant_Type = VariantType.Thumbnail,
-                        File_Path = thumbFilePathWithoutBucket,
-                        File_Size = thumbLength,
-                        Mime_Type = file.ContentType,
-                        Storage_Bucket = bucket,
-                        Storage_Type = StorageType.Local,
-                        Status = 1,
-                        Created_At = DateTime.UtcNow,
-                    };
-                    await _mediaStorageVariantRepository.CreateMediaStorageVariant(thumb_mediaStorageVariantEntity);
+                        var thumb_mediaStorageVariantEntity = new MediaStorageVariantEntity
+                        {
+                            Storage_Id = mediaStorageEntity.Id,
+                            Variant_Type = VariantType.Thumbnail,
+                            File_Path = thumbFilePathWithoutBucket,
+                            File_Size = thumbLength,
+                            Mime_Type = file.ContentType,
+                            Storage_Bucket = bucket,
+                            Storage_Type = StorageType.Local,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id2 = await _mediaStorageVariantRepository.CreateMediaStorageVariant(thumb_mediaStorageVariantEntity);
+                        if (id2 <= 0) throw new Exception("创建缩略图记录失败");
 
-                    var compress_mediaStorageVariantEntity = new MediaStorageVariantEntity
-                    {
-                        Storage_Id = mediaStorageEntity.Id,
-                        Variant_Type = VariantType.Compress,
-                        File_Path = compressFilePathWithoutBucket,
-                        File_Size = compressLength,
-                        Mime_Type = file.ContentType,
-                        Storage_Bucket = bucket,
-                        Storage_Type = StorageType.Local,
-                        Status = 1,
-                        Created_At = DateTime.UtcNow,
-                    };
-                    await _mediaStorageVariantRepository.CreateMediaStorageVariant(compress_mediaStorageVariantEntity);
+                        var compress_mediaStorageVariantEntity = new MediaStorageVariantEntity
+                        {
+                            Storage_Id = mediaStorageEntity.Id,
+                            Variant_Type = VariantType.Compress,
+                            File_Path = compressFilePathWithoutBucket,
+                            File_Size = compressLength,
+                            Mime_Type = file.ContentType,
+                            Storage_Bucket = bucket,
+                            Storage_Type = StorageType.Local,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id3 = await _mediaStorageVariantRepository.CreateMediaStorageVariant(compress_mediaStorageVariantEntity);
+                        if (id3 <= 0) throw new Exception("创建压缩图记录失败");
+
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"创建数据库记录失败：{result.ErrorMessage}");
                 }
 
-                var mediaFileEntity = new MediaFileEntity
-                {
-                    File_Id = Guid.NewGuid().ToString("N"),
-                    Storage_Id = mediaStorageEntity.Id,
-                    User_Id = userId,
-                    File_Type = FileType.Image,
-                    Original_Name = Path.GetFileName(file.FileName),
-                    Width = null,
-                    Height = null,
-                    Duration = null,
-                    Status = 1,
-                    Created_At = DateTime.UtcNow,
-                };
-                await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
-
-                fileId = mediaFileEntity.File_Id;
             }
             catch (Exception ex)
             {
                 e = ex;
-                File.Delete(filePathWithBucket);
-                File.Delete(thumbFilePathWithBucket);
-                File.Delete(compressFilePathWithBucket);
+
+                if (!string.IsNullOrEmpty(filePathWithBucket)) File.Delete(filePathWithBucket);
+                if (!string.IsNullOrEmpty(thumbFilePathWithBucket)) File.Delete(thumbFilePathWithBucket);
+                if (!string.IsNullOrEmpty(compressFilePathWithBucket)) File.Delete(compressFilePathWithBucket);
             }
             finally
             {
@@ -296,6 +372,7 @@ namespace HY.ApiService.Services
             var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? "upload";
             var basePath = Path.Combine(path, utcNow.ToString("yyyy"), utcNow.ToString("MM"), utcNow.ToString("dd"));
 
+            MediaFileEntity mediaFileEntity;
             try
             {
                 // 保存文件到临时位置并计算MD5
@@ -306,8 +383,34 @@ namespace HY.ApiService.Services
                 {
                     // 文件已存在且可用，增加引用计数
 
-                    mediaStorageEntity.Ref_Count++;
-                    await _mediaStorageRepository.UpdateMediaStorageRefCount(mediaStorageEntity.Id, mediaStorageEntity.Ref_Count);
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
+                    {
+                        mediaStorageEntity.Ref_Count++;
+                        var bol = await _mediaStorageRepository.UpdateMediaStorageRefCount(mediaStorageEntity.Id, mediaStorageEntity.Ref_Count);
+                        if (!bol) throw new Exception("更新引用计数失败");
+
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"增加引用计数失败：{result.ErrorMessage}");
                 }
                 else if (mediaStorageEntity != null && mediaStorageEntity.Status == 0)
                 {
@@ -343,15 +446,41 @@ namespace HY.ApiService.Services
 
                     #endregion
 
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
+                    {
+                        mediaStorageEntity.File_Path = filePathWithoutBucket;
+                        mediaStorageEntity.Storage_Bucket = bucket;
+                        mediaStorageEntity.Storage_Type = StorageType.Local;
+                        mediaStorageEntity.Ref_Count = 1;
+                        mediaStorageEntity.Status = 1;
+                        var bol1 = await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
+                        if (!bol1) throw new Exception("恢复文件记录失败");
 
-                    mediaStorageEntity.File_Path = filePathWithoutBucket;
-                    mediaStorageEntity.Storage_Bucket = bucket;
-                    mediaStorageEntity.Storage_Type = StorageType.Local;
-                    mediaStorageEntity.Ref_Count = 1;
-                    mediaStorageEntity.Status = 1;
-                    await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
+                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        if (!bol2) throw new Exception("更新缩略图记录失败");
 
-                    await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"更新数据库记录失败：{result.ErrorMessage}");
                 }
                 else
                 {
@@ -388,58 +517,69 @@ namespace HY.ApiService.Services
                     #endregion
 
 
-                    mediaStorageEntity = new MediaStorageEntity
+                    // 开启事务
+                    var result = await _db.Ado.UseTranAsync(async () =>
                     {
-                        File_MD5 = fileMD5,
-                        File_Path = filePathWithoutBucket,
-                        File_Size = file.Length,
-                        Mime_Type = file.ContentType,
-                        Storage_Bucket = bucket,
-                        Storage_Type = StorageType.Local,
-                        Ref_Count = 1,
-                        Variant_Mask = (int)VariantType.Thumbnail,
-                        Status = 1,
-                        Created_At = DateTime.UtcNow,
-                    };
-                    await _mediaStorageRepository.CreateMediaStorage(mediaStorageEntity);
+                        mediaStorageEntity = new MediaStorageEntity
+                        {
+                            File_MD5 = fileMD5,
+                            File_Path = filePathWithoutBucket,
+                            File_Size = file.Length,
+                            Mime_Type = file.ContentType,
+                            Storage_Bucket = bucket,
+                            Storage_Type = StorageType.Local,
+                            Ref_Count = 1,
+                            Variant_Mask = (int)VariantType.Thumbnail,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id1 = await _mediaStorageRepository.CreateMediaStorage(mediaStorageEntity);
+                        if (id1 <= 0) throw new Exception("创建文件记录失败");
 
-                    var thumb_mediaStorageVariantEntity = new MediaStorageVariantEntity
-                    {
-                        Storage_Id = mediaStorageEntity.Id,
-                        Variant_Type = VariantType.Thumbnail,
-                        File_Path = thumbFilePathWithoutBucket,
-                        File_Size = thumbLength,
-                        Mime_Type = file.ContentType,
-                        Storage_Bucket = bucket,
-                        Storage_Type = StorageType.Local,
-                        Status = 1,
-                        Created_At = DateTime.UtcNow,
-                    };
-                    await _mediaStorageVariantRepository.CreateMediaStorageVariant(thumb_mediaStorageVariantEntity);
+                        var thumb_mediaStorageVariantEntity = new MediaStorageVariantEntity
+                        {
+                            Storage_Id = mediaStorageEntity.Id,
+                            Variant_Type = VariantType.Thumbnail,
+                            File_Path = thumbFilePathWithoutBucket,
+                            File_Size = thumbLength,
+                            Mime_Type = file.ContentType,
+                            Storage_Bucket = bucket,
+                            Storage_Type = StorageType.Local,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id2 = await _mediaStorageVariantRepository.CreateMediaStorageVariant(thumb_mediaStorageVariantEntity);
+                        if (id2 <= 0) throw new Exception("创建缩略图记录失败");
+
+                        mediaFileEntity = new MediaFileEntity
+                        {
+                            File_Id = Guid.NewGuid().ToString("N"),
+                            Storage_Id = mediaStorageEntity.Id,
+                            User_Id = userId,
+                            File_Type = FileType.Image,
+                            Original_Name = Path.GetFileName(file.FileName),
+                            Width = null,
+                            Height = null,
+                            Duration = null,
+                            Status = 1,
+                            Created_At = DateTime.UtcNow,
+                        };
+                        var id = await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
+                        if (id <= 0) throw new Exception("创建文件记录失败");
+
+                        fileId = mediaFileEntity.File_Id;
+                    });
+
+                    // ---------- 事务结束 ----------
+                    if (!result.IsSuccess) throw new Exception($"创建数据库记录失败：{result.ErrorMessage}");
                 }
-
-                var mediaFileEntity = new MediaFileEntity
-                {
-                    File_Id = Guid.NewGuid().ToString("N"),
-                    Storage_Id = mediaStorageEntity.Id,
-                    User_Id = userId,
-                    File_Type = FileType.Image,
-                    Original_Name = Path.GetFileName(file.FileName),
-                    Width = null,
-                    Height = null,
-                    Duration = null,
-                    Status = 1,
-                    Created_At = DateTime.UtcNow,
-                };
-                await _mediaFileRepository.CreateMediaFile(mediaFileEntity);
-
-                fileId = mediaFileEntity.File_Id;
             }
             catch (Exception ex)
             {
                 e = ex;
-                File.Delete(filePathWithBucket);
-                File.Delete(thumbFilePathWithBucket);
+
+                if (!string.IsNullOrEmpty(filePathWithBucket)) File.Delete(filePathWithBucket);
+                if (!string.IsNullOrEmpty(thumbFilePathWithBucket)) File.Delete(thumbFilePathWithBucket);
             }
             finally
             {

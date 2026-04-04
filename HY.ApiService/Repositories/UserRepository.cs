@@ -26,11 +26,11 @@ namespace HY.ApiService.Repositories
 
     public class UserRepository : IUserRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public UserRepository(IServiceScopeFactory scopeFactory)
+        public UserRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
@@ -62,9 +62,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<long> CreateUser(UserEntity user)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            user.Id = await db.Insertable(user).ExecuteReturnBigIdentityAsync();
+            user.Id = await _db.Insertable(user).ExecuteReturnBigIdentityAsync();
             return user.Id;
         }
 
@@ -74,60 +72,44 @@ namespace HY.ApiService.Repositories
 
         public async Task<UserEntity?> GetUserById(long id)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().InSingleAsync(id);
+            return await _db.Queryable<UserEntity>().InSingleAsync(id);
         }
 
         public async Task<UserEntity?> GetUserByHYid(string hyid)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().Where(u => u.HYid == hyid).SingleAsync();
+            return await _db.Queryable<UserEntity>().Where(u => u.HYid == hyid).SingleAsync();
         }
 
         public async Task<UserEntity?> GetUserByUsername(string username)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().Where(u => u.Username == username).SingleAsync();
+            return await _db.Queryable<UserEntity>().Where(u => u.Username == username).SingleAsync();
         }
 
         public async Task<List<UserEntity>> GetUsersByIds(List<long> userIds)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().In(userIds).ToListAsync();
+            return await _db.Queryable<UserEntity>().In(userIds).ToListAsync();
         }
 
         public async Task<List<UserEntity>> GetUserByHYidOrPhone(string identity)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().Where(u => u.HYid == identity || u.Phone == identity).ToListAsync();
+            return await _db.Queryable<UserEntity>().Where(u => u.HYid == identity || u.Phone == identity).ToListAsync();
         }
 
 
 
         public async Task<bool> ExistsUsername(string username)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().AnyAsync(u => u.Username == username);
+            return await _db.Queryable<UserEntity>().AnyAsync(u => u.Username == username);
         }
 
         public async Task<bool> ExistsEmail(string email)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().AnyAsync(u => u.Email == email);
+            return await _db.Queryable<UserEntity>().AnyAsync(u => u.Email == email);
         }
 
         public async Task<bool> ExistsPhone(string phone)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<UserEntity>().AnyAsync(u => u.Phone == phone);
+            return await _db.Queryable<UserEntity>().AnyAsync(u => u.Phone == phone);
         }
 
 
@@ -135,9 +117,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateHead(long userId, string url)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable<UserEntity>().SetColumns(u => u.Avatar == url).Where(u => u.Id == userId).ExecuteCommandAsync();
+            var result = await _db.Updateable<UserEntity>().SetColumns(u => u.Avatar == url).Where(u => u.Id == userId).ExecuteCommandAsync();
             return result > 0;
         }
 

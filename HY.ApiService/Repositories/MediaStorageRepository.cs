@@ -17,20 +17,17 @@ namespace HY.ApiService.Repositories
 
     public class MediaStorageRepository : IMediaStorageRepository
     {
+        private readonly ISqlSugarClient _db;
 
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public MediaStorageRepository(IServiceScopeFactory scopeFactory)
+        public MediaStorageRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
         public async Task<long> CreateMediaStorage(MediaStorageEntity mediaStorage)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            mediaStorage.Id = await db.Insertable(mediaStorage).ExecuteReturnBigIdentityAsync();
+            mediaStorage.Id = await _db.Insertable(mediaStorage).ExecuteReturnBigIdentityAsync();
             return mediaStorage.Id;
         }
 
@@ -40,16 +37,12 @@ namespace HY.ApiService.Repositories
 
         public async Task<MediaStorageEntity?> GetMediaStorageById(long Id)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MediaStorageEntity>().Where(ms => ms.Id == Id && ms.Status == 1).SingleAsync();
+            return await _db.Queryable<MediaStorageEntity>().Where(ms => ms.Id == Id && ms.Status == 1).SingleAsync();
         }
 
         public async Task<MediaStorageEntity?> GetMediaStorageByMD5(string md5)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MediaStorageEntity>().Where(ms => ms.File_MD5 == md5).SingleAsync();
+            return await _db.Queryable<MediaStorageEntity>().Where(ms => ms.File_MD5 == md5).SingleAsync();
         }
 
 
@@ -57,17 +50,13 @@ namespace HY.ApiService.Repositories
 
         public async Task<bool> UpdateMediaStorage(MediaStorageEntity mediaStorageEntity)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable(mediaStorageEntity).ExecuteCommandAsync();
+            var result = await _db.Updateable(mediaStorageEntity).ExecuteCommandAsync();
             return result > 0;
         }
 
         public async Task<bool> UpdateMediaStorageRefCount(long id, int ref_Count)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var result = await db.Updateable<MediaStorageEntity>()
+            var result = await _db.Updateable<MediaStorageEntity>()
                 .SetColumns(ms => ms.Ref_Count == ref_Count)
                 .Where(ms => ms.Id == id)
                 .ExecuteCommandAsync();

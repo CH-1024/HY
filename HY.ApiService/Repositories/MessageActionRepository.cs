@@ -15,11 +15,11 @@ namespace HY.ApiService.Repositories
 
     public class MessageActionRepository : IMessageActionRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public MessageActionRepository(IServiceScopeFactory scopeFactory)
+        public MessageActionRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
@@ -30,9 +30,7 @@ namespace HY.ApiService.Repositories
             // 处理重复插入带复合主键的数据
 
             // 方式一
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            var count = await db.Insertable(messageActionEntity).IgnoreInsertError().ExecuteCommandAsync();
+            var count = await _db.Insertable(messageActionEntity).IgnoreInsertError().ExecuteCommandAsync();
             return count > 0;
 
             // 方式二
@@ -68,18 +66,14 @@ namespace HY.ApiService.Repositories
 
         public async Task<MessageActionEntity> GetMessageActionByUserIdAndMessageId(long userId, long messageId, MessageActionType actionType)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MessageActionEntity>()
+            return await _db.Queryable<MessageActionEntity>()
                 .Where(a => a.Message_Id == messageId && a.User_Id == userId && a.Action_Type == actionType)
                 .SingleAsync();
         }
 
         public async Task<List<MessageActionEntity>> GetMessageActionsByUserIdAndMessageId(long userId, long messageId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<MessageActionEntity>()
+            return await _db.Queryable<MessageActionEntity>()
                 .Where(a => a.Message_Id == messageId && a.User_Id == userId)
                 .ToListAsync();
         }

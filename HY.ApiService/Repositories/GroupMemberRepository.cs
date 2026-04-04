@@ -12,19 +12,17 @@ namespace HY.ApiService.Repositories
 
     public class GroupMemberRepository : IGroupMemberRepository
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISqlSugarClient _db;
 
-        public GroupMemberRepository(IServiceScopeFactory scopeFactory)
+        public GroupMemberRepository(ISqlSugarClient db)
         {
-            _scopeFactory = scopeFactory;
+            _db = db;
         }
 
 
         public async Task<List<GroupMemberEntity>> GetGroupMembersByGroupId(long groupId)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-            return await db.Queryable<GroupMemberEntity>()
+            return await _db.Queryable<GroupMemberEntity>()
                 .Where(gm => gm.Group_Id == groupId)
                 .ToListAsync();
         }

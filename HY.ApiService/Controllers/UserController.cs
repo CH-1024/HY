@@ -24,27 +24,24 @@ namespace HY.ApiService.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
+            RegisterResult result;
+
             if (await _userService.ExistsUsername(registerRequest.Username))
             {
-                return Ok(new Response(false, "用户名已存在"));
+                result = new RegisterResult(false, "用户名已存在");
             }
-            if (await _userService.ExistsEmail(registerRequest.Email))
+            else if (await _userService.ExistsEmail(registerRequest.Email))
             {
-                return Ok(new Response(false, "邮箱已存在"));
+                result = new RegisterResult(false, "邮箱已存在");
             }
-            if (await _userService.ExistsPhone(registerRequest.Phone))
+            else if (await _userService.ExistsPhone(registerRequest.Phone))
             {
-                return Ok(new Response(false, "手机号已存在"));
+                result = new RegisterResult(false, "手机号已存在");
             }
 
-            var nickname = registerRequest.Nickname;
-            var username = registerRequest.Username;
-            var password = registerRequest.Password;
-            var phone = registerRequest.Phone;
-            var email = registerRequest.Email;
-            await _userService.CreateUser(nickname, username, password, phone, email);
+            var id = await _userService.CreateUser(registerRequest);
 
-            return Ok(new Response(true));
+            return Ok(new Response(id > 0));
         }
 
         [Authorize]
@@ -52,9 +49,11 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> UpdateHead([FromBody] UpdateUserRequest updateUserRequest)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+            var userId = long.Parse(userIdStr!);
 
             var result = await _userService.UpdateHead(userId, updateUserRequest.Avatar);
+
             return Ok(new Response(result));
         }
     }
