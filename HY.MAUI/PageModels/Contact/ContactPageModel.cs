@@ -39,13 +39,6 @@ namespace HY.MAUI.PageModels.Contact
             set { SetProperty(ref contactCollection, value); }
         }
 
-        private ObservableCollection<ContactRequestVM> contactRequestCollection = null;
-        public ObservableCollection<ContactRequestVM> ContactRequestCollection
-        {
-            get { return contactRequestCollection; }
-            set { SetProperty(ref contactRequestCollection, value); }
-        }
-
         private ContactVM? selectedContact = null;
         public ContactVM? SelectedContact
         {
@@ -92,7 +85,6 @@ namespace HY.MAUI.PageModels.Contact
             if (!_dataLoaded)
             {
                 ContactCollection = _contactStore.Contacts;
-                ContactRequestCollection = _contactRequestStore.ContactRequests;
                 _dataLoaded = true;
             }
             //else if (!_isNavigatedTo)
@@ -138,7 +130,6 @@ namespace HY.MAUI.PageModels.Contact
             };
             await Shell.Current.GoToAsync(nameof(SearchContactPage), true, parameters);
         }
-
 
     }
 

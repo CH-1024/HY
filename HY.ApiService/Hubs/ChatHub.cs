@@ -19,6 +19,8 @@ namespace HY.ApiService.Hubs
 {
     public class ChatHub : Hub
     {
+        readonly ISqlSugarClient _db;
+
         readonly ILoginService _loginService;
         readonly IMessageService _messageService;
         readonly IMessageActionService _messageActionService;
@@ -41,8 +43,10 @@ namespace HY.ApiService.Hubs
         private List<string> GetConnectionIdsByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).Select(k => _connectionIdMap[k]).ToList();
 
 
-        public ChatHub(ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
+        public ChatHub(ISqlSugarClient db, ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
         {
+            _db = db;
+
             _loginService = loginService;
             _messageService = messageService;
             _messageActionService = messageActionService;
@@ -106,12 +110,22 @@ namespace HY.ApiService.Hubs
             messageDto.Message_Status = MessageStatus.Sented;
             //messageDto.Created_At = DateTime.UtcNow;
 
-            // 保存消息
-            var messageId = await _messageService.InsertMessage(messageDto);
-            if (messageId == 0) return 0;
+            long messageId = 0;
 
-            // 更新会话的最后一条消息
-            await _chatService.UpdateChatLastMessage(messageDto);
+            // 开启事务
+            var result = await _db.Ado.UseTranAsync(async () =>
+            {
+                // 保存消息
+                messageId = await _messageService.InsertMessage(messageDto);
+                if (messageId == 0) throw new Exception("保存消息失败");
+
+                // 更新会话的最后一条消息
+                var bol = await _chatService.UpdateChatLastMessage(messageDto);
+                if (!bol) throw new Exception("更新会话最后一条消息失败");
+            });
+
+            // ---------- 事务结束 ----------
+            if (!result.IsSuccess) return 0;
 
             if (messageDto.Chat_Type == ChatType.Private)
             {
@@ -217,7 +231,7 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("RequestContact")]
-        public async Task<ContactRequestDto?> OnRequestContact(long contactId, string source, string message)
+        public async Task<ContactRequestDto?> OnRequestContact(long contactId, int source, string message)
         {
             var contactRequestDto = await _contactService.RequestContact(_userId, contactId, source, message);
             if (contactRequestDto != null)
@@ -234,12 +248,19 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task OnRespondContact(long contactId, bool isAccept, string message)
+        public async Task<ContactRequestDto?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
         {
-            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!long.TryParse(userIdStr, out var userId)) return;
-
-            //var result = await _contactService.RespondContact(userId, hyid, isAccept, message);
+            var contactRequestDto = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
+            //if (contactRequestDto != null)
+            //{
+            //    // 通知对方所有在线设备
+            //    var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
+            //    foreach (var receiver in receiverConnectionIds)
+            //    {
+            //        _ = Clients.Client(receiver).SendAsync("RespondContact", contactRequestDto);
+            //    }
+            //}
+            return contactRequestDto;
         }
 
         [Authorize]
