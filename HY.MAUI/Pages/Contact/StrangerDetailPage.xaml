@@ -59,43 +59,31 @@
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="添加" Order="Secondary" Priority="0" />
+        <!--<ToolbarItem Text="添加" Order="Secondary" Priority="0" />-->
         <ToolbarItem Text="拉黑" Order="Secondary" Priority="0" />
     </ContentPage.ToolbarItems>
 
 
-    <ScrollView>
-        <VerticalStackLayout Spacing="12" Padding="20">
+    <Grid RowDefinitions="auto,auto,auto" RowSpacing="10" Padding="0,10,0,0" BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
 
-            <!-- 头像 + 昵称 -->
-            <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
-                <toolkit:AvatarView ImageSource="{Binding StrangerInfo.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="18" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+        <Grid Grid.Row="0" RowDefinitions="*,*" ColumnDefinitions="120,*" Padding="20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Source={x:Reference _StrangerDetailPage}, Path=BindingContext.ProfileCommand}"/>
+            </Grid.GestureRecognizers>
 
-                <Label
-                    Text="{Binding StrangerInfo.Nickname}"
-                    FontSize="20"
-                    HorizontalOptions="Center"
-                    FontAttributes="Bold"/>
-            </VerticalStackLayout>
+            <Image Grid.RowSpan="2" Grid.Column="0" Source="{Binding StrangerInfo.Avatar}" HeightRequest="100" WidthRequest="100" HorizontalOptions="Center" VerticalOptions="Center" Aspect="AspectFit" BackgroundColor="Gray"/>
 
-            <!-- 信息卡片 -->
-            <!--<Border StrokeShape="RoundRectangle 10" Padding="15">
-                <VerticalStackLayout Spacing="12">
+            <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center" Text="{Binding StrangerInfo.Nickname}" FontSize="Medium"/>
+            <Label Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center" Text="{Binding StrangerInfo.Region}" FontSize="Caption"/>
+        </Grid>
 
-                    <Grid ColumnDefinitions="50,*">
-                        <Label Text="状态：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding StrangerInfo.Status}"/>
-                    </Grid>
 
-                </VerticalStackLayout>
-            </Border>-->
+        <VerticalStackLayout Grid.Row="1" Spacing="1">
 
-            <!-- 操作按钮 -->
-            <VerticalStackLayout Spacing="10">
-                <Button Style="{StaticResource IconBtn1}" Text="添加为联系人" Command="{Binding RequestContactCommand}"/>
-            </VerticalStackLayout>
+            <Button Style="{StaticResource IconBtn1}" Text="添加为联系人" Command="{Binding RequestContactCommand}"/>
 
         </VerticalStackLayout>
-    </ScrollView>
+
+    </Grid>
 
 </ContentPage>

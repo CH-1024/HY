@@ -182,7 +182,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task RequestContact(long contactId, string source, string message)
+        public async Task RequestContact(long contactId, int source, string message = "")
         {
             var contactRequestDto = await _connection!.InvokeAsync<ContactRequestDto>("RequestContact", contactId, source, message);
             if (contactRequestDto == null) return;
@@ -190,12 +190,14 @@ namespace HY.MAUI.Communication.SignalR
             var currentUser = _globalCache.GetCurrentUser();
 
             var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
+
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
-        public async Task RespondContact(long contactId, bool isAccept, string message)
+        public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string message = "")
         {
-            await _connection!.SendAsync("RespondContact", contactId, isAccept, message);
+            var contactRequestDto = await _connection!.InvokeAsync<ContactRequestDto>("RespondContact", contactRequestId, handle, message);
+            if (contactRequestDto == null) return;
         }
 
 
@@ -299,6 +301,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
             _connection?.On<ContactRequestDto>("RequestContact", OnRequestContact);
+            _connection?.On<ContactRequestDto>("RespondContact", OnRespondContact);
             _connection?.On<string, bool>("ForceLogout", OnForceLogout);
         }
 
@@ -315,6 +318,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.Remove("ReceiveMessage");
             _connection?.Remove("RecallMessage");
             _connection?.Remove("RequestContact");
+            _connection?.Remove("RespondContact");
             _connection?.Remove("ForceLogout");
         }
 
@@ -421,6 +425,14 @@ namespace HY.MAUI.Communication.SignalR
         }
 
         private void OnRequestContact(ContactRequestDto contactRequestDto)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+
+            var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
+            _contactRequestStore.Upsert(contactRequestVM);
+        }
+
+        private void OnRespondContact(ContactRequestDto contactRequestDto)
         {
             var currentUser = _globalCache.GetCurrentUser();
 

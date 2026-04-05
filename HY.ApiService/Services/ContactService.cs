@@ -1,6 +1,7 @@
 ﻿using HY.ApiService.Dtos;
 using HY.ApiService.Entities;
 using HY.ApiService.Enums;
+using HY.ApiService.Extensions;
 using HY.ApiService.Models;
 using HY.ApiService.Repositories;
 using Mapster;
@@ -16,8 +17,8 @@ namespace HY.ApiService.Services
         Task<ContactResult> GetContactByUserId(long currentUserId, long targetId);
         Task<ContactResult> GetContactByHYidOrPhone(long currentUserId, string identity);
 
-        Task<ContactRequestDto?> RequestContact(long userId, long contactId, string source, string message);
-        Task RespondContact(long userId, long contactId, string messag);
+        Task<ContactRequestDto?> RequestContact(long userId, long contactId, int source, string message);
+        Task<ContactRequestDto?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle, string messag);
     }
 
 
@@ -130,47 +131,44 @@ namespace HY.ApiService.Services
 
         public async Task<ContactResult> GetContactByHYidOrPhone(long currentUserId, string identity)
         {
-            var userEntities = await _userRepository.GetUserByHYidOrPhone(identity);
+            UserEntity? target = null;
 
-            var userIds = userEntities.Select(u => u.Id).Distinct().ToList();
-
-            var contactMap = (await _contactRepository.GetUserContactByUserIds(currentUserId, userIds)).ToDictionary(c => c.Contact_Id);
-
-            var contactRequestIds = contactMap.Values.Select(c => c.Contact_Request_Id).Distinct().ToList();
-
-            var contactRequestMap = (await _contactRequestRepository.GetContactRequestsByIds(contactRequestIds)).ToDictionary(x => x.Id);
-
-            var contactDtos = new List<ContactDto>();
-
-            foreach (var userEntity in userEntities)
+            if (identity.IsPhone())
             {
-                if (contactMap.TryGetValue(userEntity.Id, out var contactEntity))
-                {
-                    var contactDto = contactEntity.Adapt<ContactDto>();
-                    contactDto.Nickname = userEntity.Nickname;
-                    contactDto.Avatar = userEntity.Avatar;
-                    contactDto.Region = userEntity.Region;
-                    contactDto.Contact_Status = userEntity.Status;
-
-                    if (contactRequestMap.TryGetValue(contactEntity.Contact_Request_Id, out var contactRequest))
-                    {
-                        contactDto.Relation_Request_Status = contactRequest.Relation_Request_Status;
-                    }
-
-                    contactDtos.Add(contactDto);
-                }
-                else
-                {
-                    var contactDto = CreatNoneRelationContact(userEntity.Id, userEntity.Nickname, userEntity.Avatar, userEntity.Region);
-                    contactDtos.Add(contactDto);
-                }
+                target = await _userRepository.GetUserByPhone(identity);
+            }
+            else if (identity.IsHYid())
+            {
+                target = await _userRepository.GetUserByHYid(identity);
             }
 
-            return new ContactResult(true, null, null, contactDtos);
+            if (target == null) return new ContactResult(false, "用户不存在");
+
+            ContactDto? contactDto = null;
+
+            var contactEntity = await _contactRepository.GetUserContactByUserId(currentUserId, target.Id);
+            if (contactEntity == null)
+            {
+                contactDto = CreatNoneRelationContact(target.Id, target.Nickname, target.Avatar, target.Region);
+                return new ContactResult(true, null, contactDto);
+            }
+            else
+            {
+                contactDto = contactEntity.Adapt<ContactDto>();
+                contactDto.Nickname = target.Nickname;
+                contactDto.Avatar = target.Avatar;
+                contactDto.Region = target.Region;
+                contactDto.Contact_Status = target.Status;
+
+                var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactEntity.Contact_Request_Id);
+                contactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
+
+                return new ContactResult(true, null, contactDto);
+            }
         }
 
 
-        public async Task<ContactRequestDto?> RequestContact(long senderId, long contactId, string source, string message)
+        public async Task<ContactRequestDto?> RequestContact(long senderId, long contactId, int source, string message)
         {
             var sender = await _userRepository.GetUserById(senderId);
             if (sender == null) return null;
@@ -217,11 +215,30 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task RespondContact(long senderId, long contactId, string messag)
+        public async Task<ContactRequestDto?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle, string messag)
         {
-            //var target = await _userRepository.GetUserByHYid(targetHYid);
-            //if (target == null) return new ContactResult(false, "用户不存在");
+            ContactRequestDto? contactRequestDto = null;
+            if (handle == RespondContactHandle.Revoked)
+            {
+                // 撤销好友请求
+                var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
+                if (contactRequestEntity == null || contactRequestEntity.Sender_Id != userId || contactRequestEntity.Relation_Request_Status != RelationRequestStatus.Pending)
+                {
+                    return null;
+                }
 
+                // 更新好友请求状态为已撤销
+                contactRequestEntity.Relation_Request_Status = RelationRequestStatus.Revoked;
+                contactRequestEntity.Handled_At = DateTime.UtcNow;
+                var bol = await _contactRequestRepository.UpdateContactRequest(contactRequestEntity);
+                if (!bol)
+                {
+                    return null;
+                }
+                contactRequestDto = contactRequestEntity.Adapt<ContactRequestDto>();
+            }
+
+            return contactRequestDto;
         }
 
 

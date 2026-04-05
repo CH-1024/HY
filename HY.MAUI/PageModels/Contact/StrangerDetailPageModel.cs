@@ -12,7 +12,7 @@ namespace HY.MAUI.PageModels.Contact
 {
     public partial class StrangerDetailPageModel : ObservableObject, IQueryAttributable
     {
-        string? _source = null;
+        int _source = 0;
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IGlobalCache _globalCache;
@@ -40,7 +40,7 @@ namespace HY.MAUI.PageModels.Contact
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            _source = (string)query["Source"];
+            _source = (int)query["Source"];
             StrangerInfo = (ContactVM)query["ContactInfo"];
         }
 
@@ -55,6 +55,7 @@ namespace HY.MAUI.PageModels.Contact
         async Task RequestContact()
         {
             await _chatHub.RequestContact(StrangerInfo.Contact_Id.Value, _source, "Hi, let's be friends!");
+            _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
         }
 
     }

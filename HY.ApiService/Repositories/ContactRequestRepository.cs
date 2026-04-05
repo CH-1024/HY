@@ -9,10 +9,13 @@ namespace HY.ApiService.Repositories
         Task<long> CreateContactRequest(ContactRequestEntity contactRequestEntity);
 
         Task<List<ContactRequestEntity>> GetContactRequestsByUserId(long userId);
-        Task<ContactRequestEntity> GetContactRequestById(long contact_Request_Id);
+        Task<ContactRequestEntity?> GetContactRequestById(long contact_Request_Id);
         Task<List<ContactRequestEntity>> GetContactRequestsByIds(List<long> contactRequestIds);
 
         Task<bool> ExistsPendingContactRequest(long senderId, long targetId);
+
+        Task<bool> UpdateContactRequest(ContactRequestEntity contactRequestEntity);
+
     }
 
 
@@ -42,7 +45,7 @@ namespace HY.ApiService.Repositories
                 .ToListAsync();
         }
 
-        public async Task<ContactRequestEntity> GetContactRequestById(long contact_Request_Id)
+        public async Task<ContactRequestEntity?> GetContactRequestById(long contact_Request_Id)
         {
             return await _db.Queryable<ContactRequestEntity>()
                 .Where(c => c.Id == contact_Request_Id)
@@ -62,5 +65,13 @@ namespace HY.ApiService.Repositories
                 .Where(c => c.Sender_Id == senderId && c.Receiver_Id == targetId && c.Relation_Request_Status == RelationRequestStatus.Pending)
                 .AnyAsync();
         }
+
+
+
+        public async Task<bool> UpdateContactRequest(ContactRequestEntity contactRequestEntity)
+        {
+            return await _db.Updateable(contactRequestEntity).ExecuteCommandAsync() > 0;
+        }
+
     }
 }

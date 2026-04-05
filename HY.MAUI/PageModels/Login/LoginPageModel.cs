@@ -74,7 +74,7 @@ namespace HY.MAUI.PageModels.Login
             }
             else
             {
-                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("Login Failed", loginResp?.Msg ?? "Unknown error", "OK");
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("失败", loginResp?.Msg ?? "Unknown error", "OK");
             }
         }
 

@@ -91,7 +91,7 @@ namespace HY.ApiService.Controllers
             {
                 Data = new Dictionary<string, object?>
                 {
-                    { "Contacts", result.Contacts },
+                    { "Contact", result.Contact },
                 }
             });
         }

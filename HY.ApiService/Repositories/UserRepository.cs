@@ -12,10 +12,10 @@ namespace HY.ApiService.Repositories
         Task<long> CreateUser(UserEntity user);
 
         Task<UserEntity?> GetUserById(long id);
+        Task<UserEntity?> GetUserByPhone(string phone);
         Task<UserEntity?> GetUserByHYid(string hyid);
         Task<UserEntity?> GetUserByUsername(string username);
         Task<List<UserEntity>> GetUsersByIds(List<long> userIds);
-        Task<List<UserEntity>> GetUserByHYidOrPhone(string identity);
 
         Task<bool> ExistsUsername(string username);
         Task<bool> ExistsEmail(string email);
@@ -75,6 +75,11 @@ namespace HY.ApiService.Repositories
             return await _db.Queryable<UserEntity>().InSingleAsync(id);
         }
 
+        public async Task<UserEntity?> GetUserByPhone(string phone)
+        {
+            return await _db.Queryable<UserEntity>().Where(u => u.Phone == phone).SingleAsync();
+        }
+
         public async Task<UserEntity?> GetUserByHYid(string hyid)
         {
             return await _db.Queryable<UserEntity>().Where(u => u.HYid == hyid).SingleAsync();
@@ -88,11 +93,6 @@ namespace HY.ApiService.Repositories
         public async Task<List<UserEntity>> GetUsersByIds(List<long> userIds)
         {
             return await _db.Queryable<UserEntity>().In(userIds).ToListAsync();
-        }
-
-        public async Task<List<UserEntity>> GetUserByHYidOrPhone(string identity)
-        {
-            return await _db.Queryable<UserEntity>().Where(u => u.HYid == identity || u.Phone == identity).ToListAsync();
         }
 
 

@@ -217,7 +217,7 @@ namespace HY.MAUI.PageModels.Login
             _tokenProvider.Clear();
             GoBackToLoginPage();
 
-            if (e != null) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("连接已关闭", $"与服务器的连接已关闭，原因：{e.Message}", "确定");
+            if (e != null) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("异常", $"与服务器的连接已关闭，原因：{e.Message}", "确定");
         }
 
     }

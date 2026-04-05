@@ -344,7 +344,7 @@ namespace HY.MAUI.PageModels.Chat
                     else
                     {
                         // 是陌生人
-                        parameters.Add("Source", "Chat");
+                        parameters.Add("Source", 1);
                         parameters.Add("ContactInfo", contactDto.ToVM());
                         await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
                     }
