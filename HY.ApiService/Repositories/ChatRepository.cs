@@ -8,6 +8,8 @@ namespace HY.ApiService.Repositories
 {
     public interface IChatRepository
     {
+        Task<long> CreateChat(ChatEntity chat);
+
         Task<ChatEntity> GetChatByChatId(long chatId);
         Task<ChatEntity> GetChatByUserIdAndType(long userId, long targetId, ChatType chatType);
         Task<List<ChatEntity>> GetChatsByUserIdsAndType(List<long> userIds, long target_Id, ChatType chatType);
@@ -26,6 +28,13 @@ namespace HY.ApiService.Repositories
         public ChatRepository(ISqlSugarClient db)
         {
             _db = db;
+        }
+
+
+
+        public async Task<long> CreateChat(ChatEntity chat)
+        {
+            return await _db.Insertable(chat).ExecuteReturnBigIdentityAsync();
         }
 
 

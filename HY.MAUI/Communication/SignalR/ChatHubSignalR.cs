@@ -12,6 +12,7 @@ using HY.MAUI.Tools;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -190,14 +191,28 @@ namespace HY.MAUI.Communication.SignalR
             var currentUser = _globalCache.GetCurrentUser();
 
             var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
-
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
         public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string message = "")
         {
-            var contactRequestDto = await _connection!.InvokeAsync<ContactRequestDto>("RespondContact", contactRequestId, handle, message);
-            if (contactRequestDto == null) return;
+            var result = await _connection!.InvokeAsync<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)?>("RespondContact", contactRequestId, handle, message);
+            if (result == null) return;
+
+            var currentUser = _globalCache.GetCurrentUser();
+
+            var contactRequestVM = result.Value.contactRequestDto.ToVM(currentUser.Id);
+
+            _contactRequestStore.Upsert(contactRequestVM);
+
+            if (handle == RespondContactHandle.Accepted)
+            {
+                var contactDto = result.Value.contactDto!;
+                _contactStore.Upsert(contactDto.ToVM());
+
+                var chatDto = result.Value.chatDto!;
+                _chatStore.Upsert(chatDto.ToVM());
+            }
         }
 
 
@@ -301,7 +316,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
             _connection?.On<ContactRequestDto>("RequestContact", OnRequestContact);
-            _connection?.On<ContactRequestDto>("RespondContact", OnRespondContact);
+            _connection?.On<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)>("RespondContact", OnRespondContact);
             _connection?.On<string, bool>("ForceLogout", OnForceLogout);
         }
 
@@ -432,12 +447,22 @@ namespace HY.MAUI.Communication.SignalR
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
-        private void OnRespondContact(ContactRequestDto contactRequestDto)
+        private void OnRespondContact((ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto) result)
         {
             var currentUser = _globalCache.GetCurrentUser();
 
-            var contactRequestVM = contactRequestDto.ToVM(currentUser.Id);
+            var contactRequestVM = result.contactRequestDto.ToVM(currentUser.Id);
+
             _contactRequestStore.Upsert(contactRequestVM);
+
+            if (contactRequestVM.Relation_Request_Status == RelationRequestStatus.Accepted)
+            {
+                var contactDto = result.contactDto!;
+                _contactStore.Upsert(contactDto.ToVM());
+
+                var chatDto = result.chatDto!;
+                _chatStore.Upsert(chatDto.ToVM());
+            }
         }
 
         private bool OnForceLogout(string message)

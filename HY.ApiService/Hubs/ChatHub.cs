@@ -248,19 +248,46 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task<ContactRequestDto?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        public async Task<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
         {
-            var contactRequestDto = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
-            //if (contactRequestDto != null)
-            //{
-            //    // 通知对方所有在线设备
-            //    var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
-            //    foreach (var receiver in receiverConnectionIds)
-            //    {
-            //        _ = Clients.Client(receiver).SendAsync("RespondContact", contactRequestDto);
-            //    }
-            //}
-            return contactRequestDto;
+            (ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)? ret = null;
+
+            var result = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
+            if (result != null && handle == RespondContactHandle.Revoked)
+            {
+                ret = (result.Value.contactRequestDto, null, null);
+
+                // 通知接收方所有在线设备
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Receiver_Id);
+                foreach (var receiver in receiverConnectionIds)
+                {
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", ret.Value);
+                }
+            }
+            else if (result != null && handle == RespondContactHandle.Accepted)
+            {
+                ret = (result.Value.contactRequestDto, result.Value.receiverContact, result.Value.receiverChat);
+
+                // 通知发送方所有在线设备
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
+                foreach (var receiver in receiverConnectionIds)
+                {
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", (result.Value.contactRequestDto, result.Value.senderContact, result.Value.senderChat));
+                }
+            }
+            else if (result != null && handle == RespondContactHandle.Declined)
+            {
+                ret = (result.Value.contactRequestDto, null, null);
+
+                // 通知发送方所有在线设备
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
+                foreach (var receiver in receiverConnectionIds)
+                {
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", ret.Value);
+                }
+            }
+
+            return ret;
         }
 
         [Authorize]
