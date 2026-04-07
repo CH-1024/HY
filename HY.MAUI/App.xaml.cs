@@ -49,6 +49,4 @@ namespace HY.MAUI
             return window;
         }
     }
-
-
 }

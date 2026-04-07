@@ -194,23 +194,24 @@ namespace HY.MAUI.Communication.SignalR
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
+        public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto);
         public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string message = "")
         {
-            var result = await _connection!.InvokeAsync<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)?>("RespondContact", contactRequestId, handle, message);
+            var result = await _connection!.InvokeAsync<RespondContactResult?>("RespondContact", contactRequestId, handle, message);
             if (result == null) return;
 
             var currentUser = _globalCache.GetCurrentUser();
 
-            var contactRequestVM = result.Value.contactRequestDto.ToVM(currentUser.Id);
+            var contactRequestVM = result.ContactRequestDto.ToVM(currentUser.Id);
 
             _contactRequestStore.Upsert(contactRequestVM);
 
             if (handle == RespondContactHandle.Accepted)
             {
-                var contactDto = result.Value.contactDto!;
+                var contactDto = result.ContactDto!;
                 _contactStore.Upsert(contactDto.ToVM());
 
-                var chatDto = result.Value.chatDto!;
+                var chatDto = result.ChatDto!;
                 _chatStore.Upsert(chatDto.ToVM());
             }
         }
