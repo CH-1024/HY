@@ -38,11 +38,31 @@ namespace HY.ApiService.Repositories
 
 
 
+        //public async Task<List<ContactRequestEntity>> GetContactRequestsByUserId(long userId)
+        //{
+        //    return await _db.Queryable<ContactRequestEntity>()
+        //        .Where(c => c.Sender_Id == userId || c.Receiver_Id == userId)
+        //        .ToListAsync();
+        //}
+
         public async Task<List<ContactRequestEntity>> GetContactRequestsByUserId(long userId)
         {
-            return await _db.Queryable<ContactRequestEntity>()
-                .Where(c => c.Sender_Id == userId || c.Receiver_Id == userId)
+            var query = _db.Queryable<ContactRequestEntity>()
+                .Where(c => c.Sender_Id == userId || c.Receiver_Id == userId);
+
+            // 先取每组最新ID
+            var latestIds = await query
+                .GroupBy(c => new
+                {
+                    MinId = SqlFunc.IIF(c.Sender_Id < c.Receiver_Id, c.Sender_Id, c.Receiver_Id),
+                    MaxId = SqlFunc.IIF(c.Sender_Id > c.Receiver_Id, c.Sender_Id, c.Receiver_Id)
+                })
+                .Select(c => SqlFunc.AggregateMax(c.Id))
                 .ToListAsync();
+
+            // 再查询实体
+            return await _db.Queryable<ContactRequestEntity>()
+                .In(latestIds).ToListAsync();
         }
 
         public async Task<ContactRequestEntity?> GetContactRequestById(long contact_Request_Id)

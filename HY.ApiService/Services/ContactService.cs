@@ -71,7 +71,7 @@ namespace HY.ApiService.Services
                 }
             }
 
-            return new ContactResult(true, null, null, null, null, contactRequestDtos);
+            return new ContactResult(true, contactRequests: contactRequestDtos);
         }
 
         public async Task<ContactResult> GetAllContactsByUserId(long currentUserId)
@@ -101,7 +101,7 @@ namespace HY.ApiService.Services
                 }
             }
 
-            return new ContactResult(true, null, null, contactDtos);
+            return new ContactResult(true, contacts: contactDtos);
         }
 
         public async Task<ContactResult> GetContactByUserId(long currentUserId, long targetId)
@@ -220,18 +220,28 @@ namespace HY.ApiService.Services
 
         public async Task<(ContactRequestDto contactRequestDto, ContactDto? senderContact, ContactDto? receiverContact, ChatDto? senderChat, ChatDto? receiverChat)?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle, string messag)
         {
-            if (handle == RespondContactHandle.Revoked)
+            var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
+            if (contactRequestEntity == null)
             {
-                // 撤销好友请求
-                var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
-                if (contactRequestEntity == null || contactRequestEntity.Sender_Id != userId || contactRequestEntity.Relation_Request_Status != RelationRequestStatus.Pending)
-                {
-                    return null;
-                }
+                return null;
+            }
 
+            var userEntities = await _userRepository.GetUsersByIds([contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id]);
+            if (userEntities.Count != 2)
+            {
+                return null;
+            }
+
+            var sender = userEntities.First(u => u.Id == contactRequestEntity.Sender_Id);
+            var receiver = userEntities.First(u => u.Id == contactRequestEntity.Receiver_Id);
+
+            // 撤销好友请求
+            if (handle == RespondContactHandle.Revoked && contactRequestEntity.Sender_Id == userId && contactRequestEntity.Relation_Request_Status == RelationRequestStatus.Pending)
+            {
                 // 更新好友请求状态为已撤销
                 contactRequestEntity.Relation_Request_Status = RelationRequestStatus.Revoked;
                 contactRequestEntity.Handled_At = DateTime.UtcNow;
+
                 var bol = await _contactRequestRepository.UpdateContactRequest(contactRequestEntity);
                 if (!bol)
                 {
@@ -239,21 +249,20 @@ namespace HY.ApiService.Services
                 }
 
                 var contactRequestDto = contactRequestEntity.Adapt<ContactRequestDto>();
+                contactRequestDto.Sender_Nickname = sender.Nickname;
+                contactRequestDto.Sender_Avatar = sender.Avatar;
+                contactRequestDto.Receiver_Nickname = receiver.Nickname;
+                contactRequestDto.Receiver_Avatar = receiver.Avatar;
+
                 return (contactRequestDto, null, null, null, null);
             }
-            else if (handle == RespondContactHandle.Accepted)
+            // 同意好友请求
+            else if (handle == RespondContactHandle.Accepted && contactRequestEntity.Receiver_Id == userId && contactRequestEntity.Relation_Request_Status == RelationRequestStatus.Pending)
             {
-                // 同意好友请求
-                var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
-                if (contactRequestEntity == null || contactRequestEntity.Receiver_Id != userId || contactRequestEntity.Relation_Request_Status != RelationRequestStatus.Pending)
-                {
-                    return null;
-                }
-
-                ContactEntity? senderContact = null;
-                ContactEntity? receiverContact = null;
-                ChatEntity? senderChat = null;
-                ChatEntity? receiverChat = null;
+                ContactDto? senderContactDto = null;
+                ContactDto? receiverContactDto = null;
+                ChatDto? senderChatDto = null;
+                ChatDto? receiverChatDto = null;
 
                 // 开启事务
                 var result = await _db.Ado.UseTranAsync(async () =>
@@ -264,7 +273,8 @@ namespace HY.ApiService.Services
                     var bol = await _contactRequestRepository.UpdateContactRequest(contactRequestEntity);
                     if (!bol) throw new Exception("更新好友请求状态为已同意失败");
 
-                    senderContact = await _contactRepository.GetUserContactByUserId(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id);
+                    #region SenderContact
+                    var senderContact = await _contactRepository.GetUserContactByUserId(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id);
                     if (senderContact == null)
                     {
                         senderContact = new ContactEntity
@@ -286,7 +296,17 @@ namespace HY.ApiService.Services
                         if (!bol1) throw new Exception("更新发送方联系人记录失败");
                     }
 
-                    receiverContact = await _contactRepository.GetUserContactByUserId(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id);
+                    senderContactDto = senderContact.Adapt<ContactDto>();
+                    senderContactDto.Nickname = receiver.Nickname;
+                    senderContactDto.Avatar = receiver.Avatar;
+                    senderContactDto.Region = receiver.Region;
+                    senderContactDto.Contact_Status = receiver.Status;
+                    senderContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
+                    #endregion
+
+
+                    #region ReceiverContact
+                    var receiverContact = await _contactRepository.GetUserContactByUserId(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id);
                     if (receiverContact == null)
                     {
                         receiverContact = new ContactEntity
@@ -308,7 +328,18 @@ namespace HY.ApiService.Services
                         if (!bol1) throw new Exception("更新接收方联系人记录失败");
                     }
 
-                    senderChat = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id, ChatType.Private);
+                    receiverContactDto = receiverContact.Adapt<ContactDto>();
+                    receiverContactDto.Nickname = sender.Nickname;
+                    receiverContactDto.Avatar = sender.Avatar;
+                    receiverContactDto.Region = sender.Region;
+                    receiverContactDto.Contact_Status = sender.Status;
+                    receiverContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
+                    #endregion
+
+
+
+                    #region SenderChat
+                    var senderChat = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id, ChatType.Private);
                     if (senderChat == null)
                     {
                         senderChat = new ChatEntity
@@ -327,7 +358,15 @@ namespace HY.ApiService.Services
                         if (id <= 0) throw new Exception ("创建发送方聊天记录失败");
                     }
 
-                    receiverChat = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id, ChatType.Private);
+                    senderChatDto = senderChat.Adapt<ChatDto>();
+                    senderChatDto.Target_Name = receiver.Nickname;
+                    senderChatDto.Target_Avatar = receiver.Avatar;
+                    #endregion
+
+
+
+                    #region ReceiverChat
+                    var receiverChat = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id, ChatType.Private);
                     if (receiverChat == null)
                     {
                         receiverChat = new ChatEntity
@@ -345,6 +384,12 @@ namespace HY.ApiService.Services
                         var id = await _chatRepository.CreateChat(receiverChat);
                         if (id <= 0) throw new Exception("创建接收方聊天记录失败");
                     }
+
+                    receiverChatDto = receiverChat.Adapt<ChatDto>();
+                    receiverChatDto.Target_Name = sender.Nickname;
+                    receiverChatDto.Target_Avatar = sender.Avatar;
+                    #endregion
+
                 });
 
                 // ---------- 事务结束 ----------
@@ -354,24 +399,20 @@ namespace HY.ApiService.Services
                 }
 
                 var contactRequestDto = contactRequestEntity.Adapt<ContactRequestDto>();
-                var senderContactDto = senderContact.Adapt<ContactDto>();
-                var receiverContactDto = receiverContact.Adapt<ContactDto>();
-                var senderChatDto = senderChat.Adapt<ChatDto>();
-                var receiverChatDto = receiverChat.Adapt<ChatDto>();
+                contactRequestDto.Sender_Nickname = sender.Nickname;
+                contactRequestDto.Sender_Avatar = sender.Avatar;
+                contactRequestDto.Receiver_Nickname = receiver.Nickname;
+                contactRequestDto.Receiver_Avatar = receiver.Avatar;
+
                 return (contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto);
             }
-            else if (handle == RespondContactHandle.Declined)
+            // 拒绝好友请求
+            else if (handle == RespondContactHandle.Declined && contactRequestEntity.Receiver_Id == userId && contactRequestEntity.Relation_Request_Status == RelationRequestStatus.Pending)
             {
-                // 拒绝好友请求
-                var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
-                if (contactRequestEntity == null || contactRequestEntity.Receiver_Id != userId || contactRequestEntity.Relation_Request_Status != RelationRequestStatus.Pending)
-                {
-                    return null;
-                }
-
                 // 更新好友请求状态为已拒绝
                 contactRequestEntity.Relation_Request_Status = RelationRequestStatus.Declined;
                 contactRequestEntity.Handled_At = DateTime.UtcNow;
+
                 var bol = await _contactRequestRepository.UpdateContactRequest(contactRequestEntity);
                 if (!bol)
                 {
@@ -379,11 +420,16 @@ namespace HY.ApiService.Services
                 }
 
                 var contactRequestDto = contactRequestEntity.Adapt<ContactRequestDto>();
+                contactRequestDto.Sender_Nickname = sender.Nickname;
+                contactRequestDto.Sender_Avatar = sender.Avatar;
+                contactRequestDto.Receiver_Nickname = receiver.Nickname;
+                contactRequestDto.Receiver_Avatar = receiver.Avatar;
+
                 return (contactRequestDto, null, null, null, null);
             }
             else
             {
-                throw new ArgumentException("无效的操作类型", nameof(handle));
+                return null;
             }
         }
 

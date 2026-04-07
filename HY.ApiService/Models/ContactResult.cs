@@ -11,7 +11,9 @@ namespace HY.ApiService.Models
         public ContactRequestDto? ContactRequest { get; init; }
         public List<ContactRequestDto>? ContactRequests { get; init; }
 
-        public ContactResult(bool isSucc, string? error = null, ContactDto? contact = null, List<ContactDto>? contacts = null, ContactRequestDto? contactRequest = null, List<ContactRequestDto>? contactRequests = null)
+        public ContactResult(bool isSucc, string? error = null, ContactDto? contact = null, 
+                             List<ContactDto>? contacts = null, ContactRequestDto? contactRequest = null, 
+                             List<ContactRequestDto>? contactRequests = null)
         {
             IsSucc = isSucc;
             Error = error;

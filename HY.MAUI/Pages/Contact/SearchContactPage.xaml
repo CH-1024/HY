@@ -100,6 +100,22 @@
                                             </MultiTrigger.Conditions>
                                             <Setter Property="Text" Value="收到请求"/>
                                         </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Revoked"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已撤销"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Revoked"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已撤销"/>
+                                        </MultiTrigger>
+
                                     </Label.Triggers>
                                 </Label>
 
@@ -154,36 +170,3 @@
     </ScrollView>
 
 </ContentPage>
-
-
-<!--<Border Padding="5" StrokeThickness="0.5">
-    <Grid ColumnDefinitions="50,*,150" HeightRequest="50">
-
-        <toolkit:AvatarView Grid.Column="0" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0">
-            <toolkit:AvatarView.Triggers>
-                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
-                    <Setter Property="ImageSource" Value="{Binding Receiver_Avatar}"/>
-                </DataTrigger>
-
-                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
-                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
-                </DataTrigger>
-            </toolkit:AvatarView.Triggers>
-        </toolkit:AvatarView>
-
-        <Label Grid.Column="1" FontAttributes="Bold" FontSize="16" Padding="0" Margin="0" HorizontalOptions="Start" VerticalOptions="Center">
-            <Label.Triggers>
-                <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
-                    <Setter Property="Text" Value="{Binding Receiver_Nickname}"/>
-                </DataTrigger>
-
-                <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
-                    <Setter Property="Text" Value="{Binding Sender_Nickname}"/>
-                </DataTrigger>
-            </Label.Triggers>
-        </Label>
-
-        <Label Grid.Column="2" Text="{Binding Relation_Request_Status}" FontAttributes="Bold" FontSize="16" Padding="0" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"/>
-
-    </Grid>
-</Border>-->

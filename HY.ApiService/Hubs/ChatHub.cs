@@ -246,48 +246,60 @@ namespace HY.ApiService.Hubs
             return contactRequestDto;
         }
 
+        public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto);
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        public async Task<RespondContactResult?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
         {
-            (ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)? ret = null;
-
             var result = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
-            if (result != null && handle == RespondContactHandle.Revoked)
-            {
-                ret = (result.Value.contactRequestDto, null, null);
+            if (result == null) return null;
 
+            var contactRequest = result.Value.contactRequestDto;
+            var senderContact = result.Value.senderContact;
+            var receiverContact = result.Value.receiverContact;
+            var senderChat = result.Value.senderChat;
+            var receiverChat = result.Value.receiverChat;
+
+            var senderResult = new RespondContactResult(contactRequest, senderContact, senderChat);
+            var receiverResult = new RespondContactResult(contactRequest, receiverContact, receiverChat);
+
+            if (handle == RespondContactHandle.Revoked)
+            {
                 // 通知接收方所有在线设备
                 var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Receiver_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", ret.Value);
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", receiverResult);
                 }
-            }
-            else if (result != null && handle == RespondContactHandle.Accepted)
-            {
-                ret = (result.Value.contactRequestDto, result.Value.receiverContact, result.Value.receiverChat);
 
+                return senderResult;
+            }
+            else if (handle == RespondContactHandle.Accepted)
+            {
                 // 通知发送方所有在线设备
                 var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", (result.Value.contactRequestDto, result.Value.senderContact, result.Value.senderChat));
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);
                 }
-            }
-            else if (result != null && handle == RespondContactHandle.Declined)
-            {
-                ret = (result.Value.contactRequestDto, null, null);
 
+                return receiverResult;
+            }
+            else if (handle == RespondContactHandle.Declined)
+            {
                 // 通知发送方所有在线设备
                 var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", ret.Value);
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);
                 }
-            }
 
-            return ret;
+                return receiverResult;
+            }
+            else
+            {
+                throw new ArgumentException("无效的操作类型", nameof(handle));
+            }
         }
 
         [Authorize]
