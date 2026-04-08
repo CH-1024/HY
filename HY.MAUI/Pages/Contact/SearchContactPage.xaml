@@ -35,7 +35,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="搜索用户" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="添加联系人" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <!--<ContentPage.ToolbarItems>
@@ -70,6 +70,10 @@
                                             <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
                                         </DataTrigger>
                                     </toolkit:AvatarView.Triggers>
+
+                                    <toolkit:AvatarView.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Path=BindingContext.ContactDetailCommand, Source={x:Reference _SearchContactPage}}" CommandParameter="{Binding .}"/>
+                                    </toolkit:AvatarView.GestureRecognizers>
                                 </toolkit:AvatarView>
 
                                 <Label Grid.Column="1" FontSize="16" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
@@ -114,6 +118,36 @@
                                                 <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Revoked"/>
                                             </MultiTrigger.Conditions>
                                             <Setter Property="Text" Value="对方已撤销"/>
+                                        </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Declined"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已拒绝"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Declined"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已拒绝"/>
+                                        </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Accepted"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已同意"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Accepted"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已同意"/>
                                         </MultiTrigger>
 
                                     </Label.Triggers>

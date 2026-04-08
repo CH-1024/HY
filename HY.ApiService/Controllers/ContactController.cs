@@ -96,5 +96,18 @@ namespace HY.ApiService.Controllers
             });
         }
 
+        [Authorize]
+        [HttpDelete("delete/contact")]
+        public async Task<IActionResult> DeleteContact(long targetId)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var result = await _contactService.DeleteContact(userId, targetId);
+
+            return Ok(new Response(result.IsSucc, result.Error));
+        }
+
     }
 }

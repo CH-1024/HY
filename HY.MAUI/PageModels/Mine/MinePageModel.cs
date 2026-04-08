@@ -61,7 +61,7 @@ namespace HY.MAUI.PageModels.Mine
         [RelayCommand]
         async Task Logout()
         {
-            var confirm = await Application.Current!.Windows[0].Page!.DisplayAlertAsync("Confirm Logout", "Are you sure you want to logout?", "Yes", "No");
+            var confirm = await Application.Current!.Windows[0].Page!.DisplayAlertAsync("退出登录", "确认要退出登录吗?", "是", "否");
             if (!confirm) return;
 
             _ = _loginApi.Logout();

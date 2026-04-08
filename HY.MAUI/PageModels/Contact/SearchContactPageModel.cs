@@ -143,21 +143,13 @@ namespace HY.MAUI.PageModels.Contact
         [RelayCommand]
         async Task RespondContact_Accepted(ContactRequestVM contactRequest)
         {
-            //var resp = await _chatHub.RespondContact(identity);
-            //if (resp?.IsSucc == true)
-            //{
-            
-            //}
+            await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Accepted);
         }
 
         [RelayCommand]
         async Task RespondContact_Declined(ContactRequestVM contactRequest)
         {
-            //var resp = await _chatHub.RespondContact(identity);
-            //if (resp?.IsSucc == true)
-            //{
-
-            //}
+            await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Declined);
         }
 
         [RelayCommand]
@@ -166,5 +158,40 @@ namespace HY.MAUI.PageModels.Contact
             await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Revoked);
         }
 
+        [RelayCommand]
+        async Task ContactDetail(ContactRequestVM contactRequest)
+        {
+            long contactId;
+            if (contactRequest.IsSelf)
+            {
+                contactId = contactRequest.Receiver_Id;
+            }
+            else
+            {
+                contactId = contactRequest.Sender_Id;
+            }
+
+            var resp = await _contactApi.GetContact(contactId);
+            if (resp?.IsSucc == true)
+            {
+                var parameters = new Dictionary<string, object>();
+                var contactDto = resp.GetValue<ContactDto>("Contact")!;
+
+                if (contactDto.Relation_Status == RelationStatus.Friend)
+                {
+                    // 是联系人
+                    parameters.Add("ContactInfo", contactDto.ToVM());
+                    await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
+                }
+                else
+                {
+                    // 是陌生人
+                    parameters.Add("Source", 1);
+                    parameters.Add("ContactInfo", contactDto.ToVM());
+                    await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
+                }
+            }
+
+        }
     }
 }

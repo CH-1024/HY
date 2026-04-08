@@ -52,6 +52,7 @@ namespace HY.MAUI.Communication
         public static string GetContactRequests => $"{HttpBaseUrl}/contact/get/contactrequests/";
         public static string GetContact => $"{HttpBaseUrl}/contact/get/contact/";
         public static string SearchContact => $"{HttpBaseUrl}/contact/search/contact/";
+        public static string DeleteContact => $"{HttpBaseUrl}/contact/delete/contact/";
 
 
         // User

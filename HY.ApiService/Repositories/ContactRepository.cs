@@ -1,5 +1,6 @@
 ﻿
 using HY.ApiService.Entities;
+using HY.ApiService.Services;
 using SqlSugar;
 
 namespace HY.ApiService.Repositories
@@ -29,7 +30,7 @@ namespace HY.ApiService.Repositories
 
         public async Task<long> CreateContact(ContactEntity contactEntity)
         {
-            return await _db.Insertable(contactEntity).ExecuteReturnBigIdentityAsync();
+            return await _db.Insertable(contactEntity).ExecuteCommandAsync();
         }
 
 

@@ -29,7 +29,7 @@ namespace HY.ApiService.Controllers
 
             var userId = long.Parse(userIdStr!);
 
-            var list = await _chatService.GetChatsByUserId(userId);
+            var list = await _chatService.GetAllChatsByUserId(userId);
 
             return Ok(new Response(true)
             {

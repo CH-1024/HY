@@ -28,6 +28,20 @@ namespace HY.MAUI.Communication.Http
             }
         }
 
+        protected async Task<Response?> DeleteAsync(string url, CancellationToken ct = default)
+        {
+            try
+            {
+                var resp = await Http.DeleteAsync(url, ct);
+                resp.EnsureSuccessStatusCode();
+                return await resp.Content.ReadFromJsonAsync<Response>(cancellationToken: ct);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
         protected async Task<Response?> PostAsync(string url, HttpContent? content, CancellationToken ct = default)
         {
             try

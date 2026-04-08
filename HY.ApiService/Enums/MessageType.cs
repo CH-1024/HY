@@ -7,5 +7,6 @@
         File = 3,
         Voice = 4,
         Video = 5,
+        System = 6,
     }
 }

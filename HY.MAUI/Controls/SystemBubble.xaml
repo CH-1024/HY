@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Controls.SystemBubble"
+             x:Name="_SystemBubble"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="msgvm:SystemMessageVM">
+
+    <!-- ================== 消息区域 ================== -->
+    <Label HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray" FontSize="Body" MinimumHeightRequest="0" Padding="0" LineBreakMode="WordWrap" HeightRequest="30" IsVisible="False">
+        <Label.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                <Setter Property="IsVisible" Value="True"/>
+                <Setter Property="Text" Value="{Binding Text}"/>
+            </DataTrigger>
+        </Label.Triggers>
+    </Label>
+
+</ContentView>

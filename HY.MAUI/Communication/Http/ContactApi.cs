@@ -36,6 +36,11 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync(ApiUrl.GetContactRequests);
         }
 
+
+        public async Task<Response?> DeleteContact(long targetId)
+        {
+            return await DeleteAsync($"{ApiUrl.DeleteContact}?targetId={targetId}");
+        }
     }
 
 }

@@ -177,7 +177,7 @@
 
                     <controls:MessageTemplateSelector.SystemTemplate>
                         <DataTemplate x:DataType="msgvm:SystemMessageVM">
-
+                            <controls:SystemBubble/>
                         </DataTemplate>
                     </controls:MessageTemplateSelector.SystemTemplate>
 

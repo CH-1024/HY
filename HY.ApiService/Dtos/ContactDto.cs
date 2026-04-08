@@ -8,7 +8,7 @@ namespace HY.ApiService.Dtos
 {
     public class ContactDto
     {
-        public long? Contact_Id { get; set; }
+        public long Contact_Id { get; set; }
         public long? Contact_Request_Id { get; set; }
         public string? Nickname { get; set; }
         public string? Avatar { get; set; }

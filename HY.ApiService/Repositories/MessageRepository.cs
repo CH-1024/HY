@@ -10,7 +10,7 @@ namespace HY.ApiService.Repositories
     {
         Task<long> InsertMessage(MessageEntity messageEntity);
 
-        Task<MessageEntity> GetMessageById(long currentUserId, long messageId);
+        Task<MessageEntity?> GetMessageById(long currentUserId, long messageId);
         Task<List<MessageEntity>> GetMessagesByIds(long currentUserId, List<long> msgIds);
         Task<List<MessageEntity>> GetPrivateChatMessages(long currentUserId, long targetUserId, long skipMessageId, int take);
         Task<List<MessageEntity>> GetGroupChatMessages(long currentUserId, long groupId, long skipMessageId, int take);
@@ -39,7 +39,7 @@ namespace HY.ApiService.Repositories
 
 
 
-        public async Task<MessageEntity> GetMessageById(long currentUserId, long messageId)
+        public async Task<MessageEntity?> GetMessageById(long currentUserId, long messageId)
         {
             return await _db.Queryable<MessageEntity>()
                 .LeftJoin<MessageActionEntity>((m, a) => m.Id == a.Message_Id && a.User_Id == currentUserId && a.Action_Type == MessageActionType.Delete)

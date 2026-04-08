@@ -15,9 +15,9 @@ namespace HY.ApiService.Repositories
         Task<List<ChatEntity>> GetChatsByUserIdsAndType(List<long> userIds, long target_Id, ChatType chatType);
         Task<List<ChatEntity>> GetChatsByUserId(long userId);
 
-        Task<bool> UpdateChat(ChatEntity senderChatEntity);
+        Task<bool> UpdateChat(ChatEntity chatEntity);
         Task<bool> UpdateChatUnread(long chatId);
-        Task<bool> UpdateChats(List<ChatEntity> memberChatEntities);
+        Task<bool> UpdateChats(List<ChatEntity> chatEntities);
     }
 
 
@@ -34,7 +34,8 @@ namespace HY.ApiService.Repositories
 
         public async Task<long> CreateChat(ChatEntity chat)
         {
-            return await _db.Insertable(chat).ExecuteReturnBigIdentityAsync();
+            chat.Id = await _db.Insertable(chat).ExecuteReturnBigIdentityAsync();
+            return chat.Id;
         }
 
 
@@ -70,9 +71,9 @@ namespace HY.ApiService.Repositories
 
 
 
-        public async Task<bool> UpdateChat(ChatEntity senderChatEntity)
+        public async Task<bool> UpdateChat(ChatEntity chatEntity)
         {
-            var result = await _db.Updateable(senderChatEntity).ExecuteCommandAsync();
+            var result = await _db.Updateable(chatEntity).ExecuteCommandAsync();
             return result > 0;
         }
 
@@ -85,10 +86,10 @@ namespace HY.ApiService.Repositories
             return result > 0;
         }
 
-        public async Task<bool> UpdateChats(List<ChatEntity> memberChatEntities)
+        public async Task<bool> UpdateChats(List<ChatEntity> chatEntities)
         {
-            var result = await _db.Updateable(memberChatEntities).ExecuteCommandAsync();
-            return result > 0;
+            var result = await _db.Updateable(chatEntities).ExecuteCommandAsync();
+            return result == chatEntities.Count;
         }
 
         //public async Task<List<ChatDto>> GetChatsByUserId(long userId)
