@@ -35,9 +35,62 @@ namespace HY.MAUI.Stores
 
         public void Upsert(ChatVM chat)
         {
-            var old = Chats.FirstOrDefault(x => x.Id == chat.Id);
-            if (old == null) Chats.Add(chat);
-            else Chats.Insert(Chats.IndexOf(old), chat);
+            var existing = Chats.FirstOrDefault(c => c.Id == chat.Id);
+            if (existing != null)
+            {
+                // Update existing
+                existing.Id = chat.Id;
+                existing.Type = chat.Type;
+                existing.Target_Id = chat.Target_Id;
+                existing.Target_Name = chat.Target_Name;
+                existing.Target_Avatar = chat.Target_Avatar;
+                existing.Is_Top = chat.Is_Top;
+                existing.Is_Deleted = chat.Is_Deleted;
+                existing.Last_Msg_Id = chat.Last_Msg_Id;
+                existing.Last_Msg_Type = chat.Last_Msg_Type;
+                existing.Last_Msg_Time = chat.Last_Msg_Time;
+                existing.Last_Msg_Brief = chat.Last_Msg_Brief;
+                existing.Last_Msg_Status = chat.Last_Msg_Status;
+                existing.Unread_Count = chat.Unread_Count;
+            }
+            else
+            {
+                Chats.Add(chat);
+            }
+        }
+
+        public void UpsertAndSetTop(ChatVM chat)
+        {
+            var existing = Chats.FirstOrDefault(c => c.Id == chat.Id);
+            if (existing != null)
+            {
+                // Update existing
+                existing.Id = chat.Id;
+                existing.Type = chat.Type;
+                existing.Target_Id = chat.Target_Id;
+                existing.Target_Name = chat.Target_Name;
+                existing.Target_Avatar = chat.Target_Avatar;
+                existing.Is_Top = chat.Is_Top;
+                existing.Is_Deleted = chat.Is_Deleted;
+                existing.Last_Msg_Id = chat.Last_Msg_Id;
+                existing.Last_Msg_Type = chat.Last_Msg_Type;
+                existing.Last_Msg_Time = chat.Last_Msg_Time;
+                existing.Last_Msg_Brief = chat.Last_Msg_Brief;
+                existing.Last_Msg_Status = chat.Last_Msg_Status;
+                existing.Unread_Count = chat.Unread_Count;
+
+                Chats.Move(Chats.IndexOf(existing), 0);
+            }
+            else
+            {
+                Chats.Insert(0, chat);
+            }
+        }
+
+        public bool Remove(ChatType type, long targetId)
+        {
+            var chat = Chats.FirstOrDefault(c => c.Target_Id == targetId && c.Type == type);
+            return Chats.Remove(chat);
         }
 
         public void Clear()

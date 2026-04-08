@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 
 namespace HY.MAUI.Communication.SignalR
 {
+    public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto, MessageDto? MessageDto);
+
     public class ChatHubSignalR : IAsyncDisposable
     {
         private readonly IServiceProvider _serviceProvider;
@@ -194,7 +196,6 @@ namespace HY.MAUI.Communication.SignalR
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
-        public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto);
         public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string message = "")
         {
             var result = await _connection!.InvokeAsync<RespondContactResult?>("RespondContact", contactRequestId, handle, message);
@@ -212,7 +213,10 @@ namespace HY.MAUI.Communication.SignalR
                 _contactStore.Upsert(contactDto.ToVM());
 
                 var chatDto = result.ChatDto!;
-                _chatStore.Upsert(chatDto.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto.ToVM());
+
+                var messageDto = result.MessageDto!;
+                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
             }
         }
 
@@ -317,7 +321,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
             _connection?.On<ContactRequestDto>("RequestContact", OnRequestContact);
-            _connection?.On<(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto)>("RespondContact", OnRespondContact);
+            _connection?.On<RespondContactResult>("RespondContact", OnRespondContact);
             _connection?.On<string, bool>("ForceLogout", OnForceLogout);
         }
 
@@ -448,21 +452,24 @@ namespace HY.MAUI.Communication.SignalR
             _contactRequestStore.Upsert(contactRequestVM);
         }
 
-        private void OnRespondContact((ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto) result)
+        private void OnRespondContact(RespondContactResult result)
         {
             var currentUser = _globalCache.GetCurrentUser();
 
-            var contactRequestVM = result.contactRequestDto.ToVM(currentUser.Id);
+            var contactRequestVM = result.ContactRequestDto.ToVM(currentUser.Id);
 
             _contactRequestStore.Upsert(contactRequestVM);
 
             if (contactRequestVM.Relation_Request_Status == RelationRequestStatus.Accepted)
             {
-                var contactDto = result.contactDto!;
+                var contactDto = result.ContactDto!;
                 _contactStore.Upsert(contactDto.ToVM());
 
-                var chatDto = result.chatDto!;
-                _chatStore.Upsert(chatDto.ToVM());
+                var chatDto = result.ChatDto!;
+                _chatStore.UpsertAndSetTop(chatDto.ToVM());
+
+                var messageDto = result.MessageDto!;
+                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
             }
         }
 

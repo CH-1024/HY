@@ -52,7 +52,22 @@ namespace HY.MAUI.Mapping
             else if (dto.Message_Type == MessageType.Video)
                 throw new NotImplementedException("Voice message mapping not implemented yet.");
             else if (dto.Message_Type == MessageType.System)
-                throw new NotImplementedException("System message mapping not implemented yet.");
+            {
+                return new SystemMessageVM
+                {
+                    Id = dto.Id,
+                    Chat_Type = dto.Chat_Type,
+                    Sender_Id = dto.Sender_Id,
+                    Sender_Avatar = dto.Sender_Avatar,
+                    Sender_Nickname = dto.Sender_Nickname,
+                    Target_Id = dto.Target_Id,
+                    Message_Status = dto.Message_Status,
+                    Created_At = dto.Created_At,
+                    IsSelf = isSelf,
+
+                    Text = dto.Content,
+                };
+            }
             else
                 throw new NotImplementedException("Message type not implemented in mapping.");
         }

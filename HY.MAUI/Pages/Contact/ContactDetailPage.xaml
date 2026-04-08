@@ -60,8 +60,8 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="备注" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="拉黑" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="删除" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="拉黑" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="删除" Order="Secondary" Priority="2" Command="{Binding DeleteContactCommand}"/>
     </ContentPage.ToolbarItems>
 
 

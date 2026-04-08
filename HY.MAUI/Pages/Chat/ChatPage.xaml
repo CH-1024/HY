@@ -98,8 +98,14 @@
                                                 <Setter Property="Text" Value="[图片]"/>
                                             </MultiTrigger>
 
-                                            
-                                            
+
+
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="System">
+                                                <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='[{0}]'}"/>
+                                            </DataTrigger>
+
+
+
                                             <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Status}" Value="Recalled">
                                                 <Setter Property="Text" Value="[消息已撤回]"/>
                                             </DataTrigger>

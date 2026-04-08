@@ -54,7 +54,7 @@ namespace HY.MAUI.PageModels.Contact
         [RelayCommand]
         async Task RequestContact()
         {
-            await _chatHub.RequestContact(StrangerInfo.Contact_Id.Value, _source, "Hi, let's be friends!");
+            await _chatHub.RequestContact(StrangerInfo.Contact_Id, _source, "Hi, let's be friends!");
             _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
         }
 

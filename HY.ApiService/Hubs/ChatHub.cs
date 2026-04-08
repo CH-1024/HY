@@ -17,6 +17,9 @@ using System.Text;
 
 namespace HY.ApiService.Hubs
 {
+    public record ConnectionKey(long UserId, string DevicePlatform);
+    public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto, MessageDto? MessageDto);
+
     public class ChatHub : Hub
     {
         readonly ISqlSugarClient _db;
@@ -29,7 +32,6 @@ namespace HY.ApiService.Hubs
         readonly IContactService _contactService;
 
 
-        private record ConnectionKey(long UserId, string DevicePlatform);
 
         // 使用静态字典来保存用户ID和ConnectionId的映射
         //public static readonly ConcurrentDictionary<long, string> _iceMap = new();
@@ -106,9 +108,16 @@ namespace HY.ApiService.Hubs
         {
             // Todo: 联系人验证、黑名单验证、Group群发等
 
+            // 朋友关系验证
+            var contactResult = await _contactService.GetContactByUserId(messageDto.Target_Id, messageDto.Sender_Id);
+            if (contactResult.IsSucc && contactResult.Contact.Relation_Status != RelationStatus.Friend)
+            {
+                return 0;
+            }
+
             // 设置消息状态和创建时间
             messageDto.Message_Status = MessageStatus.Sented;
-            //messageDto.Created_At = DateTime.UtcNow;
+            messageDto.Created_At = DateTime.UtcNow;
 
             long messageId = 0;
 
@@ -246,7 +255,6 @@ namespace HY.ApiService.Hubs
             return contactRequestDto;
         }
 
-        public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto);
         [Authorize]
         [HubMethodName("RespondContact")]
         public async Task<RespondContactResult?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
@@ -254,19 +262,21 @@ namespace HY.ApiService.Hubs
             var result = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
             if (result == null) return null;
 
-            var contactRequest = result.Value.contactRequestDto;
-            var senderContact = result.Value.senderContact;
-            var receiverContact = result.Value.receiverContact;
-            var senderChat = result.Value.senderChat;
-            var receiverChat = result.Value.receiverChat;
+            var contactRequest = result.contactRequestDto;
+            var senderContact = result.senderContact;
+            var receiverContact = result.receiverContact;
+            var senderChat = result.senderChat;
+            var receiverChat = result.receiverChat;
+            var senderMessage = result.senderMessage;
+            var receiverMessage = result.receiverMessage;
 
-            var senderResult = new RespondContactResult(contactRequest, senderContact, senderChat);
-            var receiverResult = new RespondContactResult(contactRequest, receiverContact, receiverChat);
+            var senderResult = new RespondContactResult(contactRequest, senderContact, senderChat, senderMessage);
+            var receiverResult = new RespondContactResult(contactRequest, receiverContact, receiverChat, receiverMessage);
 
             if (handle == RespondContactHandle.Revoked)
             {
                 // 通知接收方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Receiver_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Receiver_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", receiverResult);
@@ -274,10 +284,10 @@ namespace HY.ApiService.Hubs
 
                 return senderResult;
             }
-            else if (handle == RespondContactHandle.Accepted)
+            else if (handle == RespondContactHandle.Declined)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);
@@ -285,10 +295,10 @@ namespace HY.ApiService.Hubs
 
                 return receiverResult;
             }
-            else if (handle == RespondContactHandle.Declined)
+            else if (handle == RespondContactHandle.Accepted)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.Value.contactRequestDto.Sender_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);

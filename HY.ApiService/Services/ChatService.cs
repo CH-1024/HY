@@ -12,7 +12,7 @@ namespace HY.ApiService.Services
 {
     public interface IChatService
     {
-        Task<List<ChatDto>> GetChatsByUserId(long userId);
+        Task<List<ChatDto>> GetAllChatsByUserId(long userId);
 
         Task<bool> UpdateChatLastMessage(MessageDto messageDto);
         Task<bool> UpdateChatUnread(long chat_Id);
@@ -45,9 +45,11 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task<List<ChatDto>> GetChatsByUserId(long userId)
+        public async Task<List<ChatDto>> GetAllChatsByUserId(long userId)
         {
             var chatEntities = await _chatRepository.GetChatsByUserId(userId);
+
+            chatEntities = chatEntities.Where(c => !c.Is_Deleted).OrderByDescending(c => c.Last_Msg_Time).ToList();
 
             var userIds = chatEntities.Where(c => c.Type == ChatType.Private).Select(c => c.Target_Id).Distinct().ToList();
             var groupIds = chatEntities.Where(c => c.Type == ChatType.Group).Select(c => c.Target_Id).Distinct().ToList();
@@ -129,7 +131,7 @@ namespace HY.ApiService.Services
                         receiverChatEntity.Unread_Count += 1;
                         receiverChatEntity.Last_Msg_Time = messageDto.Created_At;
                         var bol = await _chatRepository.UpdateChat(receiverChatEntity);
-                        if (bol) throw new Exception("更新接收者聊天记录失败");
+                        if (!bol) throw new Exception("更新接收者聊天记录失败");
                     }
                 });
 
