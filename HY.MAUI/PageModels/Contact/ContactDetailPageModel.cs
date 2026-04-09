@@ -75,6 +75,9 @@ namespace HY.MAUI.PageModels.Contact
             {
                 _chatStore.Remove(ChatType.Private, ContactInfo.Contact_Id);
                 _contactStore.Remove(ContactInfo.Contact_Id);
+
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "删除成功！", "确定");
+                await Shell.Current.GoToAsync("..", true);
             }
         }
     }

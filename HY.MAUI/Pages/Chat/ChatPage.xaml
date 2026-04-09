@@ -49,12 +49,12 @@
 
                                     <toolkit:AvatarView Grid.RowSpan="2" ImageSource="{Binding Target_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
 
-                                    <Border IsVisible="{Binding Unread_Count_Visible}" BackgroundColor="Red" HorizontalOptions="End" VerticalOptions="Start" MinimumWidthRequest="24" HeightRequest="24" Margin="0" Padding="3,0">
+                                    <Border IsVisible="{Binding Unread_Count_Visible}" BackgroundColor="Red" HorizontalOptions="End" VerticalOptions="Start" MinimumWidthRequest="22" HeightRequest="22" Margin="0" Padding="3,0">
                                         <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="12" StrokeThickness="0"/>
+                                            <RoundRectangle CornerRadius="11" StrokeThickness="0"/>
                                         </Border.StrokeShape>
                                         <Border.Shadow>
-                                            <Shadow Brush="Black" Offset="0,0" Radius="12" Opacity="1"/>
+                                            <Shadow Brush="Black" Offset="0,0" Radius="5" Opacity="1"/>
                                         </Border.Shadow>
                                         <Label Text="{Binding Unread_Count_Show}" FontSize="Micro" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                                     </Border>

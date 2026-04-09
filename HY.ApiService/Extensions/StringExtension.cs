@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace HY.ApiService.Extensions
 {
-    public static class StringExtensions
+    public static class StringExtension
     {
 
         extension (string str)

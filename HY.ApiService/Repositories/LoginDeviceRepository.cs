@@ -9,7 +9,7 @@ namespace HY.ApiService.Repositories
         Task<long> CreateLoginDevice(LoginDeviceEntity loginDevice);
 
         Task<LoginDeviceEntity?> GetLoginDeviceById(long id);
-        Task<List<LoginDeviceEntity>> GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(long userId, string devicePlatform);
+        Task<List<LoginDeviceEntity>> GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(long userId, int devicePlatform);
         Task<LoginDeviceEntity?> GetLoginDeviceByUserIdAndDeviceId(long userId, string deviceId);
 
         Task<bool> UpdateLoginDevice(LoginDeviceEntity loginDevice);
@@ -45,7 +45,7 @@ namespace HY.ApiService.Repositories
                 .SingleAsync();
         }
 
-        public async Task<List<LoginDeviceEntity>> GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(long userId, string devicePlatform)
+        public async Task<List<LoginDeviceEntity>> GetLoginDeviceByUserIdAndDevicePlatformAndIsOnline(long userId, int devicePlatform)
         {
             return await _db.Queryable<LoginDeviceEntity>()
                 .Where(ld => ld.User_Id == userId && ld.Device_Platform == devicePlatform && ld.Is_Online)

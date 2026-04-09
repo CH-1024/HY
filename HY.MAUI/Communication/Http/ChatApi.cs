@@ -21,7 +21,7 @@ namespace HY.MAUI.Communication.Http
 
         public async Task<Response?> ReadAll(long chatId)
         {
-            return await GetAsync($"{ApiUrl.ReadAll}?chatId={chatId}");
+            return await PostAsync($"{ApiUrl.ReadAll}?chatId={chatId}");
         }
 
     }

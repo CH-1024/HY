@@ -42,7 +42,7 @@ namespace HY.ApiService.Controllers
 
 
         [Authorize]
-        [HttpGet("read/all")]
+        [HttpPost("read/all")]
         public async Task<IActionResult> ReadAll(long chatId)
         {
             var result = await _chatService.UpdateChatUnread(chatId);

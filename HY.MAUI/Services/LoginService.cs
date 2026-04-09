@@ -1,4 +1,5 @@
 ﻿using HY.MAUI.Dtos;
+using HY.MAUI.Extensions;
 using HY.MAUI.Models;
 using HY.MAUI.Services.Interfaces;
 using System;
@@ -60,9 +61,9 @@ namespace HY.MAUI.Services
             return Task.FromResult(DeviceInfo.Name);
         }
 
-        public Task<string> GetDevicePlatform()
+        public Task<int> GetDevicePlatform()
         {
-            return Task.FromResult(DeviceInfo.Platform.ToString());
+            return Task.FromResult(DeviceInfo.Platform.ToInt());
         }
 
         public Task<int> GetDeviceType()

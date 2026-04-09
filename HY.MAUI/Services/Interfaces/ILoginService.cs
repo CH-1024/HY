@@ -24,7 +24,7 @@ namespace HY.MAUI.Services.Interfaces
 
         Task<string> GetDeviceName();
 
-        Task<string> GetDevicePlatform();
+        Task<int> GetDevicePlatform();
 
         Task<int> GetDeviceType();
 
