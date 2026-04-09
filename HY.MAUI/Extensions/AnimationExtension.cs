@@ -4,7 +4,7 @@ using System.Text;
 
 namespace HY.MAUI.Extensions
 {
-    public static class AnimationExtensions
+    public static class AnimationExtension
     {
 
         extension (VisualElement view)

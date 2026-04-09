@@ -19,7 +19,7 @@ namespace HY.MAUI.Models
         public bool Is_Deleted { get; set; }
 
         public long Last_Msg_Id { get; set; }
-        public MessageType? Last_Msg_Type { get; internal set; }
+        public MessageType? Last_Msg_Type { get; set; }
 
         private DateTime? last_Msg_Time;
         public DateTime? Last_Msg_Time

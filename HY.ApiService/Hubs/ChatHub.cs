@@ -17,8 +17,7 @@ using System.Text;
 
 namespace HY.ApiService.Hubs
 {
-    public record ConnectionKey(long UserId, string DevicePlatform);
-    public record RespondContactResult(ContactRequestDto ContactRequestDto, ContactDto? ContactDto, ChatDto? ChatDto, MessageDto? MessageDto);
+    public record ConnectionKey(long UserId, int DevicePlatform);
 
     public class ChatHub : Hub
     {
@@ -39,9 +38,9 @@ namespace HY.ApiService.Hubs
 
         private long _userId => long.TryParse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : throw new Exception("UserId not found in claims");
         private string _deviceId => Context.User?.FindFirst("DeviceId")?.Value ?? throw new Exception("DeviceId not found in claims");
-        private string _devicePlatform => Context.User?.FindFirst("DevicePlatform")?.Value ?? throw new Exception("DevicePlatform not found in claims");
+        private int _devicePlatform => int.TryParse(Context.User?.FindFirst("DevicePlatform")?.Value, out var platform) ? platform : throw new Exception("DevicePlatform not found in claims");
 
-        private ConnectionKey? GetConnectionIdMapKey(long userId, string devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.UserId == userId && k.DevicePlatform == devicePlatform);
+        private ConnectionKey? GetConnectionIdMapKey(long userId, int devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.UserId == userId && k.DevicePlatform == devicePlatform);
         private List<string> GetConnectionIdsByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).Select(k => _connectionIdMap[k]).ToList();
 
 
@@ -104,22 +103,22 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("SendMessage")]
-        public async Task<long> OnReceiveMessage(MessageDto messageDto)
+        public async Task<Response> OnReceiveMessage(MessageDto messageDto)
         {
             // Todo: 联系人验证、黑名单验证、Group群发等
+
+            long? messageId = null;
 
             // 朋友关系验证
             var contactResult = await _contactService.GetContactByUserId(messageDto.Target_Id, messageDto.Sender_Id);
             if (contactResult.IsSucc && contactResult.Contact.Relation_Status != RelationStatus.Friend)
             {
-                return 0;
+                return new Response(false, "不是好友关系");
             }
 
             // 设置消息状态和创建时间
             messageDto.Message_Status = MessageStatus.Sented;
             messageDto.Created_At = DateTime.UtcNow;
-
-            long messageId = 0;
 
             // 开启事务
             var result = await _db.Ado.UseTranAsync(async () =>
@@ -134,7 +133,7 @@ namespace HY.ApiService.Hubs
             });
 
             // ---------- 事务结束 ----------
-            if (!result.IsSuccess) return 0;
+            if (!result.IsSuccess) return new Response(false, "事务处理失败");
 
             if (messageDto.Chat_Type == ChatType.Private)
             {
@@ -181,22 +180,29 @@ namespace HY.ApiService.Hubs
                 });
             }
 
-            return messageId;
+            return new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "MessageId", messageId },
+                    { "CreatedAt", messageDto.Created_At },
+                }
+            };
         }
 
         [Authorize]
         [HubMethodName("RecallMessage")]
-        public async Task<bool> OnRecallMessage(long messageId)
+        public async Task<Response> OnRecallMessage(long messageId)
         {
             var messageDto = await _messageService.GetMessageById(_userId, messageId);
-            if (messageDto == null) return false;
+            if (messageDto == null) return new Response(false, "消息不存在");
 
             // 只有发送者才能撤回消息
-            if (messageDto.Sender_Id != _userId) return false;
+            if (messageDto.Sender_Id != _userId) return new Response(false, "只有发送者才能撤回消息");
 
             // 撤回消息
             var result = await _messageService.RecallMessage(messageId);
-            if (!result) return false;
+            if (!result) return new Response(false, "撤回消息失败");
 
             // 通知接收者撤回消息
             if (messageDto.Chat_Type == ChatType.Private)
@@ -225,108 +231,122 @@ namespace HY.ApiService.Hubs
                 });
             }
 
-            return true;
+            return new Response(true);
         }
 
         [Authorize]
         [HubMethodName("DeleteMessage")]
-        public async Task<bool> OnDeleteMessage(long messageId)
+        public async Task<Response> OnDeleteMessage(long messageId)
         {
             var messageDto = await _messageService.GetMessageById(_userId, messageId);
-            if (messageDto == null) return false;
+            if (messageDto == null) return new Response(false, "消息不存在");
 
-            return await _messageActionService.InsertMessageAction(_userId, messageId, MessageActionType.Delete);
+            var result = await _messageActionService.InsertMessageAction(_userId, messageId, MessageActionType.Delete);
+            if (!result) return new Response(false, "删除消息失败");
+
+            return new Response(true);
         }
 
         [Authorize]
         [HubMethodName("RequestContact")]
-        public async Task<ContactRequestDto?> OnRequestContact(long contactId, int source, string message)
+        public async Task<Response> OnRequestContact(long contactId, int source, string message)
         {
-            var contactRequestDto = await _contactService.RequestContact(_userId, contactId, source, message);
-            if (contactRequestDto != null)
+            var result = await _contactService.RequestContact(_userId, contactId, source, message);
+            if (result == null) return new Response(false, "请求联系人失败");
+
+            // 通知接收方所有在线设备
+            var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
+            foreach (var receiver in receiverConnectionIds)
             {
-                // 通知对方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
-                foreach (var receiver in receiverConnectionIds)
+                // 一点细节
+                _ = Clients.Client(receiver).InvokeAsync<bool>("RequestContact", result.contactRequest, result.receiverContact, result.receiverChat, result.receiverMessage, CancellationToken.None).ContinueWith(async task =>
                 {
-                    _ = Clients.Client(receiver).SendAsync("RequestContact", contactRequestDto);
-                }
+                    if (task.IsCompletedSuccessfully && task.Result)
+                    {
+                        await _chatService.UpdateChatUnread(result.receiverMessage.Sender_Id, result.receiverMessage.Target_Id, ChatType.Private);
+                    }
+                });
             }
-            return contactRequestDto;
+
+            return new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "ContactRequest", result.contactRequest },
+                    { "Contact", result.senderContact },
+                    { "Chat", result.senderChat },
+                    { "Message", result.senderMessage },
+                }
+            };
         }
 
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task<RespondContactResult?> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        public async Task<Response> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
         {
             var result = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
-            if (result == null) return null;
-
-            var contactRequest = result.contactRequestDto;
-            var senderContact = result.senderContact;
-            var receiverContact = result.receiverContact;
-            var senderChat = result.senderChat;
-            var receiverChat = result.receiverChat;
-            var senderMessage = result.senderMessage;
-            var receiverMessage = result.receiverMessage;
-
-            var senderResult = new RespondContactResult(contactRequest, senderContact, senderChat, senderMessage);
-            var receiverResult = new RespondContactResult(contactRequest, receiverContact, receiverChat, receiverMessage);
+            if (result == null) return new Response(false, "处理联系人请求失败");
 
             if (handle == RespondContactHandle.Revoked)
             {
                 // 通知接收方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Receiver_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Receiver_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", receiverResult);
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
                 }
 
-                return senderResult;
+                return new Response(true)
+                {
+                    Data = new Dictionary<string, object?>
+                    {
+                        { "ContactRequest", result.contactRequest },
+                    }
+                };
             }
             else if (handle == RespondContactHandle.Declined)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Sender_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
                 }
 
-                return receiverResult;
+                return new Response(true)
+                {
+                    Data = new Dictionary<string, object?>
+                    {
+                        { "ContactRequest", result.contactRequest },
+                    }
+                };
             }
             else if (handle == RespondContactHandle.Accepted)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequestDto.Sender_Id);
+                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", senderResult);
+                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, result.senderContact, result.senderChat, result.senderMessage);
                 }
 
-                return receiverResult;
+                return new Response(true)
+                {
+                    Data = new Dictionary<string, object?>
+                    {
+                        { "ContactRequest", result.contactRequest },
+                        { "Contact", result.receiverContact },
+                        { "Chat", result.receiverChat },
+                        { "Message", result.receiverMessage },
+                    }
+                };
             }
             else
             {
-                throw new ArgumentException("无效的操作类型", nameof(handle));
+                return new Response(false, "无效的操作类型");
             }
         }
 
-        [Authorize]
-        [HubMethodName("ReceiveStream")]
-        public async Task<string> ReceiveStream(IAsyncEnumerable<string> stream)
-        {
-            var result = new StringBuilder();
-
-            await foreach (var item in stream)
-            {
-                Console.WriteLine($"收到流数据: {item}");
-                result.AppendLine(item);
-                // 处理流数据...
-            }
-
-            return result.ToString();
-        }
 
     }
 }

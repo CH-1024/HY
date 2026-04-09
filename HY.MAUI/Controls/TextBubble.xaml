@@ -76,7 +76,7 @@
             </Grid.Triggers>
 
             <!-- 发送进度 -->
-            <ActivityIndicator Grid.Column="2" IsVisible="False" IsRunning="True" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center">
+            <ActivityIndicator Grid.Column="2" IsVisible="False" IsRunning="True" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0">
 
                 <ActivityIndicator.Triggers>
 
@@ -98,7 +98,7 @@
             </ActivityIndicator>
 
             <!-- 重试按钮 -->
-            <Button Grid.Column="2" Text="↻" IsVisible="False" TextColor="DarkGray" FontSize="Medium" BackgroundColor="Transparent" WidthRequest="34" HeightRequest="34">
+            <Button Grid.Column="2" Text="↻" IsVisible="False" TextColor="DarkGray" FontSize="Medium" BackgroundColor="Transparent" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0" Padding="0">
 
                 <Button.Triggers>
 

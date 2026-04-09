@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication.Http;
+using HY.MAUI.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -74,6 +75,11 @@ namespace HY.MAUI.PageModels.Login
             if (Password != ConfirmPassword)
             {
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("错误", "两次输入的密码不一致", "确定");
+                return;
+            }
+            if (!Phone.IsPhone())
+            {
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("错误", "请输入有效的手机号", "确定");
                 return;
             }
 

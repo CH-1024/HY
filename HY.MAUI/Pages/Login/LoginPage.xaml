@@ -19,7 +19,7 @@
         <Grid>
             <VerticalStackLayout Padding="40" Spacing="20">
 
-                <Label Text="LoginPage" FontSize="24" />
+                <Label Text="登录" FontSize="24" />
 
                 <Entry Text="{Binding Username}" Placeholder="用户名" />
                 <Entry Text="{Binding Password}" Placeholder="密码" IsPassword="True" />

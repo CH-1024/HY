@@ -13,10 +13,11 @@ namespace HY.MAUI.Stores
 
         public void Upsert(ContactRequestVM contactRequestVM)
         {
-            var existing = ContactRequests.FirstOrDefault(cr => cr.Id == contactRequestVM.Id);
+            var existing = ContactRequests.FirstOrDefault(cr => cr.Sender_Id == contactRequestVM.Sender_Id && cr.Receiver_Id == contactRequestVM.Receiver_Id);
             if (existing != null)
             {
                 // Update existing
+                existing.Id = contactRequestVM.Id;
                 existing.Sender_Id = contactRequestVM.Sender_Id;
                 existing.Sender_Avatar = contactRequestVM.Sender_Avatar;
                 existing.Sender_Nickname = contactRequestVM.Sender_Nickname;

@@ -76,17 +76,30 @@
                                     </toolkit:AvatarView.GestureRecognizers>
                                 </toolkit:AvatarView>
 
-                                <Label Grid.Column="1" FontSize="16" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
-                                            <Setter Property="Text" Value="{Binding Receiver_Nickname}"/>
-                                        </DataTrigger>
+                                <Grid RowDefinitions="*,*" Grid.Column="1">
+                                    <Label FontSize="16" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                                                <Setter Property="Text" Value="{Binding Receiver_Nickname}"/>
+                                            </DataTrigger>
 
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
-                                            <Setter Property="Text" Value="{Binding Sender_Nickname}"/>
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
+                                                <Setter Property="Text" Value="{Binding Sender_Nickname}"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label Grid.Row="1" TextColor="Gray" FontSize="Body" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                                                <Setter Property="Text" Value="{Binding Message, StringFormat='我：{0}'}"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
+                                                <Setter Property="Text" Value="{Binding Message}"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Grid>
 
                                 <Label Grid.Column="2" FontSize="16" Padding="0" Margin="10,0" HorizontalOptions="End" VerticalOptions="Center">
                                     <Label.Triggers>

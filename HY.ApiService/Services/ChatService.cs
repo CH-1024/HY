@@ -64,7 +64,7 @@ namespace HY.ApiService.Services
             {
                 var chatDto = chatEntity.Adapt<ChatDto>();
 
-                if (chatDto.Type == ChatType.Private && userMap.TryGetValue(chatDto.Target_Id, out var user)) // 单聊
+                if (chatDto.Type == ChatType.Private && userMap.TryGetValue(chatDto.Target_Id, out var user)) // 单聊 
                 {
                     chatDto.Target_Name = user.Nickname;
                     chatDto.Target_Avatar = user.Avatar;

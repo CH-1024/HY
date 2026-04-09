@@ -146,8 +146,8 @@ namespace HY.MAUI.PageModels.Chat
         bool ChatHub_OnReceiveMessage_ChatHub(MessageDto messageDto)
         {
             if (messageDto.Chat_Type != _currentChat.Type) return false;
-            else if (messageDto.Chat_Type == ChatType.Private && _currentChat.Target_Id != messageDto.Sender_Id) return false;
-            else if (messageDto.Chat_Type == ChatType.Group && _currentChat.Target_Id != messageDto.Target_Id) return false;
+            else if (messageDto.Chat_Type == ChatType.Private && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Sender_Id) return false;
+            else if (messageDto.Chat_Type == ChatType.Group && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Target_Id) return false;
 
             UI.Run(async() =>
             {
@@ -390,7 +390,6 @@ namespace HY.MAUI.PageModels.Chat
 
             // 清空输入框
             InputText = "";
-
         }
 
         [RelayCommand]

@@ -54,8 +54,21 @@ namespace HY.MAUI.PageModels.Contact
         [RelayCommand]
         async Task RequestContact()
         {
-            await _chatHub.RequestContact(StrangerInfo.Contact_Id, _source, "Hi, let's be friends!");
-            _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
+            var currentUser = _globalCache.GetCurrentUser();
+
+            if (currentUser.Id == StrangerInfo.Contact_Id)
+            {
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "这是你自己哦！", "确定");
+                return;
+            }
+
+            var sayHi = await Application.Current!.Windows[0].Page!.DisplayPromptAsync("发送好友请求", null, "确定", "取消", "打个招呼吧~", 30);
+            if (sayHi != null)
+            {
+                await _chatHub.RequestContact(StrangerInfo.Contact_Id, _source, sayHi);
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
+            }
+
         }
 
     }
