@@ -45,6 +45,16 @@ namespace HY.ApiService.Controllers
         [HttpPost("read/all")]
         public async Task<IActionResult> ReadAll(long chatId)
         {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var bol = await _chatService.IsUserOwnerChat(userId, chatId);
+            if (!bol)
+            {
+                return Ok(new Response(false, "没有权限"));
+            }
+
             var result = await _chatService.UpdateChatUnread(chatId);
             return Ok(new Response(result));
         }

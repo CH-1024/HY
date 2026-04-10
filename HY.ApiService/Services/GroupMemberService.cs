@@ -6,7 +6,8 @@ namespace HY.ApiService.Services
 {
     public interface IGroupMemberService
     {
-        Task<List<GroupMemberDto>> GetGroupMembersByGroupId(long target_Id);
+        Task<GroupMemberDto> GetGroupMember(long group_Id, long target_Id);
+        Task<List<GroupMemberDto>> GetGroupMembersByGroupId(long groupId);
     }
 
 
@@ -23,6 +24,12 @@ namespace HY.ApiService.Services
             _groupMemberRepository = groupMemberRepository;
         }
 
+
+        public async Task<GroupMemberDto> GetGroupMember(long group_Id, long target_Id)
+        {
+            var groupMemberEntity = await _groupMemberRepository.GetGroupMember(group_Id, target_Id);
+            return groupMemberEntity.Adapt<GroupMemberDto>();
+        }
 
         public async Task<List<GroupMemberDto>> GetGroupMembersByGroupId(long groupId)
         {

@@ -107,14 +107,41 @@ namespace HY.ApiService.Hubs
         {
             // Todo: 联系人验证、黑名单验证、Group群发等
 
-            long? messageId = null;
 
-            // 朋友关系验证
-            var contactResult = await _contactService.GetContactByUserId(messageDto.Target_Id, messageDto.Sender_Id);
-            if (contactResult.IsSucc && contactResult.Contact.Relation_Status != RelationStatus.Friend)
+            if (messageDto == null)
             {
-                return new Response(false, "不是好友关系");
+                return new Response(false, "消息内容不能为空");
             }
+            if (messageDto.Sender_Id != _userId)
+            {
+                return new Response(false, "发送者ID不合法");
+            }
+            if (messageDto.Chat_Type == ChatType.Private)
+            {
+                // 私聊
+                // 联系人验证
+                var contactResult = await _contactService.GetContactByUserId(messageDto.Target_Id, messageDto.Sender_Id);
+                if (contactResult.IsSucc && contactResult.Contact.Relation_Status != RelationStatus.Friend)
+                {
+                    return new Response(false, "不是好友关系");
+                }
+            }
+            else if (messageDto.Chat_Type == ChatType.Group)
+            {
+                // 群聊
+                // 群成员验证
+                var groupMemberResult = await _groupMemberService.GetGroupMember(messageDto.Target_Id, messageDto.Sender_Id);
+                if (groupMemberResult == null)
+                {
+                    return new Response(false, "不是群成员");
+                }
+            }
+            else
+            {
+                return new Response(false, "无效的聊天类型");
+            }
+
+            long? messageId = null;
 
             // 设置消息状态和创建时间
             messageDto.Message_Status = MessageStatus.Sented;
@@ -197,8 +224,14 @@ namespace HY.ApiService.Hubs
             var messageDto = await _messageService.GetMessageById(_userId, messageId);
             if (messageDto == null) return new Response(false, "消息不存在");
 
+            // 只有未撤回的消息才能被撤回
+            if (messageDto.Message_Status == MessageStatus.Recalled) return new Response(false, "消息已撤回");
+
             // 只有发送者才能撤回消息
             if (messageDto.Sender_Id != _userId) return new Response(false, "只有发送者才能撤回消息");
+
+            // 只有在规定时间内才能撤回消息（5分钟内）
+            if ((DateTime.UtcNow - messageDto.Created_At).TotalMinutes > 5) return new Response(false, "超过撤回时间限制");
 
             // 撤回消息
             var result = await _messageService.RecallMessage(messageId);
