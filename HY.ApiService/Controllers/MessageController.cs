@@ -16,11 +16,13 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class MessageController : ControllerBase
     {
+        readonly IChatService _chatService;
         readonly IMessageService _messageService;
 
 
-        public MessageController(IMessageService messageService)
+        public MessageController(IChatService chatService, IMessageService messageService)
         {
+            _chatService = chatService;
             _messageService = messageService;
         }
 
@@ -30,6 +32,16 @@ namespace HY.ApiService.Controllers
         [HttpGet("get/messages")]
         public async Task<IActionResult> GetMessages(long chatId, long skipMessageId, int take)
         {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = long.Parse(userIdStr!);
+
+            var bol = await _chatService.IsUserOwnerChat(userId, chatId);
+            if (!bol)
+            {
+                return Ok(new Response(false, "没有权限"));
+            }
+
             var messages = await _messageService.GetMessagesByChatId(chatId, skipMessageId, take);
 
             return Ok(new Response(true)

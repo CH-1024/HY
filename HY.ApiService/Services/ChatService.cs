@@ -17,6 +17,8 @@ namespace HY.ApiService.Services
         Task<bool> UpdateChatLastMessage(MessageDto messageDto);
         Task<bool> UpdateChatUnread(long chat_Id);
         Task<bool> UpdateChatUnread(long userId, long targetId, ChatType chatType);
+
+        Task<bool> IsUserOwnerChat(long userId, long chatId);
     }
 
 
@@ -185,6 +187,17 @@ namespace HY.ApiService.Services
                 return await _chatRepository.UpdateChatUnread(chatEntity.Id);
             }
             return false;
+        }
+
+
+
+        public async Task<bool> IsUserOwnerChat(long userId, long chatId)
+        {
+            var chatEntity = await _chatRepository.GetChatByChatId(chatId);
+
+            if (chatEntity == null) return false;
+
+            return chatEntity.User_Id == userId;
         }
     }
 }

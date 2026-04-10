@@ -6,7 +6,8 @@ namespace HY.ApiService.Repositories
 {
     public interface IGroupMemberRepository
     {
-        Task<List<GroupMemberEntity>> GetGroupMembersByGroupId(long target_Id);
+        Task<GroupMemberEntity> GetGroupMember(long group_Id, long target_Id);
+        Task<List<GroupMemberEntity>> GetGroupMembersByGroupId(long groupId);
     }
 
 
@@ -19,6 +20,14 @@ namespace HY.ApiService.Repositories
             _db = db;
         }
 
+
+
+        public async Task<GroupMemberEntity> GetGroupMember(long group_Id, long target_Id)
+        {
+            return await _db.Queryable<GroupMemberEntity>()
+                .Where(gm => gm.Group_Id == group_Id && gm.User_Id == target_Id)
+                .SingleAsync();
+        }
 
         public async Task<List<GroupMemberEntity>> GetGroupMembersByGroupId(long groupId)
         {
