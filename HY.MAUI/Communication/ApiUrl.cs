@@ -44,6 +44,7 @@ namespace HY.MAUI.Communication
         public static string GetSingleChatMessages => $"{HttpBaseUrl}/message/get/single/messages/";
         public static string GetGroupChatMessages => $"{HttpBaseUrl}/message/get/group/messages/";
         public static string UploadImage => $"{HttpBaseUrl}/file/upload/image/";
+        public static string UploadVideo => $"{HttpBaseUrl}/file/upload/video/";
         public static string UploadHead => $"{HttpBaseUrl}/file/upload/head/";
 
 
@@ -60,21 +61,46 @@ namespace HY.MAUI.Communication
         public static string UpdateHead => $"{HttpBaseUrl}/user/update/head/";
 
 
+
+        // ImageVM
         public static string? Get_Origin_Image(string? file_Id)
         {
-            return file_Id == null ? null :$"{HttpBaseUrl}/file/image/{file_Id}";
+            return file_Id == null ? null :$"{HttpBaseUrl}/file/image/origin/{file_Id}";
         }
 
         public static string? Get_Compress_Image(string? file_Id)
         {
-            return file_Id == null ? null :$"{HttpBaseUrl}/file/compress/{file_Id}";
+            return file_Id == null ? null :$"{HttpBaseUrl}/file/image/compress/{file_Id}";
         }
 
         public static string? Get_Thumb_Image(string? file_Id)
         {
-            return file_Id == null ? null :$"{HttpBaseUrl}/file/thumb/{file_Id}";
+            return file_Id == null ? null :$"{HttpBaseUrl}/file/image/thumb/{file_Id}";
         }
 
+
+
+
+        // VideoVM
+        public static string? Get_Origin_Video(string? file_Id)
+        {
+            return file_Id == null ? null : $"{HttpBaseUrl}/file/video/origin/{file_Id}";
+        }
+
+        public static string? Get_Compress_Video(string? file_Id)
+        {
+            return file_Id == null ? null : $"{HttpBaseUrl}/file/video/compress/{file_Id}";
+        }
+
+        public static string? Get_Cover_Video(string? file_Id)
+        {
+            return file_Id == null ? null : $"{HttpBaseUrl}/file/video/cover/{file_Id}";
+        }
+
+
+
+
+        // Head
         public static string? Get_Head_Image(string? file_Id)
         {
             return file_Id == null ? null :$"{HttpBaseUrl}/file/head/{file_Id}";

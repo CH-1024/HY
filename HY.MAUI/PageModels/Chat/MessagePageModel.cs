@@ -132,6 +132,13 @@ namespace HY.MAUI.PageModels.Chat
                         _currentChat.Last_Msg_Status = imageMessageVM.Message_Status;
                         _currentChat.Is_Deleted = false;
                     }
+                    else if (newMessage is VideoMessageVM videoMessageVM)
+                    {
+                        _currentChat.Last_Msg_Time = videoMessageVM.Created_At;
+                        //_currentChat.Last_Msg_Brief = "[视频]";
+                        _currentChat.Last_Msg_Status = videoMessageVM.Message_Status;
+                        _currentChat.Is_Deleted = false;
+                    }
 
                     UI.Run(async() =>
                     {
@@ -315,6 +322,10 @@ namespace HY.MAUI.PageModels.Chat
             {
                 await TapImageMessageCommand.ExecuteAsync(cmd.Message);
             }
+            else if (cmd?.Command == CommandNames.TapVideoMessage)
+            {
+                await TapVideoMessageCommand.ExecuteAsync(cmd.Message);
+            }
         }
 
         [RelayCommand]
@@ -378,6 +389,22 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         [RelayCommand]
+        async Task TapVideoMessage(MessageVM message)
+        {
+            if (message is VideoMessageVM videoMessage)
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    { "Original_Video_Url", videoMessage.Original_Video_Url }
+                };
+                await Shell.Current.GoToAsync(nameof(VideoPreviewPage), false, parameters);
+            }
+        }
+
+
+
+
+        [RelayCommand]
         async Task SendText()
         {
             if (string.IsNullOrWhiteSpace(InputText)) return;
@@ -395,214 +422,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task SendImage()
         {
-            #region
-            //var photoResults = await FilePicker.Default.PickMultipleAsync(new PickOptions
-            //{
-            //    PickerTitle = "选择图片",
-            //    FileTypes = FilePickerFileType.Images
-            //});
-
-            //if (photoResults.Count() == 0) return;
-
-            //foreach (var photoResult in photoResults)
-            //{
-            //    var progress = new Progress<double>(p => _ = p);
-
-            //    var resp = await _fileApi.Upload(photoResult, progress);
-            //    if (resp?.IsSucc == true)
-            //    {
-            //        var originalUrl = resp.GetValue<string>("OriginalUrl");
-            //        var thumbnailUrl = resp.GetValue<string>("ThumbnailUrl");
-
-            //        var imageMessageVM = new ImageMessageVM
-            //        {
-            //            Chat_Type = _currentChat.Type,
-            //            Sender_Id = _currentUser.Id,
-            //            Sender_Avatar = _currentUser.Avatar,
-            //            Target_Id = _currentChat.Target_Id,
-            //            Created_At = DateTime.UtcNow,
-            //            IsSelf = true,
-            //            Message_Status = MessageStatus.Sending,
-
-            //            Original_Image_Url = originalUrl,
-            //            Thumbnail_Image_Url = thumbnailUrl,
-            //        };
-
-            //        _ = _dispatcher.DispatchAsync(async () =>
-            //        {
-            //            MessageCollection.Add(imageMessageVM);
-
-            //            await Task.Delay(50);
-
-            //            _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
-            //        });
-
-            //        _currentChat.Last_Msg_Time = imageMessageVM.Created_At;
-            //        //_currentChat.Last_Msg_Brief = "[图片]";
-            //        _currentChat.Last_Msg_Status = imageMessageVM.Message_Status;
-            //        _currentChat.Is_Deleted = false;
-
-            //        // 清空输入框
-            //        InputText = "";
-
-            //        await _chatHub.SendMessage(_currentChat, imageMessageVM);
-
-            //    }
-            //}
-
-
-
-            //var photoResults = await FilePicker.Default.PickMultipleAsync(new PickOptions
-            //{
-            //    PickerTitle = "选择图片",
-            //    FileTypes = FilePickerFileType.Images
-            //});
-
-            //if (photoResults == null || !photoResults.Any()) return;
-
-            //// 最大并发数
-            //var semaphore = new SemaphoreSlim(3);
-
-            //var tasks = photoResults.Select(async photoResult =>
-            //{
-            //    await semaphore.WaitAsync();
-
-            //    try
-            //    {
-            //        var progress = new Progress<double>(p =>
-            //        {
-            //            UploadProgress = p;
-            //        });
-
-            //        var resp = await _fileApi.Upload(photoResult, progress);
-
-            //        if (resp?.IsSucc == true)
-            //        {
-            //            // success logic
-            //        }
-            //    }
-            //    finally
-            //    {
-            //        semaphore.Release();
-            //    }
-            //});
-
-            //await Task.WhenAll(tasks);
-            #endregion
-
-            #region MyRegion
-
-
-            //var photoResults = await FilePicker.Default.PickMultipleAsync(new PickOptions
-            //{
-            //    PickerTitle = "选择图片",
-            //    FileTypes = FilePickerFileType.Images
-            //});
-
-            //if (photoResults == null || !photoResults.Any()) return;
-
-            //// 最大并发数
-            //var semaphore = new SemaphoreSlim(3);
-
-            //photoResults.AsParallel()
-            ////.WithDegreeOfParallelism(3) // 设置最大并行数
-            //.ForAll(async photoResult =>
-            //{
-            //    var imageMessageVM = new ImageMessageVM
-            //    {
-            //        Chat_Type = _currentChat.Type,
-            //        Sender_Id = _currentUser.Id,
-            //        Sender_Avatar = _currentUser.Avatar,
-            //        Target_Id = _currentChat.Target_Id,
-            //        Created_At = DateTime.UtcNow,
-            //        IsSelf = true,
-            //        Message_Status = MessageStatus.Sending,
-
-            //        UploadProgress = 0,
-            //        //Original_Image_Url = originalUrl,
-            //        //Thumbnail_Image_Url = thumbnailUrl,
-            //    };
-
-            //    MainThread.BeginInvokeOnMainThread(() =>
-            //    {
-            //        MessageCollection.Add(imageMessageVM);
-            //    });
-
-            //    await semaphore.WaitAsync();
-
-            //    var progress = new Progress<double>(p =>
-            //    {
-            //        MainThread.BeginInvokeOnMainThread(() => imageMessageVM.UploadProgress = p);
-            //    });
-
-            //    var resp = await _fileApi.Upload(photoResult, progress);
-            //    if (resp?.IsSucc == true)
-            //    {
-            //        MainThread.BeginInvokeOnMainThread(() =>
-            //        {
-            //            var originalUrl = resp.GetValue<string>("OriginalUrl");
-            //            var thumbnailUrl = resp.GetValue<string>("ThumbnailUrl");
-            //            imageMessageVM.Original_Image_Url = originalUrl;
-            //            imageMessageVM.Thumbnail_Image_Url = thumbnailUrl;
-            //            imageMessageVM.Message_Status = MessageStatus.Sented;
-            //        });
-            //    }
-            //    else
-            //    {
-            //        MainThread.BeginInvokeOnMainThread(() =>
-            //        {
-            //            imageMessageVM.Message_Status = MessageStatus.Failed;
-            //        });
-            //    }
-
-            //    await _chatHub.SendMessage(_currentChat, imageMessageVM);
-
-            //    semaphore.Release();
-
-            //});
-
-            //// 清空输入框
-            //InputText = "";
-
-
-
-            ////await Parallel.ForEachAsync(photoResults,
-            ////new ParallelOptions
-            ////{
-            ////    MaxDegreeOfParallelism = 3
-            ////},
-            ////async (photoResult, ct) =>
-            ////{
-            ////    var progress = new Progress<double>(p =>
-            ////    {
-            ////        //UploadProgress = p;
-            ////    });
-
-            ////    var resp = await _fileApi.Upload(photoResult, progress);
-            ////});
-
-
-
-
-            ////await Parallel.ForEachAsync(photoResults,
-            ////new ParallelOptions
-            ////{
-            ////    MaxDegreeOfParallelism = 3
-            ////},
-            ////async (photoResult, ct) =>
-            ////{
-            ////    var progress = new Progress<double>(p =>
-            ////    {
-            ////        //UploadProgress = p;
-            ////    });
-
-            ////    var resp = await _fileApi.Upload(photoResult, progress);
-            ////});
-            #endregion
-
-
-            var photoResults = await PickImages();
-            if (photoResults.Count == 0) return;
+            var imageResults = await PickImages();
+            if (imageResults.Count == 0) return;
 
             InputText = "";
 
@@ -610,13 +431,13 @@ namespace HY.MAUI.PageModels.Chat
 
             var tasks = new List<Task>();
 
-            foreach (var photoResult in photoResults)
+            foreach (var imageResult in imageResults)
             {
                 var imageMessageVM = CreateImageMessageVM();
 
                 MessageCollection.Add(imageMessageVM);
 
-                tasks.Add(UploadImageAsync(photoResult, imageMessageVM, semaphore));
+                tasks.Add(UploadImageAsync(imageResult, imageMessageVM, semaphore));
             }
 
             await Task.WhenAll(tasks);
@@ -625,9 +446,25 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task SendVideo()
         {
-            //(string videoName, string videoExtension, string videoContentType, byte[] iconBytes, byte[] videoData)? video = await PickVideoAsync();
+            var videoResults = await PickVideos();
+            if (videoResults.Count == 0) return;
 
-            //if (video == null) return;
+            InputText = "";
+
+            using var semaphore = new SemaphoreSlim(3);
+
+            var tasks = new List<Task>();
+
+            foreach (var videoResult in videoResults)
+            {
+                var videoMessageVM = CreateVideoMessageVM();
+
+                MessageCollection.Add(videoMessageVM);
+
+                tasks.Add(UploadVideoAsync(videoResult, videoMessageVM, semaphore));
+            }
+
+            await Task.WhenAll(tasks);
         }
 
         [RelayCommand]
@@ -654,6 +491,18 @@ namespace HY.MAUI.PageModels.Chat
 
             return result?.ToList() ?? [];
         }
+
+        async Task<IReadOnlyList<FileResult>> PickVideos()
+        {
+            var result = await FilePicker.Default.PickMultipleAsync(new PickOptions
+            {
+                PickerTitle = "选择视频",
+                FileTypes = FilePickerFileType.Videos
+            });
+
+            return result?.ToList() ?? [];
+        }
+
 
         TextMessageVM CreateTextMessageVM()
         {
@@ -684,10 +533,25 @@ namespace HY.MAUI.PageModels.Chat
                 Message_Status = MessageStatus.Sending,
 
                 UploadProgress = 0,
-                //Original_Image_Url = originalUrl,
-                //Thumbnail_Image_Url = thumbnailUrl,
             };
         }
+
+        VideoMessageVM CreateVideoMessageVM()
+        {
+            return new VideoMessageVM
+            {
+                Chat_Type = _currentChat.Type,
+                Sender_Id = _currentUser.Id,
+                Sender_Avatar = _currentUser.Avatar,
+                Target_Id = _currentChat.Target_Id,
+                Created_At = DateTime.UtcNow,
+                IsSelf = true,
+                Message_Status = MessageStatus.Sending,
+
+                UploadProgress = 0,
+            };
+        }
+
 
         async Task UploadImageAsync(FileResult photoResult, ImageMessageVM vm, SemaphoreSlim semaphore)
         {
@@ -698,6 +562,40 @@ namespace HY.MAUI.PageModels.Chat
                 var progress = new Progress<double>(p => UI.Run(() => vm.UploadProgress = p));
 
                 var resp = await _fileApi.UploadImage(photoResult, progress);
+                if (resp?.IsSucc == true)
+                {
+                    UI.Run(() =>
+                    {
+                        vm.File_Id = resp.GetValue<string>("File_Id");
+                        vm.Message_Status = MessageStatus.Sented;
+                    });
+
+                    await _chatHub.SendMessage(_currentChat, vm);
+                }
+                else
+                {
+                    UI.Run(() => vm.Message_Status = MessageStatus.Failed);
+                }
+            }
+            catch
+            {
+                UI.Run(() => vm.Message_Status = MessageStatus.Failed);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        async Task UploadVideoAsync(FileResult videoResult, VideoMessageVM vm, SemaphoreSlim semaphore)
+        {
+            await semaphore.WaitAsync();
+
+            try
+            {
+                var progress = new Progress<double>(p => UI.Run(() => vm.UploadProgress = p));
+
+                var resp = await _fileApi.UploadVideo(videoResult, progress);
                 if (resp?.IsSucc == true)
                 {
                     UI.Run(() =>

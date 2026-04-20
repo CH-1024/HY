@@ -44,7 +44,6 @@ namespace HY.ApiService
             services.AddAuthorizationSetup();
 
             services.AddSignalRSetup();
-
         }
 
         // 配置 HTTP 请求管道

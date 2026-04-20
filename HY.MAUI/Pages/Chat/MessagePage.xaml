@@ -169,6 +169,12 @@
                         </DataTemplate>
                     </controls:MessageTemplateSelector.ImageTemplate>
 
+                    <controls:MessageTemplateSelector.VideoTemplate>
+                        <DataTemplate x:DataType="msgvm:VideoMessageVM">
+                            <controls:VideoBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.VideoTemplate>
+
                     <controls:MessageTemplateSelector.VoiceTemplate>
                         <DataTemplate x:DataType="msgvm:VoiceMessageVM">
 
@@ -214,7 +220,7 @@
 
             <Button Style="{StaticResource IconBtn2}" Text="发送图片" Clicked="Send_Image_Clicked"/>
 
-            <Button Style="{StaticResource IconBtn2}" Text="发送视频" Command="{Binding VideoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+            <Button Style="{StaticResource IconBtn2}" Text="发送视频" Clicked="Send_Video_Clicked"/>
 
             <Button Style="{StaticResource IconBtn2}" Text="拍摄图片" Command="{Binding TakePhotoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
 

@@ -52,5 +52,24 @@ namespace HY.MAUI.Communication.Http
             return await PostAsync(ApiUrl.UploadImage, content);
         }
 
+
+        public async Task<Response?> UploadVideo(FileResult? fileResult, IProgress<double> progress)
+        {
+            if (fileResult == null) return null;
+
+            using var stream = await fileResult.OpenReadAsync();
+
+            var progressContent = new ProgressableStreamContent(stream, 81920, progress);
+
+            progressContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType);
+
+            var content = new MultipartFormDataContent
+            {
+                { progressContent, "file", fileResult.FileName },
+            };
+
+            return await PostAsync(ApiUrl.UploadVideo, content);
+        }
+
     }
 }

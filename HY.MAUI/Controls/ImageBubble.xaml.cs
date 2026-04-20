@@ -9,7 +9,7 @@ namespace HY.MAUI.Controls;
 
 public partial class ImageBubble : ContentView
 {
-    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(TextBubble), null);
+    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(ImageBubble), null);
     public IAsyncRelayCommand Command
     {
         get => (IAsyncRelayCommand)GetValue(CommandProperty);

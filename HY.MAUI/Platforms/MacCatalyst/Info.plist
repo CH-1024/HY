@@ -38,15 +38,13 @@
 	<string>Assets.xcassets/appicon.appiconset</string>
 
 
-	<!--<key>NSAppTransportSecurity</key>
-	<dict>
-		 允许所有本地网络流量 
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-		 允许任意HTTP连接（不推荐上架） 
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>-->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>audio</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string></string>
 
 </dict>
 </plist>
