@@ -1,15 +1,13 @@
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Enums;
 using HY.MAUI.Models.MsgVM;
-using HY.MAUI.PageModels.Chat;
 using HY.MAUI.PageModels.Chat.MessageCommands;
-using System.Windows.Input;
 
 namespace HY.MAUI.Controls;
 
-public partial class ImageBubble : ContentView
+public partial class VideoBubble : ContentView
 {
-    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(ImageBubble), null);
+    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(VideoBubble), null);
     public IAsyncRelayCommand Command
     {
         get => (IAsyncRelayCommand)GetValue(CommandProperty);
@@ -18,10 +16,10 @@ public partial class ImageBubble : ContentView
 
 
 
-    public ImageBubble()
-	{
-		InitializeComponent();
-	}
+    public VideoBubble()
+    {
+        InitializeComponent();
+    }
 
 
 
@@ -34,7 +32,7 @@ public partial class ImageBubble : ContentView
         var param = new MessageCommandInvocation
         {
             Command = CommandNames.ContactDetail,
-            Message = this.BindingContext as ImageMessageVM,
+            Message = this.BindingContext as VideoMessageVM,
         };
 
         if (Command != null && Command.CanExecute(param))
@@ -48,7 +46,7 @@ public partial class ImageBubble : ContentView
         if (sender is not Border border)
             return;
 
-        if (border.BindingContext is not ImageMessageVM msg)
+        if (border.BindingContext is not VideoMessageVM msg)
             return;
 
         if (msg.Message_Status == MessageStatus.Recalled)
@@ -56,7 +54,7 @@ public partial class ImageBubble : ContentView
 
         var param = new MessageCommandInvocation
         {
-            Command = CommandNames.TapImageMessage,
+            Command = CommandNames.TapVideoMessage,
             Message = msg,
         };
 
@@ -71,7 +69,7 @@ public partial class ImageBubble : ContentView
         if (sender is not Border border)
             return;
 
-        if (border.BindingContext is not ImageMessageVM msg)
+        if (border.BindingContext is not VideoMessageVM msg)
             return;
 
         if (msg.Message_Status == MessageStatus.Recalled)
@@ -86,12 +84,12 @@ public partial class ImageBubble : ContentView
         }
     }
 
-    private async void MenuFlyoutItem_Copy_Clicked(ImageMessageVM msg)
+    private async void MenuFlyoutItem_Copy_Clicked(VideoMessageVM msg)
     {
         //await Clipboard.SetTextAsync(msg.Content ?? string.Empty);
     }
 
-    private async Task MenuFlyoutItem_Delete_Clicked(ImageMessageVM msg)
+    private async Task MenuFlyoutItem_Delete_Clicked(VideoMessageVM msg)
     {
         var param = new MessageCommandInvocation
         {
@@ -105,7 +103,7 @@ public partial class ImageBubble : ContentView
         }
     }
 
-    private async Task MenuFlyoutItem_Recall_Clicked(ImageMessageVM msg)
+    private async Task MenuFlyoutItem_Recall_Clicked(VideoMessageVM msg)
     {
         if (msg.IsSelf)
         {
@@ -128,7 +126,7 @@ public partial class ImageBubble : ContentView
 
 
 
-    private MenuFlyout CreateFlyout(ImageMessageVM msg)
+    private MenuFlyout CreateFlyout(VideoMessageVM msg)
     {
         var flyout = new MenuFlyout();
 
@@ -160,6 +158,5 @@ public partial class ImageBubble : ContentView
 
         return flyout;
     }
-
 
 }

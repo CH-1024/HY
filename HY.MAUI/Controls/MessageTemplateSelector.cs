@@ -9,6 +9,7 @@ namespace HY.MAUI.Controls
     {
         public DataTemplate? TextTemplate { get; set; }
         public DataTemplate? ImageTemplate { get; set; }
+        public DataTemplate? VideoTemplate { get; set; }
         public DataTemplate? VoiceTemplate { get; set; }
         public DataTemplate? SystemTemplate { get; set; }
 
@@ -18,6 +19,7 @@ namespace HY.MAUI.Controls
             {
                 TextMessageVM => TextTemplate,
                 ImageMessageVM => ImageTemplate,
+                VideoMessageVM => VideoTemplate,
                 VoiceMessageVM => VoiceTemplate,
                 SystemMessageVM => SystemTemplate,
                 _ => throw new InvalidOperationException("Unsupported message type.")

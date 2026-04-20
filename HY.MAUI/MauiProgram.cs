@@ -29,6 +29,7 @@ namespace HY.MAUI
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if WINDOWS

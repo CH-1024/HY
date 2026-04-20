@@ -50,7 +50,22 @@ namespace HY.MAUI.Mapping
                 };
             }
             else if (dto.Message_Type == MessageType.Video)
-                throw new NotImplementedException("Voice message mapping not implemented yet.");
+            {
+                var extraData = JsonSerializer.Deserialize<Dictionary<string, object?>>(dto.Extra ?? "{}");
+                return new VideoMessageVM
+                {
+                    Id = dto.Id,
+                    Chat_Type = dto.Chat_Type,
+                    Sender_Id = dto.Sender_Id,
+                    Sender_Avatar = dto.Sender_Avatar,
+                    Sender_Nickname = dto.Sender_Nickname,
+                    Target_Id = dto.Target_Id,
+                    Message_Status = dto.Message_Status,
+                    Created_At = dto.Created_At,
+                    IsSelf = isSelf,
+                    File_Id = extraData != null && extraData.TryGetValue("File_Id", out var originalUrl) ? originalUrl?.ToString() : null,
+                };
+            }
             else if (dto.Message_Type == MessageType.System)
             {
                 return new SystemMessageVM
@@ -109,6 +124,26 @@ namespace HY.MAUI.Mapping
                     }),
                     Message_Status = imageMsg.Message_Status,
                     Created_At = imageMsg.Created_At
+                };
+            }
+            else if (model is VideoMessageVM videoMsg)
+            {
+                return new MessageDto
+                {
+                    Id = videoMsg.Id,
+                    Chat_Type = videoMsg.Chat_Type,
+                    Sender_Id = videoMsg.Sender_Id,
+                    Sender_Avatar = videoMsg.Sender_Avatar,
+                    Sender_Nickname = videoMsg.Sender_Nickname,
+                    Target_Id = videoMsg.Target_Id,
+                    Message_Type = MessageType.Video,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "File_Id", videoMsg.File_Id },
+                    }),
+                    Message_Status = videoMsg.Message_Status,
+                    Created_At = videoMsg.Created_At
                 };
             }
             else if (model is VoiceMessageVM voiceMsg)

@@ -41,6 +41,7 @@ namespace HY.MAUI.Setups
             //shell 子 需要注册PM和P 
             services.AddTransientWithShellRoute<MessagePage, MessagePageModel>(nameof(MessagePage));
             services.AddTransientWithShellRoute<ImagePreviewPage, ImagePreviewPageModel>(nameof(ImagePreviewPage));
+            services.AddTransientWithShellRoute<VideoPreviewPage, VideoPreviewPageModel>(nameof(VideoPreviewPage));
             services.AddTransientWithShellRoute<SearchContactPage, SearchContactPageModel>(nameof(SearchContactPage));
             services.AddTransientWithShellRoute<ContactDetailPage, ContactDetailPageModel>(nameof(ContactDetailPage));
             services.AddTransientWithShellRoute<StrangerDetailPage, StrangerDetailPageModel>(nameof(StrangerDetailPage));

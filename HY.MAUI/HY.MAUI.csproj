@@ -81,6 +81,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
+		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
@@ -121,10 +122,16 @@
 	  <MauiXaml Update="Controls\TextBubble.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Controls\VideoBubble.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\ImagePreviewPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\Popups\AnimPopup1.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Chat\VideoPreviewPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Contact\ContactDetailPage.xaml">

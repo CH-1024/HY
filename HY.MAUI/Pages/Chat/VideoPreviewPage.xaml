@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Chat.VideoPreviewPage"
+             xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
+             x:Name="_VideoPreviewPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             x:DataType="pm:VideoPreviewPageModel">
+
+
+    <toolkit:MediaElement HorizontalOptions="Fill" VerticalOptions="Fill" BackgroundColor="Black" Source="{Binding Original_Video_Url}" ShouldShowPlaybackControls="True" ShouldAutoPlay="True"/>
+</ContentPage>

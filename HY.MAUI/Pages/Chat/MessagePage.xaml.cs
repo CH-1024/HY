@@ -103,6 +103,16 @@ public partial class MessagePage : ContentPage
         }
     }
 
+    private async void Send_Video_Clicked(object sender, EventArgs e)
+    {
+        await CollapseWithStatus();
+
+        if (BindingContext is MessagePageModel vm)
+        {
+            vm.SendVideoCommand.Execute(null);
+        }
+    }
+
 
     async Task ExpandWithStatus()
     {
