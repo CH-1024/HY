@@ -141,8 +141,22 @@
 
                 <!-- 内容 -->
                 <Grid HorizontalOptions="Fill" VerticalOptions="Fill">
-                    <Image Aspect="AspectFit" Source="{Binding Cover_Video_Url}"/>
-                    <Polygon Points="5,5 5,40 40,22.5" Fill="Black" WidthRequest="45" HeightRequest="45" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Image Aspect="AspectFill" Source="{Binding Cover_Video_Url}"/>
+                    <Ellipse Fill="#CCFFFFFF" WidthRequest="45" HeightRequest="45" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False">
+                        <Ellipse.Triggers>
+                            <DataTrigger TargetType="Ellipse" Binding="{Binding Message_Status}" Value="Sented">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </DataTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+
+                    <Path Fill="Black" WidthRequest="25" HeightRequest="25" Aspect="Uniform" HorizontalOptions="Center" VerticalOptions="Center" Data="M8,6 Q6,6 6,8 L6,22 Q6,24 8,24 L22,16 Q24,15 22,14 Z" IsVisible="False">
+                        <Path.Triggers>
+                            <DataTrigger TargetType="Path" Binding="{Binding Message_Status}" Value="Sented">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </DataTrigger>
+                        </Path.Triggers>
+                    </Path>
                 </Grid>
             </Border>
 

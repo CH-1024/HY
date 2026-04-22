@@ -441,7 +441,7 @@ namespace HY.ApiService.Services
 
                     #region 获取封面图
 
-                    var coverFileName = $"{Guid.NewGuid():N}{ext}";
+                    var coverFileName = $"{Guid.NewGuid():N}.jpg";
 
                     var coverFilePathWithoutBucket = Path.Combine(basePath, "cover", coverFileName);
                     coverFilePathWithBucket = Path.Combine(bucket, coverFilePathWithoutBucket);
@@ -449,7 +449,7 @@ namespace HY.ApiService.Services
                     var dir2 = Path.GetDirectoryName(coverFilePathWithBucket);
                     if (!Directory.Exists(dir2)) Directory.CreateDirectory(dir2!);
 
-                    var coverLength = await CreateVideoCover(filePathWithBucket, coverFilePathWithBucket, 1);
+                    var coverLength = await CreateVideoCover(filePathWithBucket, coverFilePathWithBucket, 5);
 
                     #endregion
 
@@ -530,7 +530,7 @@ namespace HY.ApiService.Services
 
                     #region 获取封面图
 
-                    var coverFileName = $"{Guid.NewGuid():N}{ext}";
+                    var coverFileName = $"{Guid.NewGuid():N}.jpg";
 
                     var coverFilePathWithoutBucket = Path.Combine(basePath, "cover", coverFileName);
                     coverFilePathWithBucket = Path.Combine(bucket, coverFilePathWithoutBucket);
@@ -538,7 +538,7 @@ namespace HY.ApiService.Services
                     var dir2 = Path.GetDirectoryName(coverFilePathWithBucket);
                     if (!Directory.Exists(dir2)) Directory.CreateDirectory(dir2!);
 
-                    var coverLength = await CreateVideoCover(filePathWithBucket, coverFilePathWithBucket, 1);
+                    var coverLength = await CreateVideoCover(filePathWithBucket, coverFilePathWithBucket, 5);
 
                     #endregion
 
@@ -925,8 +925,6 @@ namespace HY.ApiService.Services
 
             if (mediaFileEntity == null) throw new FileNotFoundException("file not found");
 
-            if (mediaFileEntity.File_Type != FileType.Image) throw new InvalidOperationException("file is not an image");
-
             var mediaStorageEntity = await _mediaStorageRepository.GetMediaStorageById(mediaFileEntity.Storage_Id);
 
             if (mediaStorageEntity == null) throw new FileNotFoundException("storage not found");
@@ -974,15 +972,9 @@ namespace HY.ApiService.Services
 
             if (mediaFileEntity == null) throw new FileNotFoundException("file not found");
 
-            if (mediaFileEntity.File_Type != FileType.Image) throw new InvalidOperationException("file is not an image");
-
-            //var mediaStorageEntity = await _mediaStorageRepository.GetMediaStorageById(mediaFileEntity.Storage_Id);
-
-            //if (mediaStorageEntity == null) throw new FileNotFoundException("storage not found");
-
             var mediaStorageVariantEntity = await _mediaStorageVariantRepository.GetMediaStorageVariantByStorageIdAndVariantType(mediaFileEntity.Storage_Id, variantType);
 
-            if (mediaStorageVariantEntity == null) throw new FileNotFoundException("thumbnail not found");
+            if (mediaStorageVariantEntity == null) throw new FileNotFoundException("variant not found");
 
             switch (mediaStorageVariantEntity.Storage_Type)
             {
@@ -1084,11 +1076,11 @@ namespace HY.ApiService.Services
             return output.Length;
         }
 
-        private async Task<long> CreateVideoCover(string inputPath, string outputPath, double timeSeconds = 1)
+        private async Task<long> CreateVideoCover(string inputPath, string outputPath, double timeSeconds = 5)
         {
-            var helper = new FfmpegHelper();
+            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
 
-            if (!helper.IsFfmpegAvailable()) throw new Exception("未找到 ffmpeg");
+            if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
             var success = await helper.ExtractFrameAsync(inputPath, outputPath, timeSeconds);
             if (success)
@@ -1104,9 +1096,9 @@ namespace HY.ApiService.Services
 
         private async Task<long> Compress1Video(string inputPath, string outputPath)
         {
-            var helper = new FfmpegHelper();
+            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
 
-            if (!helper.IsFfmpegAvailable()) throw new Exception("未找到 ffmpeg");
+            if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
             var videoBitrate = "1.5M";
             var audioBitrate = "128k";
@@ -1125,9 +1117,9 @@ namespace HY.ApiService.Services
 
         private async Task<long> Compress2Video(string inputPath, string outputPath)
         {
-            var helper = new FfmpegHelper();
+            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
 
-            if (!helper.IsFfmpegAvailable()) throw new Exception("未找到 ffmpeg");
+            if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
             var crf = 23;
             var preset = "fast";

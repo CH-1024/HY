@@ -3,12 +3,17 @@ using System.Text;
 
 namespace HY.ApiService.Tools
 {
-    public class FfmpegHelper
+    public class FFmpegHelper
     {
-        private const string FfmpegCommand = "ffmpeg";
+        private readonly string FFmpegCommand;
+
+        public FFmpegHelper(string path)
+        {
+            FFmpegCommand = path;
+        }
 
         // 检查 ffmpeg 是否在系统 PATH 中可用
-        public bool IsFfmpegAvailable()
+        public bool IsFFmpegAvailable()
         {
             try
             {
@@ -16,7 +21,7 @@ namespace HY.ApiService.Tools
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = FfmpegCommand,
+                        FileName = FFmpegCommand,
                         Arguments = "-version",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
@@ -37,7 +42,7 @@ namespace HY.ApiService.Tools
         public async Task<bool> ExtractFrameAsync(string inputVideo, string outputImage, double timeSeconds)
         {
             string arguments = $"-ss {timeSeconds:F3} -i \"{inputVideo}\" -vframes 1 -q:v 2 \"{outputImage}\" -y";
-            return await RunFfmpegAsync(arguments, outputImage);
+            return await RunFFmpegAsync(arguments, outputImage);
         }
 
         // 新增：CRF压缩
@@ -52,7 +57,7 @@ namespace HY.ApiService.Tools
                                $"{audioParams} " +
                                $"-movflags +faststart " +
                                $"-y \"{outputVideo}\"";
-            return await RunFfmpegAsync(arguments, outputVideo);
+            return await RunFFmpegAsync(arguments, outputVideo);
         }
 
         // 新增：固定码率压缩
@@ -66,7 +71,7 @@ namespace HY.ApiService.Tools
                                $"-c:a aac -b:a {audioBitrate} " +
                                $"-movflags +faststart " +
                                $"-y \"{outputVideo}\"";
-            return await RunFfmpegAsync(arguments, outputVideo);
+            return await RunFFmpegAsync(arguments, outputVideo);
         }
 
 
@@ -91,11 +96,11 @@ namespace HY.ApiService.Tools
         }
 
         // 私有执行方法
-        private async Task<bool> RunFfmpegAsync(string arguments, string expectedOutputFile)
+        private async Task<bool> RunFFmpegAsync(string arguments, string expectedOutputFile)
         {
             var psi = new ProcessStartInfo
             {
-                FileName = FfmpegCommand,
+                FileName = FFmpegCommand,
                 Arguments = arguments,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
