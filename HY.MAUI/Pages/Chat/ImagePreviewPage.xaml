@@ -4,7 +4,7 @@
              x:Class="HY.MAUI.Pages.Chat.ImagePreviewPage"
              xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
              x:Name="_ImagePreviewPage"
-             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -31,9 +31,9 @@
         <toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" />
     </ContentPage.Behaviors>
 
-    <Shell.BackButtonBehavior>
+    <!--<Shell.BackButtonBehavior>
         <BackButtonBehavior IsEnabled="False" IsVisible="False" />
-    </Shell.BackButtonBehavior>
+    </Shell.BackButtonBehavior>-->
 
     <!--<Shell.TitleView>
         <Grid ColumnDefinitions="50,*,50">

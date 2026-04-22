@@ -80,7 +80,15 @@
                                                 <Setter Property="Text" Value="⇢[图片]"/>
                                             </MultiTrigger>
 
-
+                                            <MultiTrigger TargetType="Label">
+                                                <MultiTrigger.Conditions>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Video"/>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sending"/>
+                                                </MultiTrigger.Conditions>
+                                                <Setter Property="Text" Value="⇢[视频]"/>
+                                            </MultiTrigger>
+                                            
+                                            
 
                                             <MultiTrigger TargetType="Label">
                                                 <MultiTrigger.Conditions>
@@ -98,8 +106,16 @@
                                                 <Setter Property="Text" Value="[图片]"/>
                                             </MultiTrigger>
 
+                                            <MultiTrigger TargetType="Label">
+                                                <MultiTrigger.Conditions>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Video"/>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
+                                                </MultiTrigger.Conditions>
+                                                <Setter Property="Text" Value="[视频]"/>
+                                            </MultiTrigger>
 
 
+                                            
                                             <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="System">
                                                 <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='[{0}]'}"/>
                                             </DataTrigger>
