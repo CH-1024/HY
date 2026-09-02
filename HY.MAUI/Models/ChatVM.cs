@@ -25,7 +25,11 @@ namespace HY.MAUI.Models
         public DateTime? Last_Msg_Time
         {
             get { return last_Msg_Time; }
-            set { SetProperty(ref last_Msg_Time, value); }
+            set 
+            {
+                last_Msg_Time = value;
+                OnPropertyChanged(nameof(Last_Msg_Time_Show));
+            }
         }
 
         private string? last_Msg_Brief;
@@ -56,6 +60,6 @@ namespace HY.MAUI.Models
 
         public string Unread_Count_Show => unread_Count > 99 ? "99+" : $"{unread_Count}";
         public bool Unread_Count_Visible => unread_Count > 0;
-
+        public DateTime? Last_Msg_Time_Show => last_Msg_Time != null ? DateTime.SpecifyKind(last_Msg_Time.Value, DateTimeKind.Utc).ToLocalTime() : null;
     }
 }

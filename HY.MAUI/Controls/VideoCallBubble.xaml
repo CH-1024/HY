@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Controls.VideoCallBubble"
+             x:Name="_VideoCallBubble"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="msgvm:VideoCallMessageVM">
+
+    <ContentView.Triggers>
+
+        <DataTrigger TargetType="ContentView" Binding="{Binding Message_Status}" Value="Deleted">
+            <Setter Property="IsVisible" Value="False"/>
+        </DataTrigger>
+
+    </ContentView.Triggers>
+
+
+    <Grid ColumnDefinitions="50,*,50" Margin="0,6">
+
+        <!-- ================== 头像 ================== -->
+        <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="37" HeightRequest="37" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
+
+            <!-- 绑定头像 -->
+            <!--<Image.Source>
+                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
+            </Image.Source>-->
+            <!--<toolkit:AvatarView.ImageSource>
+                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
+            </toolkit:AvatarView.ImageSource>-->
+
+            <toolkit:AvatarView.Triggers>
+
+                <!-- 自己的消息头像在右 -->
+                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
+                    <Setter Property="Grid.Column" Value="2"/>
+                    <Setter Property="IsVisible" Value="True"/>
+                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
+                </DataTrigger>
+                <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
+                    <Setter Property="Grid.Column" Value="0"/>
+                    <Setter Property="IsVisible" Value="True"/>
+                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
+                </DataTrigger>
+
+            </toolkit:AvatarView.Triggers>
+
+            <toolkit:AvatarView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="ContactDetail_Tapped"/>
+            </toolkit:AvatarView.GestureRecognizers>
+
+        </toolkit:AvatarView>
+
+        <!-- ================== 消息区域 ================== -->
+        <Grid Grid.Column="1" ColumnDefinitions="auto,*,auto" HorizontalOptions="Start">
+
+            <Grid.Triggers>
+
+                <!-- 自己的消息在右 -->
+                <DataTrigger TargetType="Grid" Binding="{Binding IsSelf}" Value="True">
+                    <Setter Property="HorizontalOptions" Value="End"/>
+                </DataTrigger>
+
+            </Grid.Triggers>
+
+            <!-- 气泡 -->
+            <Border Grid.Column="1" BackgroundColor="Black" StrokeThickness="0" Padding="0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Bubble_Primary_Tapped" Buttons="Primary"/>
+                    <TapGestureRecognizer Tapped="Bubble_Secondary_Tapped" Buttons="Secondary"/>
+                </Border.GestureRecognizers>
+
+                <!-- 圆角 -->
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8,8,8,8">
+                        <!--<RoundRectangle.Triggers>
+
+                            <DataTrigger TargetType="RoundRectangle" Binding="{Binding IsSelf}" Value="True">
+                                <Setter Property="CornerRadius" Value="8,0,8,8"/>
+                            </DataTrigger>
+
+                        </RoundRectangle.Triggers>-->
+                    </RoundRectangle>
+                </Border.StrokeShape>
+
+                <!-- 内容 -->
+                <Grid ColumnDefinitions="auto,*,auto" HorizontalOptions="Start">
+                    
+                    <Grid.Triggers>
+
+                        <!-- 自己的消息在右 -->
+                        <DataTrigger TargetType="Grid" Binding="{Binding IsSelf}" Value="True">
+                            <Setter Property="HorizontalOptions" Value="End"/>
+                        </DataTrigger>
+
+                    </Grid.Triggers>
+
+                    <Path Grid.Column="0" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" HorizontalOptions="Center" VerticalOptions="Center" Data="M 3,6 Q 3,4 5,4 H 13 Q 15,4 15,6 V 12 Q 15,14 13,14 H 5 Q 3,14 3,12 Z M 15,7 L 20,4.5 V 13.5 L 15,11 Z" IsVisible="False">
+                        <Path.Triggers>
+                            <DataTrigger TargetType="Path" Binding="{Binding IsSelf}" Value="False">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </DataTrigger>
+                        </Path.Triggers>
+                    </Path>
+
+                    <!-- 文字提示 -->
+                    <Label Grid.Column="1" TextColor="White" FontSize="Micro" MinimumHeightRequest="0" VerticalTextAlignment="Center" LineBreakMode="WordWrap">
+                        <Label.Triggers>
+
+                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                                <Setter Property="Margin" Value="8,0,0,0"/>
+                            </DataTrigger>
+
+                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
+                                <Setter Property="Margin" Value="0,0,8,0"/>
+                            </DataTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="NotAnswered"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="对方无应答"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="NotAnswered"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="无应答"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Accepted"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="{Binding Duration,StringFormat='通话时长 {0}'}"/>
+                            </MultiTrigger>
+                            
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Rejected"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="对方已拒绝"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Rejected"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="已拒绝"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Cancelled"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="已取消"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Cancelled"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="对方已取消"/>
+                            </MultiTrigger>
+
+                        </Label.Triggers>
+                    </Label>
+
+                    <Path Grid.Column="2" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" ScaleX="-1" HorizontalOptions="Center" VerticalOptions="Center" Data="M 3,6 Q 3,4 5,4 H 13 Q 15,4 15,6 V 12 Q 15,14 13,14 H 5 Q 3,14 3,12 Z M 15,7 L 20,4.5 V 13.5 L 15,11 Z" IsVisible="False">
+                        <Path.Triggers>
+                            <DataTrigger TargetType="Path" Binding="{Binding IsSelf}" Value="True">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </DataTrigger>
+                        </Path.Triggers>
+                    </Path>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentView>

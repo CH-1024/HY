@@ -117,7 +117,7 @@
             <!-- 气泡 -->
             <Border Grid.Column="1" BackgroundColor="Black" StrokeThickness="0" Padding="0" WidthRequest="100" HeightRequest="150">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="Image_Tapped" Buttons="Primary"/>
+                    <TapGestureRecognizer Tapped="Bubble_Primary_Tapped" Buttons="Primary"/>
                     <TapGestureRecognizer Tapped="Bubble_Secondary_Tapped" Buttons="Secondary"/>
                 </Border.GestureRecognizers>
 

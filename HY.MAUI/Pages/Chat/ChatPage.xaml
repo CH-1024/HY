@@ -114,8 +114,12 @@
                                                 <Setter Property="Text" Value="[视频]"/>
                                             </MultiTrigger>
 
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="VideoCall">
+                                                <Setter Property="Text" Value="[视频通话]"/>
+                                            </DataTrigger>
 
-                                            
+
+
                                             <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="System">
                                                 <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='[{0}]'}"/>
                                             </DataTrigger>
@@ -137,7 +141,7 @@
                                         </Label.Triggers>
                                     </Label>
 
-                                    <Label Grid.Column="2" Text="{Binding Last_Msg_Time}" FontSize="12" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
+                                    <Label Grid.Column="2" Text="{Binding Last_Msg_Time_Show}" FontSize="12" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
 
                                 </Grid>
                             </Border>

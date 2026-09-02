@@ -169,11 +169,11 @@
                         </DataTemplate>
                     </controls:MessageTemplateSelector.ImageTemplate>
 
-                    <controls:MessageTemplateSelector.VideoTemplate>
-                        <DataTemplate x:DataType="msgvm:VideoMessageVM">
-                            <controls:VideoBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                    <controls:MessageTemplateSelector.FileTemplate>
+                        <DataTemplate x:DataType="msgvm:FileMessageVM">
+
                         </DataTemplate>
-                    </controls:MessageTemplateSelector.VideoTemplate>
+                    </controls:MessageTemplateSelector.FileTemplate>
 
                     <controls:MessageTemplateSelector.VoiceTemplate>
                         <DataTemplate x:DataType="msgvm:VoiceMessageVM">
@@ -181,11 +181,29 @@
                         </DataTemplate>
                     </controls:MessageTemplateSelector.VoiceTemplate>
 
+                    <controls:MessageTemplateSelector.VideoTemplate>
+                        <DataTemplate x:DataType="msgvm:VideoMessageVM">
+                            <controls:VideoBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.VideoTemplate>
+
                     <controls:MessageTemplateSelector.SystemTemplate>
                         <DataTemplate x:DataType="msgvm:SystemMessageVM">
                             <controls:SystemBubble/>
                         </DataTemplate>
                     </controls:MessageTemplateSelector.SystemTemplate>
+
+                    <controls:MessageTemplateSelector.VoiceCallTemplate>
+                        <DataTemplate x:DataType="msgvm:VoiceCallMessageVM">
+
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.VoiceCallTemplate>
+
+                    <controls:MessageTemplateSelector.VideoCallTemplate>
+                        <DataTemplate x:DataType="msgvm:VideoCallMessageVM">
+                            <controls:VideoCallBubble Command="{Binding Path=BindingContext.InvocationCommand, Source={x:Reference _MessagePage}}"/>
+                        </DataTemplate>
+                    </controls:MessageTemplateSelector.VideoCallTemplate>
 
                 </controls:MessageTemplateSelector>
             </CollectionView.ItemTemplate>
@@ -226,9 +244,9 @@
 
             <Button Style="{StaticResource IconBtn2}" Text="拍摄视频" Command="{Binding TakeVideoCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
 
-            <Button Style="{StaticResource IconBtn2}" Text="语音电话" Command="{Binding AudioCallCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+            <Button Style="{StaticResource IconBtn2}" Text="语音电话" />
 
-            <Button Style="{StaticResource IconBtn2}" Text="视频电话" Command="{Binding VideoCallCommand}" CommandParameter="{Binding Source={x:Reference expander}}"/>
+            <Button Style="{StaticResource IconBtn2}" Text="视频电话" Clicked="Send_VideoCall_Clicked"/>
 
         </toolkit:UniformItemsLayout>
 

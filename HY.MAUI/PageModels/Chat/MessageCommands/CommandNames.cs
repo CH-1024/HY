@@ -11,5 +11,6 @@ namespace HY.MAUI.PageModels.Chat.MessageCommands
         public const string DeleteMessage = "DeleteMessage";
         public const string TapImageMessage = "TapImageMessage";
         public const string TapVideoMessage = "TapVideoMessage";
+        public const string TapVideoCallMessage = "TapVideoCallMessage";
     }
 }

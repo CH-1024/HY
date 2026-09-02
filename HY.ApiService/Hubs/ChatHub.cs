@@ -41,7 +41,8 @@ namespace HY.ApiService.Hubs
         private int _devicePlatform => int.TryParse(Context.User?.FindFirst("DevicePlatform")?.Value, out var platform) ? platform : throw new Exception("DevicePlatform not found in claims");
 
         private ConnectionKey? GetConnectionIdMapKey(long userId, int devicePlatform) => _connectionIdMap.Keys.FirstOrDefault(k => k.UserId == userId && k.DevicePlatform == devicePlatform);
-        private List<string> GetConnectionIdsByUserId(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).Select(k => _connectionIdMap[k]).ToList();
+        private List<string> GetAllPlatformConnectionIds(long userId) => _connectionIdMap.Keys.Where(k => k.UserId == userId).Select(k => _connectionIdMap[k]).ToList();
+        private List<string> GetOtherPlatformConnectionIds(long userId, int devicePlatform) => _connectionIdMap.Keys.Where(k => k.UserId == userId && k.DevicePlatform != devicePlatform).Select(k => _connectionIdMap[k]).ToList();
 
 
         public ChatHub(ISqlSugarClient db, ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
@@ -166,11 +167,19 @@ namespace HY.ApiService.Hubs
             {
                 // 单人
 
-                // 通知对方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(messageDto.Target_Id);
-                foreach (var receiver in receiverConnectionIds)
+                // 对方所有在线设备
+                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
+
+                // 自己其他在线设备
+                var otherPlatformConnectionIds = GetOtherPlatformConnectionIds(messageDto.Sender_Id, _devicePlatform);
+
+                // 合并两个列表，去重
+                var UnityConnectionIds = receiverConnectionIds.Union(otherPlatformConnectionIds).ToList();
+                UnityConnectionIds.AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
+                .ForAll(connectionIds =>
                 {
-                    _ = Clients.Client(receiver).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
+                    _ = Clients.Client(connectionIds).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
                     {
                         if (task.IsCompletedSuccessfully && task.Result)
                         {
@@ -178,32 +187,46 @@ namespace HY.ApiService.Hubs
                             await _chatService.UpdateChatUnread(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
                         }
                     });
-                }
+                });
             }
             else if (messageDto.Chat_Type == ChatType.Group)
             {
                 // 群聊
 
+                // 获取群成员列表
                 var groupMembers = await _groupMemberService.GetGroupMembersByGroupId(messageDto.Target_Id);
 
-                groupMembers.AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
-                .ForAll(member =>
-                {
-                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 发送给发送者的其他在线设备
+                // 合并两个列表
+                var UnityConnections = new List<(long UserId, string ConnectionId)>();
 
-                    var receiverConnectionIds = GetConnectionIdsByUserId(member.User_Id);
-                    foreach (var receiver in receiverConnectionIds)
+                foreach (var member in groupMembers)
+                {
+                    if (member.User_Id == messageDto.Sender_Id)
                     {
-                        _ = Clients.Client(receiver).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
-                        {
-                            if (task.IsCompletedSuccessfully && task.Result)
-                            {
-                                // 发送成功
-                                await _chatService.UpdateChatUnread(member.User_Id, messageDto.Target_Id, ChatType.Group);
-                            }
-                        });
+                        // 自己其他在线设备
+                        var otherPlatformConnectionIds = GetOtherPlatformConnectionIds(member.User_Id, _devicePlatform);
+                        UnityConnections.AddRange(otherPlatformConnectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
                     }
+                    else
+                    {
+                        // 成员所有在线设备
+                        var memberConnectionIds = GetAllPlatformConnectionIds(member.User_Id);
+                        UnityConnections.AddRange(memberConnectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
+                    }
+                }
+
+                UnityConnections.AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount)
+                .ForAll(tuple =>
+                {
+                    _ = Clients.Client(tuple.ConnectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
+                    {
+                        if (task.IsCompletedSuccessfully && task.Result)
+                        {
+                            // 发送成功
+                            await _chatService.UpdateChatUnread(tuple.UserId, messageDto.Target_Id, ChatType.Group);
+                        }
+                    });
                 });
             }
 
@@ -240,7 +263,7 @@ namespace HY.ApiService.Hubs
             // 通知接收者撤回消息
             if (messageDto.Chat_Type == ChatType.Private)
             {
-                var receiverConnectionIds = GetConnectionIdsByUserId(messageDto.Target_Id);
+                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
@@ -256,7 +279,7 @@ namespace HY.ApiService.Hubs
                 {
                     if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 发送给发送者的其他在线设备
 
-                    var receiverConnectionIds = GetConnectionIdsByUserId(member.User_Id);
+                    var receiverConnectionIds = GetAllPlatformConnectionIds(member.User_Id);
                     foreach (var receiver in receiverConnectionIds)
                     {
                         _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
@@ -288,7 +311,7 @@ namespace HY.ApiService.Hubs
             if (result == null) return new Response(false, "请求联系人失败");
 
             // 通知接收方所有在线设备
-            var receiverConnectionIds = GetConnectionIdsByUserId(contactId);
+            var receiverConnectionIds = GetAllPlatformConnectionIds(contactId);
             foreach (var receiver in receiverConnectionIds)
             {
                 // 一点细节
@@ -323,7 +346,7 @@ namespace HY.ApiService.Hubs
             if (handle == RespondContactHandle.Revoked)
             {
                 // 通知接收方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Receiver_Id);
+                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Receiver_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
@@ -340,7 +363,7 @@ namespace HY.ApiService.Hubs
             else if (handle == RespondContactHandle.Declined)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Sender_Id);
+                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
@@ -357,7 +380,7 @@ namespace HY.ApiService.Hubs
             else if (handle == RespondContactHandle.Accepted)
             {
                 // 通知发送方所有在线设备
-                var receiverConnectionIds = GetConnectionIdsByUserId(result.contactRequest.Sender_Id);
+                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Sender_Id);
                 foreach (var receiver in receiverConnectionIds)
                 {
                     _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, result.senderContact, result.senderChat, result.senderMessage);

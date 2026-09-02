@@ -326,6 +326,10 @@ namespace HY.MAUI.PageModels.Chat
             {
                 await TapVideoMessageCommand.ExecuteAsync(cmd.Message);
             }
+            else if (cmd?.Command == CommandNames.TapVideoCallMessage)
+            {
+                await TapVideoCallMessageCommand.ExecuteAsync(cmd.Message);
+            }
         }
 
         [RelayCommand]
@@ -401,6 +405,15 @@ namespace HY.MAUI.PageModels.Chat
             }
         }
 
+        [RelayCommand]
+        async Task TapVideoCallMessage(MessageVM message)
+        {
+            if (message is VideoCallMessageVM videoCallMessage)
+            {
+                ;
+            }
+        }
+
 
 
 
@@ -465,6 +478,16 @@ namespace HY.MAUI.PageModels.Chat
             }
 
             await Task.WhenAll(tasks);
+        }
+
+        [RelayCommand]
+        async Task SendVideoCall()
+        {
+            var videoCallMessageVM = CreateVideoCallMessageVM();
+
+            MessageCollection.Add(videoCallMessageVM);
+
+            await _chatHub.SendMessage(_currentChat, videoCallMessageVM);
         }
 
         [RelayCommand]
@@ -549,6 +572,23 @@ namespace HY.MAUI.PageModels.Chat
                 Message_Status = MessageStatus.Sending,
 
                 UploadProgress = 0,
+            };
+        }
+
+        VideoCallMessageVM CreateVideoCallMessageVM()
+        {
+            return new VideoCallMessageVM
+            {
+                Chat_Type = _currentChat.Type,
+                Sender_Id = _currentUser.Id,
+                Sender_Avatar = _currentUser.Avatar,
+                Target_Id = _currentChat.Target_Id,
+                Created_At = DateTime.UtcNow,
+                IsSelf = true,
+                Message_Status = MessageStatus.Sending,
+
+                Call_Status = CallStatus.Accepted,
+                Duration = TimeSpan.FromSeconds(10000)
             };
         }
 

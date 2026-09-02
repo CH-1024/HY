@@ -6,6 +6,6 @@ namespace HY.MAUI.Models.MsgVM
 {
     public class SystemMessageVM : MessageVM
     {
-        public string Text { get; set; } = "";
+        public string? Text { get; set; } = "";
     }
 }
