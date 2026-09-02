@@ -72,8 +72,8 @@ namespace HY.ApiService.Services
             var ext = Path.GetExtension(file.FileName) ?? ".jpg";
             var utcNow = DateTime.UtcNow;
 
-            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? "d:";
-            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? "upload";
+            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? throw new Exception("MediaStorage:Local:Bucket is not configured");
+            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? throw new Exception("MediaStorage:Local:Path is not configured");
             var basePath = Path.Combine(path, utcNow.ToString("yyyy"), utcNow.ToString("MM"), utcNow.ToString("dd"));
 
             MediaFileEntity mediaFileEntity;
@@ -375,8 +375,8 @@ namespace HY.ApiService.Services
             var ext = Path.GetExtension(file.FileName) ?? ".mp4";
             var utcNow = DateTime.UtcNow;
 
-            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? "d:";
-            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? "upload";
+            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? throw new Exception("MediaStorage:Local:Bucket is not configured");
+            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? throw new Exception("MediaStorage:Local:Path is not configured");
             var basePath = Path.Combine(path, utcNow.ToString("yyyy"), utcNow.ToString("MM"), utcNow.ToString("dd"));
 
             MediaFileEntity mediaFileEntity;
@@ -677,8 +677,8 @@ namespace HY.ApiService.Services
             var ext = Path.GetExtension(file.FileName) ?? ".jpg";
             var utcNow = DateTime.UtcNow;
 
-            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? "d:";
-            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? "upload";
+            var bucket = _configuration.GetSection("MediaStorage:Local:Bucket").Value ?? throw new Exception("MediaStorage:Local:Bucket is not configured");
+            var path = _configuration.GetSection("MediaStorage:Local:Path").Value ?? throw new Exception("MediaStorage:Local:Path is not configured");
             var basePath = Path.Combine(path, utcNow.ToString("yyyy"), utcNow.ToString("MM"), utcNow.ToString("dd"));
 
             MediaFileEntity mediaFileEntity;
@@ -1078,7 +1078,9 @@ namespace HY.ApiService.Services
 
         private async Task<long> CreateVideoCover(string inputPath, string outputPath, double timeSeconds = 5)
         {
-            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
+            var path = _configuration.GetSection("FFmpeg:Path").Value ?? throw new Exception("FFmpeg:Path is not configured");
+
+            var helper = new FFmpegHelper(path);
 
             if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
@@ -1096,7 +1098,9 @@ namespace HY.ApiService.Services
 
         private async Task<long> Compress1Video(string inputPath, string outputPath)
         {
-            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
+            var path = _configuration.GetSection("FFmpeg:Path").Value ?? throw new Exception("FFmpeg:Path is not configured");
+
+            var helper = new FFmpegHelper(path);
 
             if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
@@ -1117,7 +1121,9 @@ namespace HY.ApiService.Services
 
         private async Task<long> Compress2Video(string inputPath, string outputPath)
         {
-            var helper = new FFmpegHelper(_configuration.GetSection("FFmpeg:Path").Value!);
+            var path = _configuration.GetSection("FFmpeg:Path").Value ?? throw new Exception("FFmpeg:Path is not configured");
+
+            var helper = new FFmpegHelper(path);
 
             if (!helper.IsFFmpegAvailable()) throw new Exception("未找到 ffmpeg");
 
