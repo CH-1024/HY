@@ -29,7 +29,7 @@ namespace HY.ApiService.Controllers
         [HttpPost("upload/image")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
-            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
+            var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -75,7 +75,7 @@ namespace HY.ApiService.Controllers
         [HttpPost("upload/video")]
         public async Task<IActionResult> UploadVideo(IFormFile file)
         {
-            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
+            var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -121,7 +121,7 @@ namespace HY.ApiService.Controllers
         [HttpPost("upload/head")]
         public async Task<IActionResult> UploadHead(IFormFile file)
         {
-            var type = _configuration.GetSection("MediaStorage:Local:Type").Value ?? "Local";
+            var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
