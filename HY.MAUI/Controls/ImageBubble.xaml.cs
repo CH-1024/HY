@@ -43,7 +43,7 @@ public partial class ImageBubble : ContentView
         }
     }
 
-    private async void Image_Tapped(object sender, TappedEventArgs e)
+    private async void Bubble_Primary_Tapped(object sender, TappedEventArgs e)
     {
         if (sender is not Border border)
             return;

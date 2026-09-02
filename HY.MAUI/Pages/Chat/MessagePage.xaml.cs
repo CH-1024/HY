@@ -113,6 +113,16 @@ public partial class MessagePage : ContentPage
         }
     }
 
+    private async void Send_VideoCall_Clicked(object sender, EventArgs e)
+    {
+        await CollapseWithStatus();
+
+        if (BindingContext is MessagePageModel vm)
+        {
+            vm.SendVideoCallCommand.Execute(null);
+        }
+    }
+
 
     async Task ExpandWithStatus()
     {

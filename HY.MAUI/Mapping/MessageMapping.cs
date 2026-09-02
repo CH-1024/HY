@@ -83,6 +83,25 @@ namespace HY.MAUI.Mapping
                     Text = dto.Content,
                 };
             }
+            else if (dto.Message_Type == MessageType.VideoCall)
+            {
+                var extraData = JsonSerializer.Deserialize<Dictionary<string, object?>>(dto.Extra ?? "{}");
+                return new VideoCallMessageVM
+                {
+                    Id = dto.Id,
+                    Chat_Type = dto.Chat_Type,
+                    Sender_Id = dto.Sender_Id,
+                    Sender_Avatar = dto.Sender_Avatar,
+                    Sender_Nickname = dto.Sender_Nickname,
+                    Target_Id = dto.Target_Id,
+                    Message_Status = dto.Message_Status,
+                    Created_At = dto.Created_At,
+                    IsSelf = isSelf,
+
+                    Call_Status = extraData != null && extraData.TryGetValue("CallStatus", out var callStatus) ? (CallStatus)int.Parse(callStatus?.ToString() ?? "0") : CallStatus.NotAnswered,
+                    Duration = extraData != null && extraData.TryGetValue("Duration", out var duration) ? TimeSpan.FromSeconds(double.Parse(duration?.ToString() ?? "0")) : TimeSpan.Zero
+                };
+            }
             else
                 throw new NotImplementedException("Message type not implemented in mapping.");
         }
@@ -146,10 +165,32 @@ namespace HY.MAUI.Mapping
                     Created_At = videoMsg.Created_At
                 };
             }
-            else if (model is VoiceMessageVM voiceMsg)
-                throw new NotImplementedException("Voice message mapping not implemented yet.");
             else if (model is SystemMessageVM systemMsg)
-                throw new NotImplementedException("System message mapping not implemented yet.");
+            {
+                // 客户端无权发送系统消息
+                throw new NotImplementedException("System message cannot be sent from client.");
+            }
+            else if (model is VideoCallMessageVM videoCallMsg)
+            {
+                return new MessageDto
+                {
+                    Id = videoCallMsg.Id,
+                    Chat_Type = videoCallMsg.Chat_Type,
+                    Sender_Id = videoCallMsg.Sender_Id,
+                    Sender_Avatar = videoCallMsg.Sender_Avatar,
+                    Sender_Nickname = videoCallMsg.Sender_Nickname,
+                    Target_Id = videoCallMsg.Target_Id,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)videoCallMsg.Call_Status },
+                        { "Duration", videoCallMsg.Duration.TotalSeconds }
+                    }),
+                    Message_Status = videoCallMsg.Message_Status,
+                    Created_At = videoCallMsg.Created_At
+                };
+            }
             else
                 throw new NotImplementedException("Message type not implemented in mapping.");
         }
