@@ -14,9 +14,8 @@ namespace HY.ApiService.Services
     {
         Task<List<ChatDto>> GetAllChatsByUserId(long userId);
 
-        Task<bool> UpdateChatLastMessage(MessageDto messageDto);
-        Task<bool> UpdateChatUnread(long chat_Id);
-        Task<bool> UpdateChatUnread(long userId, long targetId, ChatType chatType);
+        Task<bool> ClearChatUnread(long chat_Id);
+        Task<bool> ClearChatUnread(long userId, long targetId, ChatType chatType);
 
         Task<bool> IsUserOwnerChat(long userId, long chatId);
     }
@@ -105,86 +104,18 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task<bool> UpdateChatLastMessage(MessageDto messageDto)
+
+        public async Task<bool> ClearChatUnread(long chat_Id)
         {
-            if (messageDto.Chat_Type == ChatType.Private)
-            {
-                // 单人
-
-                // 开启事务
-                var result = await _db.Ado.UseTranAsync(async () =>
-                {
-                    var senderChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Sender_Id, messageDto.Target_Id, ChatType.Private);
-                    if (senderChatEntity != null)
-                    {
-                        senderChatEntity.Is_Deleted = false;
-                        senderChatEntity.Last_Msg_Id = messageDto.Id;
-                        //senderChatEntity.Unread_Count = 0;
-                        senderChatEntity.Last_Msg_Time = messageDto.Created_At;
-                        var bol = await _chatRepository.UpdateChat(senderChatEntity);
-                        if (!bol) throw new Exception("更新发送者聊天记录失败");
-                    }
-
-                    var receiverChatEntity = await _chatRepository.GetChatByUserIdAndType(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
-                    if (receiverChatEntity != null)
-                    {
-                        receiverChatEntity.Is_Deleted = false;
-                        receiverChatEntity.Last_Msg_Id = messageDto.Id;
-                        receiverChatEntity.Unread_Count += 1;
-                        receiverChatEntity.Last_Msg_Time = messageDto.Created_At;
-                        var bol = await _chatRepository.UpdateChat(receiverChatEntity);
-                        if (!bol) throw new Exception("更新接收者聊天记录失败");
-                    }
-                });
-
-                // ---------- 事务结束 ----------
-                if (!result.IsSuccess) return false;
-            }
-            else if (messageDto.Chat_Type == ChatType.Group)
-            {
-                // 群聊
-
-                var groupMembers = await _groupMemberRepository.GetGroupMembersByGroupId(messageDto.Target_Id);
-
-                var userIds = groupMembers.Select(m => m.User_Id).ToList();
-
-                var memberChatEntities = await _chatRepository.GetChatsByUserIdsAndType(userIds, messageDto.Target_Id, ChatType.Group);
-                foreach (var memberChatEntity in memberChatEntities)
-                {
-                    if (memberChatEntity.User_Id == messageDto.Sender_Id)
-                    {
-                        memberChatEntity.Is_Deleted = false;
-                        memberChatEntity.Last_Msg_Id = messageDto.Id;
-                        //memberChatEntity.Unread_Count = 0;
-                        memberChatEntity.Last_Msg_Time = messageDto.Created_At;
-                    }
-                    else
-                    {
-                        memberChatEntity.Is_Deleted = false;
-                        memberChatEntity.Last_Msg_Id = messageDto.Id;
-                        memberChatEntity.Unread_Count += 1;
-                        memberChatEntity.Last_Msg_Time = messageDto.Created_At;
-                    }
-                }
-
-                var bol = await _chatRepository.UpdateChats(memberChatEntities);
-                if (!bol) return false;
-            }
-
-            return true;
+            return await _chatRepository.ClearChatUnread(chat_Id);
         }
 
-        public async Task<bool> UpdateChatUnread(long chat_Id)
-        {
-            return await _chatRepository.UpdateChatUnread(chat_Id);
-        }
-
-        public async Task<bool> UpdateChatUnread(long userId, long targetId, ChatType chatType)
+        public async Task<bool> ClearChatUnread(long userId, long targetId, ChatType chatType)
         {
             var chatEntity = await _chatRepository.GetChatByUserIdAndType(userId, targetId, chatType);
             if (chatEntity != null)
             {
-                return await _chatRepository.UpdateChatUnread(chatEntity.Id);
+                return await _chatRepository.ClearChatUnread(chatEntity.Id);
             }
             return false;
         }

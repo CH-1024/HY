@@ -1,8 +1,11 @@
 ﻿using HY.ApiService.Dtos;
+using HY.ApiService.Enums;
+using HY.ApiService.Hubs;
 using HY.ApiService.Models;
 using HY.ApiService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace HY.ApiService.Controllers
@@ -11,11 +14,14 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class ContactController : ControllerBase
     {
+        readonly IHubContext<ChatHub> _chatHub;
+
         readonly IContactService _contactService;
 
 
-        public ContactController(IContactService contactService)
+        public ContactController(IHubContext<ChatHub> chatHub, IContactService contactService)
         {
+            _chatHub = chatHub;
             _contactService = contactService;
         }
 
@@ -24,9 +30,7 @@ namespace HY.ApiService.Controllers
         [HttpGet("get/contactrequests")]
         public async Task<IActionResult> GetContactRequests()
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _contactService.GetAllContactRequestsByUserId(userId);
 
@@ -43,9 +47,7 @@ namespace HY.ApiService.Controllers
         [HttpGet("get/contacts")]
         public async Task<IActionResult> GetContacts()
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _contactService.GetAllContactsByUserId(userId);
 
@@ -62,9 +64,7 @@ namespace HY.ApiService.Controllers
         [HttpGet("get/contact")]
         public async Task<IActionResult> GetContact(long targetId)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _contactService.GetContactByUserId(userId, targetId);
 
@@ -81,9 +81,7 @@ namespace HY.ApiService.Controllers
         [HttpGet("search/contact")]
         public async Task<IActionResult> SearchContact(string identity)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _contactService.GetContactByHYidOrPhone(userId, identity);
 
@@ -97,17 +95,83 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
+        [HttpPost("request/contact")]
+        public async Task<IActionResult> RequestContact(long contactId, int source, string message)
+        {
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var result = await _contactService.RequestContact(userId, contactId, source, message);
+            if (result == null) return Ok(new Response(false, "请求联系人失败"));
+
+            // 2. 通知接收方
+            await _chatHub.Clients.User(userId.ToString()).SendAsync("RequestContact", contactId, result!);
+
+            return Ok(new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "ContactRequest", result.contactRequest },
+                    { "Contact", result.senderContact },
+                    { "Chat", result.senderChat },
+                    { "Message", result.senderMessage },
+                }
+            });
+        }
+
+        [Authorize]
+        [HttpPost("respond/contact")]
+        public async Task<IActionResult> RespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        {
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var result = await _contactService.RespondContact(userId, contactRequestId, handle, message);
+            if (result == null) return Ok(new Response(false, "处理联系人请求失败"));
+
+            // 2. 通知接收方
+            await _chatHub.Clients.User(userId.ToString()).SendAsync("RespondContact", handle, result!);
+
+            ContactRequestDto? contactRequest = null;
+            ContactDto? receiverContact = null;
+            ChatDto? receiverChat = null;
+            MessageDto? receiverMessage = null;
+
+            if (handle == RespondContactHandle.Revoked)
+            {
+                contactRequest = result.contactRequest;
+            }
+            else if (handle == RespondContactHandle.Declined)
+            {
+                contactRequest = result.contactRequest;
+            }
+            else if (handle == RespondContactHandle.Accepted)
+            {
+                contactRequest = result.contactRequest;
+                receiverContact = result.receiverContact;
+                receiverChat = result.receiverChat;
+                receiverMessage = result.receiverMessage;
+            }
+
+            return Ok(new Response(true)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "ContactRequest", contactRequest },
+                    { "Contact", receiverContact },
+                    { "Chat", receiverChat },
+                    { "Message", receiverMessage },
+                }
+            });
+        }
+
+        [Authorize]
         [HttpDelete("delete/contact")]
         public async Task<IActionResult> DeleteContact(long targetId)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _contactService.DeleteContact(userId, targetId);
 
             return Ok(new Response(result.IsSucc, result.Error));
         }
-
     }
 }

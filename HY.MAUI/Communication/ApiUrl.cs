@@ -41,18 +41,23 @@ namespace HY.MAUI.Communication
 
         //Message
         public static string GetMessages => $"{HttpBaseUrl}/message/get/messages/";
-        public static string GetSingleChatMessages => $"{HttpBaseUrl}/message/get/single/messages/";
-        public static string GetGroupChatMessages => $"{HttpBaseUrl}/message/get/group/messages/";
+        public static string SendMessage => $"{HttpBaseUrl}/message/send/message/";
+        public static string RecallMessage => $"{HttpBaseUrl}/message/recall/message/";
+        public static string DeleteMessage => $"{HttpBaseUrl}/message/delete/message/";
+
+        // File
         public static string UploadImage => $"{HttpBaseUrl}/file/upload/image/";
         public static string UploadVideo => $"{HttpBaseUrl}/file/upload/video/";
         public static string UploadHead => $"{HttpBaseUrl}/file/upload/head/";
 
 
         // Contact
-        public static string GetContacts => $"{HttpBaseUrl}/contact/get/contacts/";
         public static string GetContactRequests => $"{HttpBaseUrl}/contact/get/contactrequests/";
+        public static string GetContacts => $"{HttpBaseUrl}/contact/get/contacts/";
         public static string GetContact => $"{HttpBaseUrl}/contact/get/contact/";
         public static string SearchContact => $"{HttpBaseUrl}/contact/search/contact/";
+        public static string RequestContact => $"{HttpBaseUrl}/contact/request/contact/";
+        public static string RespondContact => $"{HttpBaseUrl}/contact/respond/contact/";
         public static string DeleteContact => $"{HttpBaseUrl}/contact/delete/contact/";
 
 

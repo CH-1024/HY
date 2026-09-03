@@ -1,4 +1,5 @@
-﻿using HY.ApiService.Enums;
+﻿using HY.ApiService.Controllers.Requests;
+using HY.ApiService.Enums;
 using HY.ApiService.Models;
 using HY.ApiService.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -48,9 +49,7 @@ namespace HY.ApiService.Controllers
         [HttpPatch("update/head")]
         public async Task<IActionResult> UpdateHead([FromBody] UpdateUserRequest updateUserRequest)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var result = await _userService.UpdateHead(userId, updateUserRequest.Avatar);
 

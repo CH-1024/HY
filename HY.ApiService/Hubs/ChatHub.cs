@@ -21,14 +21,9 @@ namespace HY.ApiService.Hubs
 
     public class ChatHub : Hub
     {
-        readonly ISqlSugarClient _db;
-
         readonly ILoginService _loginService;
-        readonly IMessageService _messageService;
-        readonly IMessageActionService _messageActionService;
         readonly IChatService _chatService;
         readonly IGroupMemberService _groupMemberService;
-        readonly IContactService _contactService;
 
 
 
@@ -45,16 +40,11 @@ namespace HY.ApiService.Hubs
         private List<string> GetOtherPlatformConnectionIds(long userId, int devicePlatform) => _connectionIdMap.Keys.Where(k => k.UserId == userId && k.DevicePlatform != devicePlatform).Select(k => _connectionIdMap[k]).ToList();
 
 
-        public ChatHub(ISqlSugarClient db, ILoginService loginService, IMessageService messageService, IMessageActionService messageActionService, IChatService chatService, IGroupMemberService groupMemberService, IContactService contactService)
+        public ChatHub(ILoginService loginService, IChatService chatService, IGroupMemberService groupMemberService)
         {
-            _db = db;
-
             _loginService = loginService;
-            _messageService = messageService;
-            _messageActionService = messageActionService;
             _chatService = chatService;
             _groupMemberService = groupMemberService;
-            _contactService = contactService;
         }
 
 
@@ -104,303 +94,360 @@ namespace HY.ApiService.Hubs
 
         [Authorize]
         [HubMethodName("SendMessage")]
-        public async Task<Response> OnReceiveMessage(MessageDto messageDto)
+        public async Task OnReceiveMessageNotice(MessageDto messageDto)
         {
-            // Todo: 联系人验证、黑名单验证、Group群发等
-
-
             if (messageDto == null)
             {
-                return new Response(false, "消息内容不能为空");
+                return;
             }
-            if (messageDto.Sender_Id != _userId)
-            {
-                return new Response(false, "发送者ID不合法");
-            }
-            if (messageDto.Chat_Type == ChatType.Private)
-            {
-                // 私聊
-                // 联系人验证
-                var contactResult = await _contactService.GetContactByUserId(messageDto.Target_Id, messageDto.Sender_Id);
-                if (contactResult.IsSucc && contactResult.Contact.Relation_Status != RelationStatus.Friend)
-                {
-                    return new Response(false, "不是好友关系");
-                }
-            }
-            else if (messageDto.Chat_Type == ChatType.Group)
-            {
-                // 群聊
-                // 群成员验证
-                var groupMemberResult = await _groupMemberService.GetGroupMember(messageDto.Target_Id, messageDto.Sender_Id);
-                if (groupMemberResult == null)
-                {
-                    return new Response(false, "不是群成员");
-                }
-            }
-            else
-            {
-                return new Response(false, "无效的聊天类型");
-            }
-
-            long? messageId = null;
-
-            // 设置消息状态和创建时间
-            messageDto.Message_Status = MessageStatus.Sented;
-            messageDto.Created_At = DateTime.UtcNow;
-
-            // 开启事务
-            var result = await _db.Ado.UseTranAsync(async () =>
-            {
-                // 保存消息
-                messageId = await _messageService.InsertMessage(messageDto);
-                if (messageId == 0) throw new Exception("保存消息失败");
-
-                // 更新会话的最后一条消息
-                var bol = await _chatService.UpdateChatLastMessage(messageDto);
-                if (!bol) throw new Exception("更新会话最后一条消息失败");
-            });
-
-            // ---------- 事务结束 ----------
-            if (!result.IsSuccess) return new Response(false, "事务处理失败");
 
             if (messageDto.Chat_Type == ChatType.Private)
             {
                 // 单人
 
-                // 对方所有在线设备
-                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
 
-                // 自己其他在线设备
+                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
                 var otherPlatformConnectionIds = GetOtherPlatformConnectionIds(messageDto.Sender_Id, _devicePlatform);
 
-                // 合并两个列表，去重
-                var UnityConnectionIds = receiverConnectionIds.Union(otherPlatformConnectionIds).ToList();
-                UnityConnectionIds.AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
-                .ForAll(connectionIds =>
+                #region 通知对方所有在线设备
+                var sendResults = new ConcurrentBag<bool>();
+
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
-                    _ = Clients.Client(connectionIds).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
+                    try
                     {
-                        if (task.IsCompletedSuccessfully && task.Result)
-                        {
-                            // 发送成功
-                            await _chatService.UpdateChatUnread(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
-                        }
-                    });
+                        var success = await Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+
+                        sendResults.Add(success);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+
+                        sendResults.Add(false);
+                    }
                 });
+
+                // 至少有一个接收成功，更新未读数
+                if (sendResults.Any(x => x))
+                {
+                    await _chatService.ClearChatUnread(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
+                }
+                #endregion
+
+
+                #region 通知自己其他在线设备
+                await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+
+                // 自己发的消息不需要更新未读数
+                #endregion
             }
             else if (messageDto.Chat_Type == ChatType.Group)
             {
                 // 群聊
 
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
                 // 获取群成员列表
                 var groupMembers = await _groupMemberService.GetGroupMembersByGroupId(messageDto.Target_Id);
 
-                // 合并两个列表
-                var UnityConnections = new List<(long UserId, string ConnectionId)>();
+                var receiverConnections = new List<(long UserId, string ConnectionId)>();
+                var otherPlatformConnections = new List<(long UserId, string ConnectionId)>();
 
                 foreach (var member in groupMembers)
                 {
                     if (member.User_Id == messageDto.Sender_Id)
                     {
                         // 自己其他在线设备
-                        var otherPlatformConnectionIds = GetOtherPlatformConnectionIds(member.User_Id, _devicePlatform);
-                        UnityConnections.AddRange(otherPlatformConnectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
+                        var connectionIds = GetOtherPlatformConnectionIds(member.User_Id, _devicePlatform);
+                        otherPlatformConnections.AddRange(connectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
                     }
                     else
                     {
                         // 成员所有在线设备
-                        var memberConnectionIds = GetAllPlatformConnectionIds(member.User_Id);
-                        UnityConnections.AddRange(memberConnectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
+                        var connectionIds = GetAllPlatformConnectionIds(member.User_Id);
+                        receiverConnections.AddRange(connectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
                     }
                 }
 
-                UnityConnections.AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount)
-                .ForAll(tuple =>
+                #region 通知成员所有在线设备
+                foreach (var group in receiverConnections.GroupBy(r => r.UserId))
                 {
-                    _ = Clients.Client(tuple.ConnectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, CancellationToken.None).ContinueWith(async task =>
+                    var sendResults = new ConcurrentBag<bool>();
+
+                    await Parallel.ForEachAsync(group.Select(r => r.ConnectionId), parallelOptions, async (connectionId, cancellationToken) =>
                     {
-                        if (task.IsCompletedSuccessfully && task.Result)
+                        try
                         {
-                            // 发送成功
-                            await _chatService.UpdateChatUnread(tuple.UserId, messageDto.Target_Id, ChatType.Group);
+                            var success = await Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+
+                            sendResults.Add(success);
+                        }
+                        catch (Exception ex)
+                        {
+                            // 记录日志
+                            // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+
+                            sendResults.Add(false);
                         }
                     });
-                });
-            }
 
-            return new Response(true)
-            {
-                Data = new Dictionary<string, object?>
-                {
-                    { "MessageId", messageId },
-                    { "CreatedAt", messageDto.Created_At },
+                    // 至少有一个接收成功，更新未读数
+                    if (sendResults.Any(x => x))
+                    {
+                        await _chatService.ClearChatUnread(group.Key, messageDto.Target_Id, ChatType.Group);
+                    }
                 }
-            };
+                #endregion
+
+
+                #region 通知自己其他在线设备
+                await Parallel.ForEachAsync(otherPlatformConnections.Select(r => r.ConnectionId), parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+
+                // 自己发的消息不需要更新未读数
+                #endregion
+            }
         }
 
         [Authorize]
         [HubMethodName("RecallMessage")]
-        public async Task<Response> OnRecallMessage(long messageId)
+        public async Task OnRecallMessageNotice(MessageDto messageDto)
         {
-            var messageDto = await _messageService.GetMessageById(_userId, messageId);
-            if (messageDto == null) return new Response(false, "消息不存在");
-
-            // 只有未撤回的消息才能被撤回
-            if (messageDto.Message_Status == MessageStatus.Recalled) return new Response(false, "消息已撤回");
-
-            // 只有发送者才能撤回消息
-            if (messageDto.Sender_Id != _userId) return new Response(false, "只有发送者才能撤回消息");
-
-            // 只有在规定时间内才能撤回消息（5分钟内）
-            if ((DateTime.UtcNow - messageDto.Created_At).TotalMinutes > 5) return new Response(false, "超过撤回时间限制");
-
-            // 撤回消息
-            var result = await _messageService.RecallMessage(messageId);
-            if (!result) return new Response(false, "撤回消息失败");
+            if (messageDto == null)
+            {
+                return;
+            }
 
             // 通知接收者撤回消息
             if (messageDto.Chat_Type == ChatType.Private)
             {
-                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
-                foreach (var receiver in receiverConnectionIds)
+                // 单人
+
+                var parallelOptions = new ParallelOptions
                 {
-                    _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
-                }
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var receiverConnectionIds = GetAllPlatformConnectionIds(messageDto.Target_Id);
+                var otherPlatformConnectionIds = GetOtherPlatformConnectionIds(messageDto.Sender_Id, _devicePlatform);
+
+                #region 通知对方所有在线设备
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "撤回消息失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+
+
+                #region 通知自己其他在线设备
+                await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "撤回消息失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
             }
             else if (messageDto.Chat_Type == ChatType.Group)
             {
+                // 群聊
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                // 获取群成员列表
                 var groupMembers = await _groupMemberService.GetGroupMembersByGroupId(messageDto.Target_Id);
 
-                groupMembers.AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount) // 设置最大并行数
-                .ForAll(member =>
-                {
-                    if (member.User_Id == messageDto.Sender_Id) return; // 排除发送者 Todo: 发送给发送者的其他在线设备
+                var receiverConnections = new List<(long UserId, string ConnectionId)>();
+                var otherPlatformConnections = new List<(long UserId, string ConnectionId)>();
 
-                    var receiverConnectionIds = GetAllPlatformConnectionIds(member.User_Id);
-                    foreach (var receiver in receiverConnectionIds)
+                foreach (var member in groupMembers)
+                {
+                    if (member.User_Id == messageDto.Sender_Id)
                     {
-                        _ = Clients.Client(receiver).SendAsync("RecallMessage", messageDto);
+                        // 自己其他在线设备
+                        var connectionIds = GetOtherPlatformConnectionIds(member.User_Id, _devicePlatform);
+                        otherPlatformConnections.AddRange(connectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
+                    }
+                    else
+                    {
+                        // 成员所有在线设备
+                        var connectionIds = GetAllPlatformConnectionIds(member.User_Id);
+                        receiverConnections.AddRange(connectionIds.Select(connId => (UserId: member.User_Id, ConnectionId: connId)));
+                    }
+                }
+
+                #region 通知成员所有在线设备
+                foreach (var group in receiverConnections.GroupBy(r => r.UserId))
+                {
+                    await Parallel.ForEachAsync(group.Select(r => r.ConnectionId), parallelOptions, async (connectionId, cancellationToken) =>
+                    {
+                        try
+                        {
+                            await Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                        }
+                        catch (Exception ex)
+                        {
+                            // 记录日志
+                            // _logger.LogError(ex, "撤回消息失败，ConnectionId: {ConnectionId}", connectionId);
+                        }
+                    });
+                }
+                #endregion
+
+
+                #region 通知自己其他在线设备
+                await Parallel.ForEachAsync(otherPlatformConnections.Select(r => r.ConnectionId), parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "撤回消息失败，ConnectionId: {ConnectionId}", connectionId);
                     }
                 });
+                #endregion
             }
-
-            return new Response(true);
-        }
-
-        [Authorize]
-        [HubMethodName("DeleteMessage")]
-        public async Task<Response> OnDeleteMessage(long messageId)
-        {
-            var messageDto = await _messageService.GetMessageById(_userId, messageId);
-            if (messageDto == null) return new Response(false, "消息不存在");
-
-            var result = await _messageActionService.InsertMessageAction(_userId, messageId, MessageActionType.Delete);
-            if (!result) return new Response(false, "删除消息失败");
-
-            return new Response(true);
         }
 
         [Authorize]
         [HubMethodName("RequestContact")]
-        public async Task<Response> OnRequestContact(long contactId, int source, string message)
+        public async Task OnRequestContactNotice(long contactId, RequestContactReturn result)
         {
-            var result = await _contactService.RequestContact(_userId, contactId, source, message);
-            if (result == null) return new Response(false, "请求联系人失败");
-
-            // 通知接收方所有在线设备
-            var receiverConnectionIds = GetAllPlatformConnectionIds(contactId);
-            foreach (var receiver in receiverConnectionIds)
+            var parallelOptions = new ParallelOptions
             {
-                // 一点细节
-                _ = Clients.Client(receiver).InvokeAsync<bool>("RequestContact", result.contactRequest, result.receiverContact, result.receiverChat, result.receiverMessage, CancellationToken.None).ContinueWith(async task =>
-                {
-                    if (task.IsCompletedSuccessfully && task.Result)
-                    {
-                        await _chatService.UpdateChatUnread(result.receiverMessage.Sender_Id, result.receiverMessage.Target_Id, ChatType.Private);
-                    }
-                });
-            }
-
-            return new Response(true)
-            {
-                Data = new Dictionary<string, object?>
-                {
-                    { "ContactRequest", result.contactRequest },
-                    { "Contact", result.senderContact },
-                    { "Chat", result.senderChat },
-                    { "Message", result.senderMessage },
-                }
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
             };
+
+            var contactConnectionIds = GetAllPlatformConnectionIds(contactId);
+
+            #region 通知对方所有在线设备
+            var sendResults = new ConcurrentBag<bool>();
+
+            await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    var success = await Clients.Client(connectionId).InvokeAsync<bool>("RequestContact", result.contactRequest, result.receiverContact, result.receiverChat, result.receiverMessage, CancellationToken.None);
+
+                    sendResults.Add(success);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "请求联系人失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+
+            // 至少有一个接收成功，更新未读数
+            if (sendResults.Any(x => x))
+            {
+                await _chatService.ClearChatUnread(result.receiverMessage!.Sender_Id, result.receiverMessage!.Target_Id, ChatType.Private);
+            }
+            #endregion
         }
 
         [Authorize]
         [HubMethodName("RespondContact")]
-        public async Task<Response> OnRespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        public async Task OnRespondContactNotice(RespondContactHandle handle, RespondContactReturn result)
         {
-            var result = await _contactService.RespondContact(_userId, contactRequestId, handle, message);
-            if (result == null) return new Response(false, "处理联系人请求失败");
+            long contactId = 0;
+            ContactRequestDto? contactRequest = null;
+            ContactDto? senderContact = null;
+            ChatDto? senderChat = null;
+            MessageDto? senderMessage = null;
 
             if (handle == RespondContactHandle.Revoked)
             {
-                // 通知接收方所有在线设备
-                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Receiver_Id);
-                foreach (var receiver in receiverConnectionIds)
-                {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
-                }
-
-                return new Response(true)
-                {
-                    Data = new Dictionary<string, object?>
-                    {
-                        { "ContactRequest", result.contactRequest },
-                    }
-                };
+                contactId = result.contactRequest.Receiver_Id;
+                contactRequest = result.contactRequest;
             }
             else if (handle == RespondContactHandle.Declined)
             {
-                // 通知发送方所有在线设备
-                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Sender_Id);
-                foreach (var receiver in receiverConnectionIds)
-                {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, null, null, null);
-                }
-
-                return new Response(true)
-                {
-                    Data = new Dictionary<string, object?>
-                    {
-                        { "ContactRequest", result.contactRequest },
-                    }
-                };
+                contactId = result.contactRequest.Sender_Id;
+                contactRequest = result.contactRequest;
             }
             else if (handle == RespondContactHandle.Accepted)
             {
-                // 通知发送方所有在线设备
-                var receiverConnectionIds = GetAllPlatformConnectionIds(result.contactRequest.Sender_Id);
-                foreach (var receiver in receiverConnectionIds)
-                {
-                    _ = Clients.Client(receiver).SendAsync("RespondContact", result.contactRequest, result.senderContact, result.senderChat, result.senderMessage);
-                }
+                contactId = result.contactRequest.Sender_Id;
+                contactRequest = result.contactRequest;
+                senderContact = result.senderContact;
+                senderChat = result.senderChat;
+                senderMessage = result.senderMessage;
+            }
 
-                return new Response(true)
-                {
-                    Data = new Dictionary<string, object?>
-                    {
-                        { "ContactRequest", result.contactRequest },
-                        { "Contact", result.receiverContact },
-                        { "Chat", result.receiverChat },
-                        { "Message", result.receiverMessage },
-                    }
-                };
-            }
-            else
+            var parallelOptions = new ParallelOptions
             {
-                return new Response(false, "无效的操作类型");
-            }
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var contactConnectionIds = GetAllPlatformConnectionIds(contactId);
+            await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await Clients.Client(connectionId).SendAsync("RespondContact", contactRequest, senderContact, senderChat, senderMessage);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "回复联系人失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
         }
 
 

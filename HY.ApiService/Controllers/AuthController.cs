@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using HY.ApiService.Controllers.Requests;
 using HY.ApiService.Dtos;
 using HY.ApiService.Entities;
 using HY.ApiService.Enums;
@@ -90,9 +91,7 @@ namespace HY.ApiService.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest param)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var deviceId = User.FindFirst("DeviceId")?.Value!;
 
             var result = await _loginService.Logout(userId, deviceId);
