@@ -65,7 +65,7 @@ namespace HY.MAUI.PageModels.Contact
             var sayHi = await Application.Current!.Windows[0].Page!.DisplayPromptAsync("发送好友请求", null, "确定", "取消", "打个招呼吧~", 30);
             if (sayHi != null)
             {
-                await _chatHub.RequestContact(StrangerInfo.Contact_Id, _source, sayHi);
+                await _contactApi.RequestContact(StrangerInfo.Contact_Id, _source, sayHi);
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
             }
 

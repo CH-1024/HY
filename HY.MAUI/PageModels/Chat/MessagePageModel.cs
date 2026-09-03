@@ -370,13 +370,13 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task DeleteMessage(MessageVM message)
         {
-            await _chatHub.DeleteMessage(_currentChat, message);
+            await _messageApi.DeleteMessage(_currentChat, message);
         }
 
         [RelayCommand]
         async Task RecallMessage(MessageVM message)
         {
-            await _chatHub.RecallMessage(_currentChat, message);
+            await _messageApi.RecallMessage(_currentChat, message);
         }
 
         [RelayCommand]
@@ -426,7 +426,7 @@ namespace HY.MAUI.PageModels.Chat
 
             MessageCollection.Add(textMessageVM);
 
-            await _chatHub.SendMessage(_currentChat, textMessageVM);
+            await _messageApi.SendMessage(_currentChat, textMessageVM);
 
             // 清空输入框
             InputText = "";
@@ -487,7 +487,7 @@ namespace HY.MAUI.PageModels.Chat
 
             MessageCollection.Add(videoCallMessageVM);
 
-            await _chatHub.SendMessage(_currentChat, videoCallMessageVM);
+            await _messageApi.SendMessage(_currentChat, videoCallMessageVM);
         }
 
         [RelayCommand]
@@ -610,7 +610,7 @@ namespace HY.MAUI.PageModels.Chat
                         vm.Message_Status = MessageStatus.Sented;
                     });
 
-                    await _chatHub.SendMessage(_currentChat, vm);
+                    await _messageApi.SendMessage(_currentChat, vm);
                 }
                 else
                 {
@@ -644,7 +644,7 @@ namespace HY.MAUI.PageModels.Chat
                         vm.Message_Status = MessageStatus.Sented;
                     });
 
-                    await _chatHub.SendMessage(_currentChat, vm);
+                    await _messageApi.SendMessage(_currentChat, vm);
                 }
                 else
                 {

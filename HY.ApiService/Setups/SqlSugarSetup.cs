@@ -64,15 +64,21 @@ namespace HY.ApiService.Setups
         public static void AddSqlSugarRepositories(this IServiceCollection services)
         {
             services.AddScoped<IUserRepository, UserRepository>();
+
             services.AddScoped<ILoginDeviceRepository, LoginDeviceRepository>();
             services.AddScoped<ILoginTokenRepository, LoginTokenRepository>();
+
             services.AddScoped<IChatRepository, ChatRepository>();
+
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IMessageActionRepository, MessageActionRepository>();
+
             services.AddScoped<IContactRepository, ContactRepository>();
             services.AddScoped<IContactRequestRepository, ContactRequestRepository>();
+
             services.AddScoped<IGroupRepository, GroupRepository>();
             services.AddScoped<IGroupMemberRepository, GroupMemberRepository>();
+
             services.AddScoped<IMediaFileRepository, MediaFileRepository>();
             services.AddScoped<IMediaStorageRepository, MediaStorageRepository>();
             services.AddScoped<IMediaStorageVariantRepository, MediaStorageVariantRepository>();
@@ -83,15 +89,14 @@ namespace HY.ApiService.Setups
             // 领域级
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IChatService, ChatService>();
-            services.AddScoped<IMessageService, MessageService>();
-            services.AddScoped<IMessageActionService, MessageActionService>();
-            services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IGroupMemberService, GroupMemberService>();
 
             // 用例级
-            services.AddScoped<ILoginService, LoginService>();
-            services.AddScoped<IMediaService, MediaService>();
+            services.AddScoped<ILoginService, LoginService>();                      // LoginToken + LoginDevice
+            services.AddScoped<IMediaService, MediaService>();                      // MediaStorage + MediaFile + MediaStorageVariant
+            services.AddScoped<IContactService, ContactService>();                  // Contact + ContactRequest
+            services.AddScoped<IMessageService, MessageService>();                  // Message + MessageAction
         }
 
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HY.ApiService.Models
+namespace HY.ApiService.Controllers.Requests
 {
     public class LoginRequest
     {

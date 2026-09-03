@@ -93,148 +93,6 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-
-
-        // InvokeAsync  等待服务器响应  有返回值  同步模式
-        // SendAsync    不等待响应      无返回值  异步模式
-        public async Task SendMessage(ChatVM chatVM, MessageVM messageVM)
-        {
-            try
-            {
-                var resp = await _connection!.InvokeAsync<Response>("SendMessage", messageVM.ToDto());
-                if (resp?.IsSucc == true)
-                {
-                    var msgId = resp.GetValue<long>("MessageId");
-                    var createdAt = resp.GetValue<DateTime>("CreatedAt");
-
-                    chatVM.Last_Msg_Id = msgId;
-                    chatVM.Last_Msg_Time = createdAt;
-
-                    messageVM.Id = msgId;
-                    messageVM.Created_At = createdAt;
-                    messageVM.Message_Status = MessageStatus.Sented;
-                }
-                else
-                {
-                    messageVM.Message_Status = MessageStatus.Failed;
-                }
-            }
-            catch (Exception)
-            {
-                // 发送失败
-                messageVM.Message_Status = MessageStatus.Failed;
-            }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
-            }
-        }
-
-        public async Task RecallMessage(ChatVM chatVM, MessageVM messageVM)
-        {
-            var statusOld = messageVM.Message_Status;
-            try
-            {
-                messageVM.Message_Status = MessageStatus.Recalling;
-
-                var resp = await _connection!.InvokeAsync<Response>("RecallMessage", messageVM.Id);
-                if (resp?.IsSucc == true)
-                {
-                    messageVM.Message_Status = MessageStatus.Recalled;
-                }
-                else
-                {
-                    // 撤回失败，还原消息状态
-                    messageVM.Message_Status = statusOld;
-                }
-            }
-            catch (Exception)
-            {
-                // 撤回失败，还原消息状态
-                messageVM.Message_Status = statusOld;
-            }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
-            }
-        }
-
-        public async Task DeleteMessage(ChatVM chatVM, MessageVM messageVM)
-        {
-            var statusOld = messageVM.Message_Status;
-            try
-            {
-                messageVM.Message_Status = MessageStatus.Deleting;
-
-                var resp = await _connection!.InvokeAsync<Response>("DeleteMessage", messageVM.Id);
-                if (resp?.IsSucc == true)
-                {
-                    messageVM.Message_Status = MessageStatus.Deleted;
-                }
-                else
-                {
-                    // 删除失败，还原消息状态
-                    messageVM.Message_Status = statusOld;
-                }
-            }
-            catch (Exception)
-            {
-                // 删除失败，还原消息状态
-                messageVM.Message_Status = statusOld;
-            }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
-            }
-        }
-
-        public async Task RequestContact(long contactId, int source, string msg = "")
-        {
-            var resp = await _connection!.InvokeAsync<Response>("RequestContact", contactId, source, msg);
-            if (resp?.IsSucc != true) return;
-
-            var currentUser = _globalCache.GetCurrentUser();
-            var contactRequestDto = resp.GetValue<ContactRequestDto>("ContactRequest")!;
-            var contactDto = resp.GetValue<ContactDto>("Contact");
-            var chatDto = resp.GetValue<ChatDto>("Chat");
-            var messageDto = resp.GetValue<MessageDto>("Message");
-
-            _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
-
-            if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
-            {
-                _contactStore.Upsert(contactDto.ToVM());
-
-                _chatStore.UpsertAndSetTop(chatDto.ToVM());
-
-                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
-            }
-        }
-
-        public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string msg = "")
-        {
-            var resp = await _connection!.InvokeAsync<Response>("RespondContact", contactRequestId, handle, msg);
-            if (resp?.IsSucc != true) return;
-
-            var currentUser = _globalCache.GetCurrentUser();
-            var contactRequestDto = resp.GetValue<ContactRequestDto>("ContactRequest")!;
-            var contactDto = resp.GetValue<ContactDto>("Contact");
-            var chatDto = resp.GetValue<ChatDto>("Chat");
-            var messageDto = resp.GetValue<MessageDto>("Message");
-
-            _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
-
-            if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
-            {
-                _contactStore.Upsert(contactDto.ToVM());
-
-                _chatStore.UpsertAndSetTop(chatDto.ToVM());
-
-                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
-            }
-        }
-
-
         public async ValueTask DisposeAsync()
         {
             UnregisterLifecycleEvents();
@@ -248,46 +106,9 @@ namespace HY.MAUI.Communication.SignalR
         }
 
 
+        // InvokeAsync  等待服务器响应  有返回值  同步模式
+        // SendAsync    不等待响应      无返回值  异步模式
 
-
-
-        //public void Recall(long chatId, long messageId)
-        //{
-        //    var messages = GetMessages(chatId);
-        //    var message = messages.FirstOrDefault(m => m.Id == messageId);
-        //    if (message != null)
-        //    {
-        //        message.Status = MessageStatus.Recalled;
-        //    }
-        //}
-
-        //public void RemoveChat(long chatId)
-        //{
-        //    _messages.Remove(chatId);
-        //}
-
-
-
-
-
-        //public async Task Send(MessageVM message, long targetId)
-        //{
-        //    Add(message);
-
-        //    var msgDto = message.ToDto(targetId);
-
-        //    var msgId = DateTime.Now.Ticks; await Task.Delay(1000);
-        //    //var msgId = await _chatHub.SendMessageAsync(msgDto);
-        //    if (msgId > 0)
-        //    {
-        //        message.Id = msgId;
-        //        message.Status = MessageStatus.Sent;
-        //    }
-        //    else
-        //    {
-        //        message.Status = MessageStatus.Failed;
-        //    }
-        //}
 
 
 
@@ -466,14 +287,14 @@ namespace HY.MAUI.Communication.SignalR
 
             if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
             {
-                _contactStore.Upsert(contactDto.ToVM());
+                _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
 
-                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
+                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
 
                 if (OnReceiveMessage_ChatHub == null) return false;
-                else return OnReceiveMessage_ChatHub.Invoke(messageDto);
+                else return OnReceiveMessage_ChatHub.Invoke(messageDto!);
             }
 
             return false;
@@ -487,11 +308,11 @@ namespace HY.MAUI.Communication.SignalR
 
             if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
             {
-                _contactStore.Upsert(contactDto.ToVM());
+                _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
 
-                _messageStore.Add(chatDto.Id, messageDto.ToVM(currentUser.Id));
+                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
             }
         }
 

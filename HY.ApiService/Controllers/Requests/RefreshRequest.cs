@@ -1,4 +1,4 @@
-﻿namespace HY.ApiService.Models
+﻿namespace HY.ApiService.Controllers.Requests
 {
     public class RefreshRequest
     {

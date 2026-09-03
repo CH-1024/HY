@@ -16,7 +16,7 @@ namespace HY.ApiService.Repositories
         Task<List<ChatEntity>> GetChatsByUserId(long userId);
 
         Task<bool> UpdateChat(ChatEntity chatEntity);
-        Task<bool> UpdateChatUnread(long chatId);
+        Task<bool> ClearChatUnread(long chatId);
         Task<bool> UpdateChats(List<ChatEntity> chatEntities);
     }
 
@@ -77,7 +77,7 @@ namespace HY.ApiService.Repositories
             return result > 0;
         }
 
-        public async Task<bool> UpdateChatUnread(long chatId)
+        public async Task<bool> ClearChatUnread(long chatId)
         {
             var result = await _db.Updateable<ChatEntity>()
                 .SetColumns(c => c.Unread_Count == 0)

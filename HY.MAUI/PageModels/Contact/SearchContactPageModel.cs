@@ -113,7 +113,7 @@ namespace HY.MAUI.PageModels.Contact
             {
                 var contact = resp.GetValue<ContactDto>("Contact");
 
-                if (contact.Relation_Status == RelationStatus.Friend)
+                if (contact!.Relation_Status == RelationStatus.Friend)
                 {
                     // 是联系人
                     var parameters = new Dictionary<string, object>
@@ -143,19 +143,19 @@ namespace HY.MAUI.PageModels.Contact
         [RelayCommand]
         async Task RespondContact_Accepted(ContactRequestVM contactRequest)
         {
-            await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Accepted);
+            await _contactApi.RespondContact(contactRequest.Id, RespondContactHandle.Accepted);
         }
 
         [RelayCommand]
         async Task RespondContact_Declined(ContactRequestVM contactRequest)
         {
-            await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Declined);
+            await _contactApi.RespondContact(contactRequest.Id, RespondContactHandle.Declined);
         }
 
         [RelayCommand]
         async Task RespondContact_Revoked(ContactRequestVM contactRequest)
         {
-            await _chatHub.RespondContact(contactRequest.Id, RespondContactHandle.Revoked);
+            await _contactApi.RespondContact(contactRequest.Id, RespondContactHandle.Revoked);
         }
 
         [RelayCommand]

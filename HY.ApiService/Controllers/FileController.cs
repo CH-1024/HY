@@ -31,9 +31,7 @@ namespace HY.ApiService.Controllers
         {
             var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             UploadResult result;
 
@@ -77,9 +75,7 @@ namespace HY.ApiService.Controllers
         {
             var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             UploadResult result;
 
@@ -123,9 +119,7 @@ namespace HY.ApiService.Controllers
         {
             var type = _configuration.GetSection("MediaStorage:Type").Value ?? throw new Exception("MediaStorage:Type is not configured");
 
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var userId = long.Parse(userIdStr!);
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             UploadResult result;
 
