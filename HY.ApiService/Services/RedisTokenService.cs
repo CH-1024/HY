@@ -18,40 +18,42 @@ namespace HY.ApiService.Services
 
     public class RedisTokenService : IRedisTokenService
     {
-        private readonly IDistributedCache _cache;
+        private readonly IRedisService _redis;
 
-        public RedisTokenService(IDistributedCache cache)
+        public RedisTokenService(IRedisService redis)
         {
-            _cache = cache;
+            _redis = redis;
+        }
+
+        private static string TokenKey(long userId, string deviceId)
+        {
+            return $"Auth:Token:{userId}:{deviceId}";
         }
 
 
-        private string Key(long userId, string deviceId) => $"user:tokens:{userId}:{deviceId}";
 
         public async Task SaveAsync(long userId, string deviceId, string accessToken, DateTime expires)
         {
-            var key = Key(userId, deviceId);
-            var token = accessToken;
+            var key = TokenKey(userId, deviceId);
             var expiry = expires - DateTime.UtcNow;
 
-            await _cache.SetStringAsync(key, token, new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = expiry // 设置过期时间
-            });
+            await _redis.SetAsync(key, accessToken, expiry);
         }
 
         public async Task<bool> ExistsAsync(long userId, string deviceId, string accessToken)
         {
-            var key = Key(userId, deviceId);
-            var token = await _cache.GetStringAsync(key);
+            var key = TokenKey(userId, deviceId);
+
+            var token = await _redis.GetAsync(key);
 
             return token == accessToken;
         }
 
         public async Task RemoveAsync(long userId, string deviceId)
         {
-            var key = Key(userId, deviceId);
-            await _cache.RemoveAsync(key);
+            var key = TokenKey(userId, deviceId);
+
+            await _redis.RemoveAsync(key);
         }
     }
 }

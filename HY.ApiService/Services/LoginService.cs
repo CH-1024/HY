@@ -219,7 +219,7 @@ namespace HY.ApiService.Services
 
         public async Task<bool> Logout(long userId, string deviceId)
         {
-            // 删除Redis中的Token
+            // 删除RedisTokenService中的Token
             await _redisTokenService.RemoveAsync(userId, deviceId);
 
             // 更新登录令牌状态

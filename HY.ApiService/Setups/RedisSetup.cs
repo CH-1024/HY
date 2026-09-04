@@ -1,5 +1,6 @@
 ﻿using HY.ApiService.Services;
 using SqlSugar;
+using StackExchange.Redis;
 using System.Runtime.InteropServices;
 
 namespace HY.ApiService.Setups
@@ -9,17 +10,11 @@ namespace HY.ApiService.Setups
         public static void AddRedisSetup(this IServiceCollection services, IConfiguration configuration)
         {
             // 获取连接字符串
-            var conn = configuration.GetConnectionString("Redis");
+            var conn = configuration.GetConnectionString("Redis")!;
 
-            services
-            .AddStackExchangeRedisCache(options =>
-            {
-                // Redis 服务器地址
-                options.Configuration = conn;
+            var multiplexer = ConnectionMultiplexer.Connect(conn);
 
-                // 所有缓存键的前缀，用于区分不同应用
-                options.InstanceName = "HY:";
-            });
+            services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
             services.AddRedisServices();
         }
@@ -28,7 +23,9 @@ namespace HY.ApiService.Setups
         public static void AddRedisServices(this IServiceCollection services)
         {
             // 在这里注册使用 Redis 的服务，例如：
+            services.AddSingleton<IRedisService, RedisService>();
             services.AddSingleton<IRedisTokenService, RedisTokenService>();
+            services.AddSingleton<IRedisConnectionService, RedisConnectionService>();
         }
     }
 }
