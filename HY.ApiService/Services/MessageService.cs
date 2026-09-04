@@ -67,11 +67,15 @@ namespace HY.ApiService.Services
         // Message
         public async Task<bool> HandleNewMessage(MessageDto messageDto)
         {
+            MessageEntity? messageEntity = null;
+
             // 开启事务
             var result = await _db.Ado.UseTranAsync(async () =>
             {
                 // 保存消息
-                var messageEntity = messageDto.Adapt<MessageEntity>();
+                messageEntity = messageDto.Adapt<MessageEntity>();
+                messageEntity.Message_Status = MessageStatus.Sented;
+                messageEntity.Created_At = DateTime.UtcNow;
                 messageDto.Id = await _messageRepository.InsertMessage(messageEntity);
                 if (messageDto.Id == 0) throw new Exception("保存消息失败");
 
@@ -138,8 +142,8 @@ namespace HY.ApiService.Services
             if (result.IsSuccess)
             {
                 // 设置消息状态和创建时间
-                messageDto.Message_Status = MessageStatus.Sented;
-                messageDto.Created_At = DateTime.UtcNow;
+                messageDto.Message_Status = messageEntity!.Message_Status;
+                messageDto.Created_At = messageEntity!.Created_At;
             }
 
             return result.IsSuccess;

@@ -14,14 +14,15 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class ContactController : ControllerBase
     {
-        readonly IHubContext<ChatHub> _chatHub;
+        readonly IChatNotificationService _chatNotificationService;
 
         readonly IContactService _contactService;
 
 
-        public ContactController(IHubContext<ChatHub> chatHub, IContactService contactService)
+        public ContactController(IChatNotificationService chatNotificationService, IContactService contactService)
         {
-            _chatHub = chatHub;
+            _chatNotificationService = chatNotificationService;
+
             _contactService = contactService;
         }
 
@@ -104,7 +105,7 @@ namespace HY.ApiService.Controllers
             if (result == null) return Ok(new Response(false, "请求联系人失败"));
 
             // 2. 通知接收方
-            await _chatHub.Clients.User(userId.ToString()).SendAsync("RequestContact", contactId, result!);
+            await _chatNotificationService.OnRequestContactNotice(contactId, result!);
 
             return Ok(new Response(true)
             {
@@ -128,7 +129,7 @@ namespace HY.ApiService.Controllers
             if (result == null) return Ok(new Response(false, "处理联系人请求失败"));
 
             // 2. 通知接收方
-            await _chatHub.Clients.User(userId.ToString()).SendAsync("RespondContact", handle, result!);
+            await _chatNotificationService.OnRespondContactNotice(handle, result!);
 
             ContactRequestDto? contactRequest = null;
             ContactDto? receiverContact = null;

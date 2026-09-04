@@ -244,7 +244,7 @@ namespace HY.MAUI.Communication.SignalR
                 chat.Last_Msg_Time = messageDto.Created_At;
                 chat.Last_Msg_Brief = messageDto.Content?.Length > 20 ? messageDto.Content.Substring(0, 20) + "..." : messageDto.Content;
                 chat.Last_Msg_Status = messageDto.Message_Status;
-                chat.Unread_Count += 1;
+                chat.Unread_Count += messageVM.IsSelf ? 0 : 1;
                 chat.Is_Deleted = false;
             }
             else

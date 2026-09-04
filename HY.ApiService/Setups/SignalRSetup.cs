@@ -1,4 +1,6 @@
-﻿namespace HY.ApiService.Setups
+﻿using HY.ApiService.Services;
+
+namespace HY.ApiService.Setups
 {
     public static class SignalRSetup
     {
@@ -16,6 +18,14 @@
                  options.PayloadSerializerOptions.PropertyNamingPolicy = null; // 保留原有的大小写
                  //options.PayloadSerializerOptions.Converters.Clear(); // 移除默认转换器
              });
+
+            services.AddSignalRServices();
+        }
+
+        public static void AddSignalRServices(this IServiceCollection services)
+        {
+            // 在这里注册使用 SignalR 的服务，例如：
+            services.AddScoped<IChatNotificationService, ChatNotificationService>();
         }
     }
 }

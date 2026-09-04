@@ -20,7 +20,7 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class MessageController : ControllerBase
     {
-        readonly IHubContext<ChatHub> _chatHub;
+        readonly IChatNotificationService _chatNotificationService;
 
         readonly IChatService _chatService;
         readonly IMessageService _messageService;
@@ -28,9 +28,9 @@ namespace HY.ApiService.Controllers
         readonly IContactService _contactService;
 
 
-        public MessageController(IHubContext<ChatHub> chatHub, IChatService chatService, IMessageService messageService, IGroupMemberService groupMemberService, IContactService contactService)
+        public MessageController(IChatNotificationService chatNotificationService, IChatService chatService, IMessageService messageService, IGroupMemberService groupMemberService, IContactService contactService)
         {
-            _chatHub = chatHub;
+            _chatNotificationService = chatNotificationService;
 
             _chatService = chatService;
             _messageService = messageService;
@@ -69,6 +69,7 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> SendMessage([FromBody] MessageDto messageDto)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             // Todo: 黑名单验证
 
@@ -112,7 +113,7 @@ namespace HY.ApiService.Controllers
             }
 
             // 2. 通知接收方
-            await _chatHub.Clients.User(userId.ToString()).SendAsync("SendMessage", messageDto);
+            await _chatNotificationService.OnReceiveMessageNotice(messageDto, platform);
 
             return Ok(new Response(true)
             {
@@ -129,6 +130,7 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> RecallMessage(long messageId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var messageDto = await _messageService.GetMessageById(userId, messageId);
             if (messageDto == null) return Ok(new Response(false, "消息不存在"));
@@ -147,7 +149,7 @@ namespace HY.ApiService.Controllers
             if (!result) return Ok(new Response(false, "撤回消息失败"));
 
             // 2. 通知接收方
-            await _chatHub.Clients.User(userId.ToString()).SendAsync("RecallMessage", messageDto);
+            await _chatNotificationService.OnRecallMessageNotice(messageDto, platform);
 
             return Ok(new Response(true));
         }

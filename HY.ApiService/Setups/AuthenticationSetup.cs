@@ -47,7 +47,7 @@ namespace HY.ApiService.Setups
                     },
                     OnTokenValidated = async context =>
                     {
-                        // 在鉴权之前，检查 token 是否在 Redis 中存在
+                        // 在鉴权之前，检查 token 是否在 RedisTokenService 中存在
                         var tokenStore = context.HttpContext.RequestServices.GetService<IRedisTokenService>();
                         if (tokenStore == null) return;
 
