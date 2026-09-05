@@ -4,6 +4,7 @@ using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 
@@ -18,6 +19,23 @@ namespace HY.MAUI.Communication.Http
             _loginService = loginService;
         }
 
+        public async Task<bool> Ping()
+        {
+            try
+            {
+                using (Ping ping = new Ping())
+                {
+                    PingReply reply = await ping.SendPingAsync("hoyi.net.cn", 3000);
+                    if (reply.Status == IPStatus.Success)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            return false;
+        }
 
         public async Task<Response?> Ping1()
         {

@@ -4,18 +4,23 @@ using HY.ApiService.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace HY.ApiService.Services
 {
     public interface IChatNotificationService
     {
-        Task OnReceiveMessageNotice(MessageDto messageDto, int platform);
+        Task OnSendMessageNotice(MessageDto messageDto, int platform);
         Task OnRecallMessageNotice(MessageDto messageDto, int platform);
+
+        Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
+        Task AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
+        Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
+        Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
 
         Task OnRequestContactNotice(long contactId, RequestContactReturn result);
         Task OnRespondContactNotice(RespondContactHandle handle, RespondContactReturn result);
     }
-
 
 
     public class ChatNotificationService : IChatNotificationService
@@ -24,20 +29,23 @@ namespace HY.ApiService.Services
         readonly IRedisConnectionService _redisConnectionService;
 
         readonly IChatService _chatService;
+        readonly IContactService _contactService;
         readonly IGroupMemberService _groupMemberService;
 
 
-        public ChatNotificationService(IHubContext<ChatHub> chatHub, IRedisConnectionService redisConnectionService, IChatService chatService, IGroupMemberService groupMemberService)
+        public ChatNotificationService(IHubContext<ChatHub> chatHub, IRedisConnectionService redisConnectionService, IChatService chatService, IContactService contactService, IGroupMemberService groupMemberService)
         {
             _chatHub = chatHub;
             _redisConnectionService = redisConnectionService;
 
             _chatService = chatService;
+            _contactService = contactService;
             _groupMemberService = groupMemberService;
         }
 
 
-        public async Task OnReceiveMessageNotice(MessageDto messageDto, int platform)
+
+        public async Task OnSendMessageNotice(MessageDto messageDto, int platform)
         {
             if (messageDto == null)
             {
@@ -302,6 +310,156 @@ namespace HY.ApiService.Services
                 #endregion
             }
         }
+
+
+        public async Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        {
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
+
+                #region 通知对方所有在线设备
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("ReceiveCall", callType, chatType, callerId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        {
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
+
+                #region 通知对方所有在线设备
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("CancelCall", callType, chatType, callerId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        {
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(callerId);
+
+                #region 通知对方所有在线设备
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("AcceptCall", callType, chatType, calleeId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        {
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(callerId);
+
+                #region 通知对方所有在线设备
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("RejectCall", callType, chatType, calleeId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
 
         public async Task OnRequestContactNotice(long contactId, RequestContactReturn result)
         {

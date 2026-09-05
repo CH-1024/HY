@@ -6,6 +6,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Login"
              xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
              x:DataType="pm:LoadingPageModel">
 
 
@@ -16,13 +17,9 @@
         <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference LoadingPage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
 
-    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
-        <Grid>
-            <toolkit:AvatarView ImageSource="{Binding CurrentUser.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
-            <ActivityIndicator IsRunning="True" Color="White" HorizontalOptions="Center" VerticalOptions="Center" />
-        </Grid>
-        
-        <Label Text="Loading..." VerticalOptions="Center" HorizontalOptions="Center" />
-    </VerticalStackLayout>
-    
+    <Grid RowDefinitions="*,auto,80,auto,*">
+        <controls:AnimatedEllipsisLabel Grid.Row="1" WidthRequest="100" HorizontalOptions="Center" VerticalOptions="Center" Text="Loading" Interval="600" MaxDots="3" FontSize="Medium"/>
+        <toolkit:AvatarView Grid.Row="3" ImageSource="{Binding CurrentUser.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+    </Grid>
+
 </ContentPage>

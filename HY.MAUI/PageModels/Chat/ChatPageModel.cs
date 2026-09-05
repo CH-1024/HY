@@ -20,8 +20,12 @@ namespace HY.MAUI.PageModels.Chat
     {
         private bool _isNavigatedTo;
         private bool _dataLoaded;
+
         private readonly IServiceProvider _serviceProvider;
         private readonly IGlobalCache _globalCache;
+
+        private readonly ChatHubSignalR _chatHub;
+
         private readonly ChatApi _chatApi;
         private readonly ChatStore _chatStore;
 
@@ -47,10 +51,13 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref selectedChat, value); }
         }
 
-        public ChatPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ChatApi chatApi, ChatStore chatStore)
+        public ChatPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ChatHubSignalR chatHub, ChatApi chatApi, ChatStore chatStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
+
+            _chatHub = chatHub;
+
             _chatApi = chatApi;
             _chatStore = chatStore;
         }

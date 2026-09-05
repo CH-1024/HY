@@ -7,4 +7,18 @@
         Rejected,               // 已拒绝
         Cancelled               // 已取消
     }
+
+
+    //public enum CallStatus
+    //{
+    //    Calling,
+    //    Ringing,
+    //    Accepted,
+    //    Rejected,
+    //    Cancelled,
+    //    Connected,
+    //    Ended,
+    //    Timeout,
+    //    Busy
+    //}
 }

@@ -113,7 +113,7 @@ namespace HY.ApiService.Controllers
             }
 
             // 2. 通知接收方
-            await _chatNotificationService.OnReceiveMessageNotice(messageDto, platform);
+            await _chatNotificationService.OnSendMessageNotice(messageDto, platform);
 
             return Ok(new Response(true)
             {

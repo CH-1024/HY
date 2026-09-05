@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Chat.CallWaitPage"
+             xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
+             x:Name="_CallWaitPage"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             xmlns:ata="clr-namespace:HY.MAUI.AnimationTriggerActions"
+             x:DataType="pm:CallWaitPageModel">
+
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />
+        <!--<toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />-->
+        <!--<toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <!--<Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="{Binding Title}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=ContentPage}" TextColor="{StaticResource White}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+
+    <!--<Shell.TitleView>
+        <Label Text="图片" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+    </Shell.TitleView>-->
+
+
+
+    <Grid RowDefinitions="*,*,*">
+
+        <Grid Grid.Row="0" RowDefinitions="*,auto,*">
+            <controls:AnimatedEllipsisLabel Grid.Row="1" WidthRequest="160" HorizontalOptions="Center" VerticalOptions="Center" Text="等待对方回应" Interval="600" MaxDots="3" FontSize="Medium"/>
+        </Grid>
+
+        <Grid Grid.Row="1" RowDefinitions="auto,auto,*">
+            <Image Grid.Row="0" Source="{Binding TargetAvatar}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
+            <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetName}" FontSize="Medium"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+
+            <!-- 动画 -->
+            <Ellipse x:Name="ellipse1" WidthRequest="80" HeightRequest="80" Stroke="Blue" StrokeThickness="1" HorizontalOptions="Center" VerticalOptions="Center" Scale="1" Margin="0">
+                <Ellipse.Triggers>
+                    <EventTrigger Event="Loaded">
+                        <EventTrigger.Actions>
+                            <ata:StartScaleTriggerAction From="1" To="1.5" Duration="1000" Easing="{x:Static Easing.CubicOut}" Repeat="True"/>
+                            <ata:StartFadeTriggerAction From="1" To="0" Duration="1000" Easing="{x:Static Easing.CubicIn}" Repeat="True"/>
+                        </EventTrigger.Actions>
+                    </EventTrigger>
+
+                    <EventTrigger Event="Unloaded">
+                        <ata:StopScaleTriggerAction Value="1"/>
+                        <ata:StopFadeTriggerAction Value="0"/>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
+
+            <!--进度-->
+            <!--<ActivityIndicator x:Name="activityIndicator1" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="80" HeightRequest="80" IsVisible="{Binding IsLoading}" Opacity="0.8" Color="LightGray" Margin="0" ZIndex="1">
+                <ActivityIndicator.Triggers>
+                    <Trigger TargetType="ActivityIndicator" Property="IsVisible" Value="True">
+                        <Setter Property="IsRunning" Value="True"/>
+                    </Trigger>
+                    <Trigger TargetType="ActivityIndicator" Property="IsVisible" Value="False">
+                        <Setter Property="IsRunning" Value="False"/>
+                    </Trigger>
+                </ActivityIndicator.Triggers>
+            </ActivityIndicator>-->
+
+            <!--按钮-->
+            <Button HorizontalOptions="Center" VerticalOptions="Center" Text="取消" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" BackgroundColor="OrangeRed" Command="{Binding CancelCommand}" Margin="0" Padding="0">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Path=IsVisible, Source={x:Reference activityIndicator1}}" Value="True">
+                        <Setter Property="IsEnabled" Value="False"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Path=IsVisible, Source={x:Reference activityIndicator1}}" Value="False">
+                        <Setter Property="IsEnabled" Value="True"/>
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>

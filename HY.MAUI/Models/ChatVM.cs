@@ -12,7 +12,7 @@ namespace HY.MAUI.Models
     {
         public long Id { get; set; }
         public ChatType Type { get; set; }                                      // 1单聊 2群聊
-        public long Target_Id { get; set; }                                // User  Group
+        public long Target_Id { get; set; }                                     // User  Group
         public string? Target_Name { get; set; }
         public string? Target_Avatar { get; set; }
         public bool Is_Top { get; set; }

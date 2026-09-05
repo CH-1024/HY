@@ -8,6 +8,7 @@ using HY.MAUI.Enums;
 using HY.MAUI.Mapping;
 using HY.MAUI.Models;
 using HY.MAUI.Models.MsgVM;
+using HY.MAUI.Pages.Chat;
 using HY.MAUI.Pages.Login;
 using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
@@ -105,6 +106,7 @@ namespace HY.MAUI.PageModels.Login
             }
 
             _chatHub.OnClosed_ChatHub += ChatHub_OnClosed_ChatHub;
+            _chatHub.OnReceiveCall_ChatHub += OnReceiveCall_ChatHub;
 
             await LoadContact();
 
@@ -212,6 +214,7 @@ namespace HY.MAUI.PageModels.Login
         private void ChatHub_OnClosed_ChatHub(Exception? e)
         {
             _chatHub.OnClosed_ChatHub -= ChatHub_OnClosed_ChatHub;
+            _chatHub.OnReceiveCall_ChatHub -= OnReceiveCall_ChatHub;
 
             _loginService.Logout();
             _tokenProvider.Clear();
@@ -221,6 +224,29 @@ namespace HY.MAUI.PageModels.Login
             //_ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("异常", $"与服务器的连接已关闭，原因：{error}", "确定");
 
             if (e != null) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("异常", $"与服务器的连接已关闭，原因：{e.Message}", "确定");
+        }
+
+        private async void OnReceiveCall_ChatHub(CallType callType, ChatType chatType, long callerId)
+        {
+            if (chatType == ChatType.Private)
+            {
+                var contact = _contactStore.GetContact(callerId);
+                if (contact == null) return;
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "CallType", callType },
+                    { "ChatType", chatType },
+                    { "CallerId", callerId },
+                    { "CallerAvatar", contact.Avatar },
+                    { "CallerName", contact.Nickname },
+                };
+                await Shell.Current.GoToAsync(nameof(CallChoosePage), false, parameters);
+            }
+            else if (chatType == ChatType.Group)
+            {
+
+            }
         }
 
     }
