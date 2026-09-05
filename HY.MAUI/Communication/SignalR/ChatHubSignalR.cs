@@ -35,12 +35,14 @@ namespace HY.MAUI.Communication.SignalR
         private readonly SemaphoreSlim _initLock = new(1, 1);
 
 
-        public ChatHubSignalR(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider, ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
+        public ChatHubSignalR(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider,
+                              ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _loginService = loginService;
             _tokenProvider = tokenProvider;
+
             _chatStore = chatStore;
             _contactStore = contactStore;
             _contactRequestStore = contactRequestStore;
@@ -109,8 +111,65 @@ namespace HY.MAUI.Communication.SignalR
         // InvokeAsync  等待服务器响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
+        public async Task<Response> CreateCall(CallType callType, ChatType chatType, long calleeId, CancellationToken cancel)
+        {
+            try
+            {
+                return await _connection!.InvokeAsync<Response>("CreateCall", callType, chatType, calleeId, cancel);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
 
+        public async Task<Response> CancelCall(CallType callType, ChatType chatType, long calleeId, CancellationToken cancel)
+        {
+            try
+            {
+                return await _connection!.InvokeAsync<Response>("CancelCall", callType, chatType, calleeId, cancel);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
 
+        public async Task<Response> AcceptCall(CallType callType, ChatType chatType, long callerId, CancellationToken cancel)
+        {
+            try
+            {
+                return await _connection!.InvokeAsync<Response>("AcceptCall", callType, chatType, callerId, cancel);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
+        public async Task<Response> RejectCall(CallType callType, ChatType chatType, long callerId, CancellationToken cancel)
+        {
+            try
+            {
+                return await _connection!.InvokeAsync<Response>("RejectCall", callType, chatType, callerId, cancel);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
+        public async Task<Response> HangUpCall(CallType callType, CancellationToken cancel)
+        {
+            try
+            {
+                return await _connection!.InvokeAsync<Response>("HangUpCall", callType, cancel);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
 
 
 
@@ -119,9 +178,10 @@ namespace HY.MAUI.Communication.SignalR
         private HubConnection BuildConnection()
         {
             var connection = new HubConnectionBuilder()
+            .WithServerTimeout(TimeSpan.FromSeconds(3600))
             .WithUrl(ApiUrl.ChatHub, options =>
             {
-                options.CloseTimeout = TimeSpan.FromSeconds(3600);
+                //options.CloseTimeout = TimeSpan.FromSeconds(3600);
 
                 // 跳过 HTTPS 证书验证
                 options.HttpMessageHandlerFactory = _ =>
@@ -155,8 +215,15 @@ namespace HY.MAUI.Communication.SignalR
         {
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
+
+            _connection?.On<CallType, ChatType, long>("ReceiveCall", OnReceiveCall);
+            _connection?.On<CallType, ChatType, long>("CancelCall", OnCancelCall);
+            _connection?.On<CallType, ChatType, long>("AcceptCall", OnAcceptCall);
+            _connection?.On<CallType, ChatType, long>("RejectCall", OnRejectCall);
+
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
+
             _connection?.On<string, bool>("ForceLogout", OnForceLogout);
         }
 
@@ -321,6 +388,31 @@ namespace HY.MAUI.Communication.SignalR
             StopAsync().GetAwaiter().GetResult();
 
             return true;
+        }
+
+
+        public event Action<CallType, ChatType, long> OnReceiveCall_ChatHub;
+        private void OnReceiveCall(CallType callType, ChatType chatType, long callerId)
+        {
+            OnReceiveCall_ChatHub?.Invoke(callType, chatType, callerId);
+        }
+
+        public event Action<CallType, ChatType, long> OnCancelCall_ChatHub;
+        private void OnCancelCall(CallType callType, ChatType chatType, long callerId)
+        {
+            OnCancelCall_ChatHub?.Invoke(callType, chatType, callerId);
+        }
+
+        public event Action<CallType, ChatType, long> OnAcceptCall_ChatHub;
+        private void OnAcceptCall(CallType callType, ChatType chatType, long calleeId)
+        {
+            OnAcceptCall_ChatHub?.Invoke(callType, chatType, calleeId);
+        }
+
+        public event Action<CallType, ChatType, long> OnRejectCall_ChatHub;
+        private void OnRejectCall(CallType callType, ChatType chatType, long calleeId)
+        {
+            OnRejectCall_ChatHub?.Invoke(callType, chatType, calleeId);
         }
 
         #endregion

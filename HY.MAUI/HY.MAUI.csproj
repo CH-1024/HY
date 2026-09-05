@@ -62,15 +62,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AndroidResource Remove="AnimationTriggerActions\**" />
-	  <Compile Remove="AnimationTriggerActions\**" />
-	  <EmbeddedResource Remove="AnimationTriggerActions\**" />
-	  <MauiCss Remove="AnimationTriggerActions\**" />
-	  <MauiXaml Remove="AnimationTriggerActions\**" />
-	  <None Remove="AnimationTriggerActions\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Compile Remove="Controls\ChatBubble.xaml.cs" />
 	  <Compile Remove="Controls\TextMessage.cs" />
 	</ItemGroup>
@@ -126,6 +117,15 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Controls\VideoCallBubble.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Chat\CallBeginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Chat\CallChoosePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Chat\CallWaitPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\ImagePreviewPage.xaml">

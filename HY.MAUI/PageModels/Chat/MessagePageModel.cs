@@ -42,6 +42,7 @@ namespace HY.MAUI.PageModels.Chat
         private readonly MessageApi _messageApi;
         private readonly ContactApi _contactApi;
         private readonly FileApi _fileApi;
+        private readonly LoginApi _loginApi;
 
         bool _isTop = false;
         CollectionView _collectionView = null;
@@ -92,7 +93,8 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         public MessagePageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, IDispatcher dispatcher, ChatHubSignalR chatHub, 
-                                ChatStore chatStore, MessageStore messageStore, ContactStore contactStore, ChatApi chatApi, MessageApi messageApi, ContactApi contactApi, FileApi fileApi)
+                                ChatStore chatStore, MessageStore messageStore, ContactStore contactStore, 
+                                ChatApi chatApi, MessageApi messageApi, ContactApi contactApi, FileApi fileApi, LoginApi loginApi)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
@@ -108,6 +110,7 @@ namespace HY.MAUI.PageModels.Chat
             _messageApi = messageApi;
             _contactApi = contactApi;
             _fileApi = fileApi;
+            _loginApi = loginApi;
         }
 
         void MessageCollection_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -483,11 +486,31 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task SendVideoCall()
         {
-            var videoCallMessageVM = CreateVideoCallMessageVM();
+            //var videoCallMessageVM = CreateVideoCallMessageVM();
 
-            MessageCollection.Add(videoCallMessageVM);
+            //MessageCollection.Add(videoCallMessageVM);
 
-            await _messageApi.SendMessage(_currentChat, videoCallMessageVM);
+            //await _messageApi.SendMessage(_currentChat, videoCallMessageVM);
+
+            //await _chatHub.CreateCall();
+
+
+            var isOnline = await _loginApi.Ping();
+            if (!isOnline)
+            {
+                await Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "网络连接不可用", "确定");
+                return;
+            }
+
+            var parameters = new Dictionary<string, object>
+            {
+                { "CallType", CallType.Video },
+                { "ChatType", _currentChat?.Type },
+                { "CalleeId", _currentChat?.Target_Id },
+                { "TargetAvatar", _currentChat?.Target_Avatar },
+                { "TargetName", _currentChat?.Target_Name },
+            };
+            await Shell.Current.GoToAsync(nameof(CallWaitPage), false, parameters);
         }
 
         [RelayCommand]

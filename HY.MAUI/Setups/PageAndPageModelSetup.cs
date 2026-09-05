@@ -42,6 +42,9 @@ namespace HY.MAUI.Setups
             services.AddTransientWithShellRoute<MessagePage, MessagePageModel>(nameof(MessagePage));
             services.AddTransientWithShellRoute<ImagePreviewPage, ImagePreviewPageModel>(nameof(ImagePreviewPage));
             services.AddTransientWithShellRoute<VideoPreviewPage, VideoPreviewPageModel>(nameof(VideoPreviewPage));
+            services.AddTransientWithShellRoute<CallWaitPage, CallWaitPageModel>(nameof(CallWaitPage));
+            services.AddTransientWithShellRoute<CallChoosePage, CallChoosePageModel>(nameof(CallChoosePage));
+            services.AddTransientWithShellRoute<CallBeginPage, CallBeginPageModel>(nameof(CallBeginPage));
             services.AddTransientWithShellRoute<SearchContactPage, SearchContactPageModel>(nameof(SearchContactPage));
             services.AddTransientWithShellRoute<ContactDetailPage, ContactDetailPageModel>(nameof(ContactDetailPage));
             services.AddTransientWithShellRoute<StrangerDetailPage, StrangerDetailPageModel>(nameof(StrangerDetailPage));

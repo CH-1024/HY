@@ -10,7 +10,7 @@ namespace HY.MAUI.Stores
     {
         public ObservableCollection<ContactVM> Contacts { get; } = new();
 
-        public ContactVM? GetChat(long contactId)
+        public ContactVM? GetContact(long contactId)
         {
             return Contacts.FirstOrDefault(x => x.Contact_Id == contactId);
         }
@@ -39,7 +39,7 @@ namespace HY.MAUI.Stores
 
         public bool Remove(long contactId)
         {
-            var contact = GetChat(contactId);
+            var contact = GetContact(contactId);
             return Contacts.Remove(contact);
         }
 
