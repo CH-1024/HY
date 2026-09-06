@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="HY.MAUI.Pages.Chat.VoiceCallStartPage"
+             x:Class="HY.MAUI.Pages.Chat.CallStartVoicePage"
              xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
-             x:Name="_VoiceCallStartPage"
+             x:Name="_CallStartVoicePage"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
@@ -13,7 +13,7 @@
              xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
              xmlns:controls="clr-namespace:HY.MAUI.Controls"
              xmlns:ata="clr-namespace:HY.MAUI.AnimationTriggerActions"
-             x:DataType="pm:VoiceCallStartPageModel">
+             x:DataType="pm:CallStartVoicePageModel">
 
 
     <ContentPage.Resources>
@@ -24,12 +24,12 @@
 
 
     <ContentPage.Behaviors>
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}"/>-->
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}"/>-->
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}"/>
-        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}" />
-        <!--<toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}" />-->
-        <!--<toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _VoiceCallStartPage}, x:DataType=ContentPage}" />-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}" />
+        <!--<toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}" />-->
+        <!--<toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallStartVoicePage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
 
     <Shell.BackButtonBehavior>
