@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="HY.MAUI.Pages.Chat.CallWaitPage"
+             x:Class="HY.MAUI.Pages.Chat.CallCreatePage"
              xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
-             x:Name="_CallWaitPage"
+             x:Name="_CallCreatePage"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
@@ -13,7 +13,7 @@
              xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
              xmlns:controls="clr-namespace:HY.MAUI.Controls"
              xmlns:ata="clr-namespace:HY.MAUI.AnimationTriggerActions"
-             x:DataType="pm:CallWaitPageModel">
+             x:DataType="pm:CallCreatePageModel">
 
 
     <ContentPage.Resources>
@@ -24,12 +24,12 @@
 
 
     <ContentPage.Behaviors>
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>-->
-        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>-->
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}"/>
-        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />
-        <!--<toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />-->
-        <!--<toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallWaitPage}, x:DataType=ContentPage}" />-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}"/>
+        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}" />
+        <!--<toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}" />-->
+        <!--<toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _CallCreatePage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
 
     <Shell.BackButtonBehavior>
@@ -60,8 +60,8 @@
         </Grid>
 
         <Grid Grid.Row="1" RowDefinitions="auto,auto,*">
-            <Image Grid.Row="0" Source="{Binding TargetAvatar}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
-            <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetName}" FontSize="Medium"/>
+            <Image Grid.Row="0" Source="{Binding CalleeAvatar}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
+            <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding CalleeName}" FontSize="Medium"/>
         </Grid>
 
         <Grid Grid.Row="2">
@@ -97,14 +97,14 @@
 
             <!--按钮-->
             <Button HorizontalOptions="Center" VerticalOptions="Center" Text="取消" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" BackgroundColor="OrangeRed" Command="{Binding CancelCommand}" Margin="0" Padding="0">
-                <Button.Triggers>
+                <!--<Button.Triggers>
                     <DataTrigger TargetType="Button" Binding="{Binding Path=IsVisible, Source={x:Reference activityIndicator1}}" Value="True">
                         <Setter Property="IsEnabled" Value="False"/>
                     </DataTrigger>
                     <DataTrigger TargetType="Button" Binding="{Binding Path=IsVisible, Source={x:Reference activityIndicator1}}" Value="False">
                         <Setter Property="IsEnabled" Value="True"/>
                     </DataTrigger>
-                </Button.Triggers>
+                </Button.Triggers>-->
             </Button>
 
         </Grid>

@@ -507,10 +507,10 @@ namespace HY.MAUI.PageModels.Chat
                 { "CallType", CallType.Video },
                 { "ChatType", _currentChat?.Type },
                 { "CalleeId", _currentChat?.Target_Id },
-                { "TargetAvatar", _currentChat?.Target_Avatar },
-                { "TargetName", _currentChat?.Target_Name },
+                { "CalleeAvatar", _currentChat?.Target_Avatar },
+                { "CalleeName", _currentChat?.Target_Name },
             };
-            await Shell.Current.GoToAsync(nameof(CallWaitPage), false, parameters);
+            await Shell.Current.GoToAsync(nameof(CallCreatePage), false, parameters);
         }
 
         [RelayCommand]

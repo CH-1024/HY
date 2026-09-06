@@ -226,7 +226,7 @@ namespace HY.MAUI.PageModels.Login
             if (e != null) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("异常", $"与服务器的连接已关闭，原因：{e.Message}", "确定");
         }
 
-        private async void OnReceiveCall_ChatHub(CallType callType, ChatType chatType, long callerId)
+        private async void OnReceiveCall_ChatHub(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
         {
             if (chatType == ChatType.Private)
             {
@@ -238,10 +238,12 @@ namespace HY.MAUI.PageModels.Login
                     { "CallType", callType },
                     { "ChatType", chatType },
                     { "CallerId", callerId },
+                    { "Expiry", expiry },
+                    { "CallerPlatform", callerPlatform },
                     { "CallerAvatar", contact.Avatar },
                     { "CallerName", contact.Nickname },
                 };
-                await Shell.Current.GoToAsync(nameof(CallChoosePage), false, parameters);
+                await Shell.Current.GoToAsync(nameof(CallSelectPage), false, parameters);
             }
             else if (chatType == ChatType.Group)
             {

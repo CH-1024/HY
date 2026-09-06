@@ -13,10 +13,10 @@ namespace HY.ApiService.Services
         Task OnSendMessageNotice(MessageDto messageDto, int platform);
         Task OnRecallMessageNotice(MessageDto messageDto, int platform);
 
-        Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
-        Task AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
-        Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
-        Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId);
+        Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform);
+        Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform);
+        Task<bool> AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform, int calleePlatform);
+        Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform, int calleePlatform);
 
         Task OnRequestContactNotice(long contactId, RequestContactReturn result);
         Task OnRespondContactNotice(RespondContactHandle handle, RespondContactReturn result);
@@ -312,7 +312,7 @@ namespace HY.ApiService.Services
         }
 
 
-        public async Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        public async Task CreateCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform)
         {
             if (chatType == ChatType.Private)
             {
@@ -324,19 +324,19 @@ namespace HY.ApiService.Services
                     CancellationToken = CancellationToken.None
                 };
 
-                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
+                var calleeConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
 
-                #region 通知对方所有在线设备
-                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                #region 通知被呼叫方所有在线设备
+                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("ReceiveCall", callType, chatType, callerId, cancellationToken);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("ReceiveCall", callType, chatType, callerId, expiry, callerPlatform, cancellationToken);
                     }
                     catch (Exception ex)
                     {
                         // 记录日志
-                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                        // _logger.LogError(ex, "[CreateCallNotification] : ConnectionId: {ConnectionId}", connectionId);
                     }
                 });
                 #endregion
@@ -349,7 +349,7 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        public async Task CancelCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform)
         {
             if (chatType == ChatType.Private)
             {
@@ -361,19 +361,19 @@ namespace HY.ApiService.Services
                     CancellationToken = CancellationToken.None
                 };
 
-                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
+                var calleeConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
 
-                #region 通知对方所有在线设备
-                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                #region 通知被呼叫方所有在线设备
+                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("CancelCall", callType, chatType, callerId, cancellationToken);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("CancelCall", callType, chatType, callerId, expiry, callerPlatform, cancellationToken);
                     }
                     catch (Exception ex)
                     {
                         // 记录日志
-                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                        // _logger.LogError(ex, "[CancelCallNotification] : ConnectionId: {ConnectionId}", connectionId);
                     }
                 });
                 #endregion
@@ -386,7 +386,7 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        public async Task<bool> AcceptCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform, int calleePlatform)
         {
             if (chatType == ChatType.Private)
             {
@@ -398,32 +398,41 @@ namespace HY.ApiService.Services
                     CancellationToken = CancellationToken.None
                 };
 
-                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(callerId);
+                var callerConnectionId = await _redisConnectionService.GetConnectionIdAsync(callerId, callerPlatform);
+                var calleeConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(calleeId, calleePlatform);
 
-                #region 通知对方所有在线设备
-                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                #region 通知呼叫方在线设备
+                var acceptResult = await _chatHub.Clients.Client(callerConnectionId!).InvokeAsync<bool>("AcceptCall", callType, chatType, calleeId, expiry, parallelOptions.CancellationToken);
+                #endregion
+
+
+                #region 通知被呼叫方其他在线设备
+                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("AcceptCall", callType, chatType, calleeId, cancellationToken);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("CallHandled", callType, chatType, callerId, expiry, cancellationToken);
                     }
                     catch (Exception ex)
                     {
                         // 记录日志
-                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                        // _logger.LogError(ex, "[AcceptCallNotification] : ConnectionId: {ConnectionId}", connectionId);
                     }
                 });
                 #endregion
 
+                return acceptResult;
             }
             else if (chatType == ChatType.Group)
             {
                 // 群聊
 
             }
+
+            return false;
         }
 
-        public async Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId)
+        public async Task RejectCallNotification(long callerId, CallType callType, ChatType chatType, long calleeId, DateTime expiry, int callerPlatform, int calleePlatform)
         {
             if (chatType == ChatType.Private)
             {
@@ -435,19 +444,25 @@ namespace HY.ApiService.Services
                     CancellationToken = CancellationToken.None
                 };
 
-                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(callerId);
+                var callerConnectionId = await _redisConnectionService.GetConnectionIdAsync(callerId, callerPlatform);
+                var calleeConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(calleeId, calleePlatform);
 
-                #region 通知对方所有在线设备
-                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                #region 通知呼叫方在线设备
+                await _chatHub.Clients.Client(callerConnectionId!).SendAsync("RejectCall", callType, chatType, calleeId, expiry, parallelOptions.CancellationToken);
+                #endregion
+
+
+                #region 通知被呼叫方其他在线设备
+                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("RejectCall", callType, chatType, calleeId, cancellationToken);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("CallHandled", callType, chatType, callerId, expiry, cancellationToken);
                     }
                     catch (Exception ex)
                     {
                         // 记录日志
-                        // _logger.LogError(ex, "通知电话失败，ConnectionId: {ConnectionId}", connectionId);
+                        // _logger.LogError(ex, "[RejectCallNotification] : ConnectionId: {ConnectionId}", connectionId);
                     }
                 });
                 #endregion

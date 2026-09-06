@@ -26,7 +26,6 @@ namespace HY.ApiService.Setups
         {
             // 在这里注册使用 SignalR 的服务，例如：
             services.AddScoped<IChatNotificationService, ChatNotificationService>();
-            services.AddScoped<ICallService, CallService>();
         }
     }
 }
