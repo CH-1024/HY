@@ -25,7 +25,7 @@ namespace HY.MAUI.Communication.Http
             {
                 using (Ping ping = new Ping())
                 {
-                    PingReply reply = await ping.SendPingAsync("hoyi.net.cn", 3000);
+                    PingReply reply = await ping.SendPingAsync(ApiUrl.Address, 3000);
                     if (reply.Status == IPStatus.Success)
                     {
                         return true;
