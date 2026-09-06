@@ -59,7 +59,7 @@ namespace HY.ApiService.Hubs
             var oldConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, platform);
             if (!string.IsNullOrEmpty(oldConnectionId) && oldConnectionId != Context.ConnectionId)
             {
-                await Clients.Client(oldConnectionId).SendAsync("ForceLogout", "您的账号在其他设备登录了");
+                await Clients.Client(oldConnectionId).SendAsync("ForceLogout", "您的账号在其他设备登录了", CancellationToken.None);
             }
 
             await _redisConnectionService.SetConnectionAsync(userId, platform, Context.ConnectionId);
