@@ -225,7 +225,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
 
-            _connection?.On<string, bool>("ForceLogout", OnForceLogout);
+            _connection?.On<string>("ForceLogout", OnForceLogout);
         }
 
 
@@ -384,11 +384,9 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        private bool OnForceLogout(string message)
+        private async void OnForceLogout(string message)
         {
-            StopAsync().GetAwaiter().GetResult();
-
-            return true;
+            await StopAsync();
         }
 
 
