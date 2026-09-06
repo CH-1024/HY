@@ -21,7 +21,6 @@ namespace HY.ApiService.Hubs
     {
         readonly IRedisConnectionService _redisConnectionService;
         readonly IChatNotificationService _chatNotificationService;
-        readonly ICallService _callService;
         
         readonly ILoginService _loginService;
         readonly IContactService _contactService;
@@ -33,11 +32,10 @@ namespace HY.ApiService.Hubs
         private int _devicePlatform => int.TryParse(Context.User?.FindFirst("DevicePlatform")?.Value, out var platform) ? platform : throw new Exception("DevicePlatform not found in claims");
 
 
-        public ChatHub(IRedisConnectionService redisConnectionService, IChatNotificationService chatNotificationService, ICallService callService, ILoginService loginService, IContactService contactService, IGroupMemberService groupMemberService)
+        public ChatHub(IRedisConnectionService redisConnectionService, IChatNotificationService chatNotificationService, ILoginService loginService, IContactService contactService, IGroupMemberService groupMemberService)
         {
             _redisConnectionService = redisConnectionService;
             _chatNotificationService = chatNotificationService;
-            _callService = callService;
 
             _loginService = loginService;
             _contactService = contactService;
@@ -91,11 +89,20 @@ namespace HY.ApiService.Hubs
         // InvokeAsync  等待客户端响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
-        public async Task<Response> CreateCall(CallType callType, ChatType chatType, long calleeId)
+        public async Task<Response> CreateCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
         {
             var callerId = _userId;
+            var callerPlatform = _devicePlatform;
 
-            if (chatType == ChatType.Private)
+            if (expiry <= DateTime.UtcNow)
+            {
+                return new Response(false, "呼叫已过期");
+            }
+            if(callerId == calleeId)
+            {
+                return new Response(false, "不能呼叫自己");
+            }
+            if(chatType == ChatType.Private)
             {
                 // 私聊
                 // 联系人验证
@@ -121,15 +128,24 @@ namespace HY.ApiService.Hubs
             }
 
             // 2. 通知接收方
-            await _chatNotificationService.CreateCallNotification(callerId, callType, chatType, calleeId);
+            await _chatNotificationService.CreateCallNotification(callerId, callType, chatType, calleeId, expiry, callerPlatform);
 
             return new Response(true);
         }
 
-        public async Task<Response> CancelCall(CallType callType, ChatType chatType, long calleeId)
+        public async Task<Response> CancelCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
         {
             var callerId = _userId;
+            var callerPlatform = _devicePlatform;
 
+            if (expiry <= DateTime.UtcNow)
+            {
+                return new Response(false, "呼叫已过期");
+            }
+            if (callerId == calleeId)
+            {
+                return new Response(false, "不能呼叫自己");
+            }
             //if (chatType == ChatType.Private)
             //{
             //    // 私聊
@@ -156,15 +172,24 @@ namespace HY.ApiService.Hubs
             //}
 
             // 2. 通知接收方
-            await _chatNotificationService.CancelCallNotification(callerId, callType, chatType, calleeId);
+            await _chatNotificationService.CancelCallNotification(callerId, callType, chatType, calleeId, expiry, callerPlatform);
 
             return new Response(true);
         }
 
-        public async Task<Response> AcceptCall(CallType callType, ChatType chatType, long callerId)
+        public async Task<Response> AcceptCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
         {
             var calleeId = _userId;
+            var calleePlatform = _devicePlatform;
 
+            if (expiry <= DateTime.UtcNow)
+            {
+                return new Response(false, "呼叫已过期");
+            }
+            if (callerId == calleeId)
+            {
+                return new Response(false, "不能呼叫自己");
+            }
             //if (chatType == ChatType.Private)
             //{
             //    // 私聊
@@ -191,15 +216,24 @@ namespace HY.ApiService.Hubs
             //}
 
             // 2. 通知接收方
-            await _chatNotificationService.AcceptCallNotification(callerId, callType, chatType, calleeId);
+            var acceptResult = await _chatNotificationService.AcceptCallNotification(callerId, callType, chatType, calleeId, expiry, callerPlatform, calleePlatform);
 
-            return new Response(true);
+            return new Response(acceptResult);
         }
 
-        public async Task<Response> RejectCall(CallType callType, ChatType chatType, long callerId)
+        public async Task<Response> RejectCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
         {
             var calleeId = _userId;
+            var calleePlatform = _devicePlatform;
 
+            if (expiry <= DateTime.UtcNow)
+            {
+                return new Response(false, "呼叫已过期");
+            }
+            if (callerId == calleeId)
+            {
+                return new Response(false, "不能呼叫自己");
+            }
             //if (chatType == ChatType.Private)
             //{
             //    // 私聊
@@ -226,14 +260,14 @@ namespace HY.ApiService.Hubs
             //}
 
             // 2. 通知接收方
-            await _chatNotificationService.RejectCallNotification(callerId, callType, chatType, calleeId);
+            await _chatNotificationService.RejectCallNotification(callerId, callType, chatType, calleeId, expiry, callerPlatform, calleePlatform);
 
             return new Response(true);
         }
 
         public async Task HangUpCall(string callId)
         {
-            await _callService.HangUpCall(Context.UserIdentifier!, callId);
+
         }
 
     }

@@ -111,11 +111,11 @@ namespace HY.MAUI.Communication.SignalR
         // InvokeAsync  等待服务器响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
-        public async Task<Response> CreateCall(CallType callType, ChatType chatType, long calleeId, CancellationToken cancel)
+        public async Task<Response> CreateCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry, CancellationToken cancel)
         {
             try
             {
-                return await _connection!.InvokeAsync<Response>("CreateCall", callType, chatType, calleeId, cancel);
+                return await _connection!.InvokeAsync<Response>("CreateCall", callType, chatType, calleeId, expiry, cancel);
             }
             catch (Exception e)
             {
@@ -123,11 +123,11 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> CancelCall(CallType callType, ChatType chatType, long calleeId, CancellationToken cancel)
+        public async Task<Response> CancelCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry, CancellationToken cancel)
         {
             try
             {
-                return await _connection!.InvokeAsync<Response>("CancelCall", callType, chatType, calleeId, cancel);
+                return await _connection!.InvokeAsync<Response>("CancelCall", callType, chatType, calleeId, expiry, cancel);
             }
             catch (Exception e)
             {
@@ -135,11 +135,11 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> AcceptCall(CallType callType, ChatType chatType, long callerId, CancellationToken cancel)
+        public async Task<Response> AcceptCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform, CancellationToken cancel)
         {
             try
             {
-                return await _connection!.InvokeAsync<Response>("AcceptCall", callType, chatType, callerId, cancel);
+                return await _connection!.InvokeAsync<Response>("AcceptCall", callType, chatType, callerId, expiry, callerPlatform, cancel);
             }
             catch (Exception e)
             {
@@ -147,11 +147,11 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> RejectCall(CallType callType, ChatType chatType, long callerId, CancellationToken cancel)
+        public async Task<Response> RejectCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform, CancellationToken cancel)
         {
             try
             {
-                return await _connection!.InvokeAsync<Response>("RejectCall", callType, chatType, callerId, cancel);
+                return await _connection!.InvokeAsync<Response>("RejectCall", callType, chatType, callerId, expiry, callerPlatform, cancel);
             }
             catch (Exception e)
             {
@@ -216,10 +216,11 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
 
-            _connection?.On<CallType, ChatType, long>("ReceiveCall", OnReceiveCall);
-            _connection?.On<CallType, ChatType, long>("CancelCall", OnCancelCall);
-            _connection?.On<CallType, ChatType, long>("AcceptCall", OnAcceptCall);
-            _connection?.On<CallType, ChatType, long>("RejectCall", OnRejectCall);
+            _connection?.On<CallType, ChatType, long, DateTime, int>("ReceiveCall", OnReceiveCall);
+            _connection?.On<CallType, ChatType, long, DateTime, int>("CancelCall", OnCancelCall);
+            _connection?.On<CallType, ChatType, long, DateTime, bool>("AcceptCall", OnAcceptCall);
+            _connection?.On<CallType, ChatType, long, DateTime>("RejectCall", OnRejectCall);
+            _connection?.On<CallType, ChatType, long, DateTime>("CallHandled", OnCallHandled);
 
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
@@ -391,28 +392,59 @@ namespace HY.MAUI.Communication.SignalR
         }
 
 
-        public event Action<CallType, ChatType, long> OnReceiveCall_ChatHub;
-        private void OnReceiveCall(CallType callType, ChatType chatType, long callerId)
+        public event Action<CallType, ChatType, long, DateTime, int> OnReceiveCall_ChatHub;
+        private void OnReceiveCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
         {
-            OnReceiveCall_ChatHub?.Invoke(callType, chatType, callerId);
+            if (expiry <= DateTime.UtcNow)
+            {
+                return;
+            }
+
+            OnReceiveCall_ChatHub?.Invoke(callType, chatType, callerId, expiry, callerPlatform);
         }
 
-        public event Action<CallType, ChatType, long> OnCancelCall_ChatHub;
-        private void OnCancelCall(CallType callType, ChatType chatType, long callerId)
+        public event Action<CallType, ChatType, long, int> OnCancelCall_ChatHub;
+        private void OnCancelCall(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
         {
-            OnCancelCall_ChatHub?.Invoke(callType, chatType, callerId);
+            if (expiry <= DateTime.UtcNow)
+            {
+                return;
+            }
+
+            OnCancelCall_ChatHub?.Invoke(callType, chatType, callerId, callerPlatform);
         }
 
-        public event Action<CallType, ChatType, long> OnAcceptCall_ChatHub;
-        private void OnAcceptCall(CallType callType, ChatType chatType, long calleeId)
+        public event Func<CallType, ChatType, long, bool> OnAcceptCall_ChatHub;
+        private bool OnAcceptCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
         {
-            OnAcceptCall_ChatHub?.Invoke(callType, chatType, calleeId);
+            if (expiry <= DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            return OnAcceptCall_ChatHub?.Invoke(callType, chatType, calleeId) ?? false;
         }
 
         public event Action<CallType, ChatType, long> OnRejectCall_ChatHub;
-        private void OnRejectCall(CallType callType, ChatType chatType, long calleeId)
+        private void OnRejectCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
         {
+            if (expiry <= DateTime.UtcNow)
+            {
+                return;
+            }
+
             OnRejectCall_ChatHub?.Invoke(callType, chatType, calleeId);
+        }
+
+        public event Action<CallType, ChatType, long> OnCallHandled_ChatHub;
+        private void OnCallHandled(CallType callType, ChatType chatType, long callerId, DateTime expiry)
+        {
+            if (expiry <= DateTime.UtcNow)
+            {
+                return;
+            }
+
+            OnCallHandled_ChatHub?.Invoke(callType, chatType, callerId);
         }
 
         #endregion
