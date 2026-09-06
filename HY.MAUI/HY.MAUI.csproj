@@ -86,11 +86,14 @@
 	  <Compile Update="Pages\Chat\CallSelectPage.xaml.cs">
 	    <DependentUpon>CallSelectPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\Chat\VideoCallStartPage.xaml.cs">
-	    <DependentUpon>VideoCallStartPage.xaml</DependentUpon>
+	  <Compile Update="Pages\Chat\CallStartVideoPage.xaml.cs">
+	    <DependentUpon>CallStartVideoPage.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Pages\Chat\CallCreatePage.xaml.cs">
 	    <DependentUpon>CallCreatePage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Pages\Chat\CallStartVoicePage.xaml.cs">
+	    <DependentUpon>CallStartVoicePage.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Pages\Contact\ContactPage.xaml.cs">
 	    <DependentUpon>ContactPage.xaml</DependentUpon>
@@ -128,7 +131,7 @@
 	  <MauiXaml Update="Controls\VideoCallBubble.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Chat\VideoCallStartPage.xaml">
+	  <MauiXaml Update="Pages\Chat\CallStartVideoPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\CallSelectPage.xaml">
@@ -146,7 +149,7 @@
 	  <MauiXaml Update="Pages\Chat\VideoPreviewPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Chat\VoiceCallStartPage.xaml">
+	  <MauiXaml Update="Pages\Chat\CallStartVoicePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Contact\ContactDetailPage.xaml">

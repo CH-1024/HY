@@ -7,7 +7,7 @@ using System.Text;
 
 namespace HY.MAUI.PageModels.Chat
 {
-    public partial class VoiceCallStartPageModel : ObservableObject, IQueryAttributable
+    public partial class CallStartVoicePageModel : ObservableObject, IQueryAttributable
     {
         private string targetAvatar;
         public string TargetAvatar
@@ -28,7 +28,7 @@ namespace HY.MAUI.PageModels.Chat
         DateTime _expiry;
 
 
-        public VoiceCallStartPageModel()
+        public CallStartVoicePageModel()
         {
 
         }

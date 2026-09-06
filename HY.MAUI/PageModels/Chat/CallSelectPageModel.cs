@@ -134,11 +134,11 @@ namespace HY.MAUI.PageModels.Chat
 
                 if (_callType == CallType.Video)
                 {
-                    _ = Shell.Current.GoToAsync($"../{nameof(VideoCallStartPage)}", false, parameters);
+                    _ = Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
                 }
                 else if (_callType == CallType.Voice)
                 {
-                    _ = Shell.Current.GoToAsync($"../{nameof(VoiceCallStartPage)}", false, parameters);
+                    _ = Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
                 }
             }
         }

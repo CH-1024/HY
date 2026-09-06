@@ -7,7 +7,7 @@ using System.Text;
 
 namespace HY.MAUI.PageModels.Chat
 {
-    public partial class VideoCallStartPageModel : ObservableObject, IQueryAttributable
+    public partial class CallStartVideoPageModel : ObservableObject, IQueryAttributable
     {
         private string targetAvatar;
         public string TargetAvatar
@@ -28,7 +28,7 @@ namespace HY.MAUI.PageModels.Chat
         DateTime _expiry;
 
 
-        public VideoCallStartPageModel()
+        public CallStartVideoPageModel()
         {
         
         }
