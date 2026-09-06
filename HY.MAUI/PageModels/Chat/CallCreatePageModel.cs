@@ -14,10 +14,10 @@ namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallCreatePageModel : ObservableObject, IQueryAttributable
     {
-        CancellationTokenSource globalCts;
+        CancellationTokenSource _globalCts;
         //CancellationToken linkedToken1 = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token, new CancellationTokenSource().Token).Token;
 
-        IDispatcherTimer _timeoutTimer = Dispatcher.GetForCurrentThread()!.CreateTimer();
+        IDispatcherTimer _timer;
 
 
         private readonly ChatHubSignalR _chatHub;
@@ -59,25 +59,25 @@ namespace HY.MAUI.PageModels.Chat
             CalleeName = query["CalleeName"]?.ToString();
         }
 
-        private bool OnAcceptCall_ChatHub(CallType callType, ChatType chatType, long calleeId)
+        private async Task<bool> OnAcceptCall_ChatHub(CallType callType, ChatType chatType, long calleeId)
         {
-            if (callType == _callType && chatType == _chatType && calleeId == _calleeId && !globalCts.IsCancellationRequested)
+            if (callType == _callType && chatType == _chatType && calleeId == _calleeId && !_globalCts.IsCancellationRequested)
             {
                 var parameters = new Dictionary<string, object>
                 {
                     { "ChatType", _chatType },
-                    { "CalleeId", _calleeId },
+                    { "TargetId", _calleeId },
                     { "TargetAvatar", CalleeAvatar },
                     { "TargetName", CalleeName },
                 };
 
                 if (callType == CallType.Video)
                 {
-                    _ = Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
+                    await Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
                 }
                 else if (callType == CallType.Voice)
                 {
-                    _ = Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
+                    await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
                 }
 
                 return true;
@@ -87,7 +87,7 @@ namespace HY.MAUI.PageModels.Chat
 
         private async void OnRejectCall_ChatHub(CallType callType, ChatType chatType, long calleeId)
         {
-            if (callType == _callType && chatType == _chatType && calleeId == _calleeId && !globalCts.IsCancellationRequested)
+            if (callType == _callType && chatType == _chatType && calleeId == _calleeId && !_globalCts.IsCancellationRequested)
             {
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "对方拒绝", "退出");
                 await Shell.Current.GoToAsync("..", false);
@@ -96,7 +96,7 @@ namespace HY.MAUI.PageModels.Chat
 
         private async void DispatcherTimer_Tick(object? sender, EventArgs e)
         {
-            await globalCts.CancelAsync();
+            await _globalCts.CancelAsync();
 
             _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求超时", "退出");
             await Shell.Current.GoToAsync("..", false);
@@ -106,24 +106,25 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Appearing()
         {
-            globalCts = new CancellationTokenSource();
+            _globalCts = new CancellationTokenSource();
+            _timer = Dispatcher.GetForCurrentThread()!.CreateTimer();
 
             var now = DateTime.UtcNow;
             var expiry =  now.AddSeconds(3600);
             _expiry = expiry;
 
-            _timeoutTimer.Interval = expiry - now;
-            _timeoutTimer.IsRepeating = false;
-            _timeoutTimer.Tick += DispatcherTimer_Tick;
-            _timeoutTimer.Start();
+            _timer.Interval = expiry - now;
+            _timer.IsRepeating = false;
+            _timer.Tick += DispatcherTimer_Tick;
+            _timer.Start();
 
-            var resp = await _chatHub.CreateCall(_callType, _chatType, _calleeId, _expiry, globalCts.Token);
+            var resp = await _chatHub.CreateCall(_callType, _chatType, _calleeId, _expiry, _globalCts.Token);
             if (resp.IsSucc)
             {
                 _chatHub.OnAcceptCall_ChatHub += OnAcceptCall_ChatHub;
                 _chatHub.OnRejectCall_ChatHub += OnRejectCall_ChatHub;
             }
-            else if (globalCts.IsCancellationRequested)
+            else if (_globalCts.IsCancellationRequested)
             {
                 // 防止因超时导致后退两步
             }
@@ -137,8 +138,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         void Disappearing()
         {
-            _timeoutTimer.Stop();
-            _timeoutTimer.Tick -= DispatcherTimer_Tick;
+            _timer.Stop();
+            _timer.Tick -= DispatcherTimer_Tick;
 
             _chatHub.OnAcceptCall_ChatHub -= OnAcceptCall_ChatHub;
             _chatHub.OnRejectCall_ChatHub -= OnRejectCall_ChatHub;
@@ -147,7 +148,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Cancel()
         {
-            await _chatHub.CancelCall(_callType, _chatType, _calleeId, _expiry, globalCts.Token);
+            await _chatHub.CancelCall(_callType, _chatType, _calleeId, _expiry, _globalCts.Token);
             await Shell.Current.GoToAsync("..", false);
         }
 

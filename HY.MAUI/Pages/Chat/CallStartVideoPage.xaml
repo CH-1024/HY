@@ -54,8 +54,8 @@
     <Grid RowDefinitions="*,*,*">
 
         <Grid Grid.Row="1" RowDefinitions="auto,auto,*">
-            <Image Grid.Row="0" Source="{Binding TargetUser.Icon_Show}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
-            <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetUser.Username}" FontSize="Medium"/>
+            <Image Grid.Row="0" Source="{Binding TargetAvatar}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
+            <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetName}" FontSize="Medium"/>
         </Grid>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
