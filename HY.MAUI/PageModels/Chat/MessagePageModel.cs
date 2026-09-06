@@ -20,6 +20,7 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -113,9 +114,9 @@ namespace HY.MAUI.PageModels.Chat
             _loginApi = loginApi;
         }
 
-        void MessageCollection_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        void MessageCollection_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            if (e.Action == NotifyCollectionChangedAction.Add)
             {
                 if (_collectionView != null && e.NewItems != null && e.NewItems.Count > 0 && e.NewStartingIndex > 0)
                 {

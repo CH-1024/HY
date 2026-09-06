@@ -248,7 +248,7 @@ namespace HY.MAUI.Communication.SignalR
 
 
         #region LifecycleEvents
-        
+
         public event Action<Exception?> OnReconnecting_ChatHub;
         public event Action<string?> OnReconnected_ChatHub;
         public event Action<Exception?> OnClosed_ChatHub;
@@ -400,7 +400,7 @@ namespace HY.MAUI.Communication.SignalR
                 return;
             }
 
-            OnReceiveCall_ChatHub?.Invoke(callType, chatType, callerId, expiry, callerPlatform);
+            UI.Run(() => OnReceiveCall_ChatHub?.Invoke(callType, chatType, callerId, expiry, callerPlatform));
         }
 
         public event Action<CallType, ChatType, long, int> OnCancelCall_ChatHub;
@@ -411,18 +411,20 @@ namespace HY.MAUI.Communication.SignalR
                 return;
             }
 
-            OnCancelCall_ChatHub?.Invoke(callType, chatType, callerId, callerPlatform);
+            UI.Run(() => OnCancelCall_ChatHub?.Invoke(callType, chatType, callerId, callerPlatform));
         }
 
-        public event Func<CallType, ChatType, long, bool> OnAcceptCall_ChatHub;
-        private bool OnAcceptCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
+        public event Func<CallType, ChatType, long, Task<bool>> OnAcceptCall_ChatHub;
+        private async Task<bool> OnAcceptCall(CallType callType, ChatType chatType, long calleeId, DateTime expiry)
         {
             if (expiry <= DateTime.UtcNow)
             {
                 return false;
             }
 
-            return OnAcceptCall_ChatHub?.Invoke(callType, chatType, calleeId) ?? false;
+            if (OnAcceptCall_ChatHub == null) return false;
+
+            return await UI.Run(async () => await OnAcceptCall_ChatHub.Invoke(callType, chatType, calleeId));
         }
 
         public event Action<CallType, ChatType, long> OnRejectCall_ChatHub;
@@ -433,7 +435,7 @@ namespace HY.MAUI.Communication.SignalR
                 return;
             }
 
-            OnRejectCall_ChatHub?.Invoke(callType, chatType, calleeId);
+            UI.Run(() => OnRejectCall_ChatHub?.Invoke(callType, chatType, calleeId));
         }
 
         public event Action<CallType, ChatType, long> OnCallHandled_ChatHub;
@@ -444,7 +446,7 @@ namespace HY.MAUI.Communication.SignalR
                 return;
             }
 
-            OnCallHandled_ChatHub?.Invoke(callType, chatType, callerId);
+            UI.Run(() => OnCallHandled_ChatHub?.Invoke(callType, chatType, callerId));
         }
 
         #endregion

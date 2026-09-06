@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Enums;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallStartVoicePageModel : ObservableObject, IQueryAttributable
     {
+        readonly ChatHubSignalR _chatHub;
+
         private string targetAvatar;
         public string TargetAvatar
         {
@@ -24,34 +27,39 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         ChatType _chatType;
-        long _calleeId;
-        DateTime _expiry;
+        long _targetId;
 
 
-        public CallStartVoicePageModel()
+        public CallStartVoicePageModel(ChatHubSignalR chatHub)
         {
-
+            _chatHub = chatHub;
         }
 
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             _chatType = (ChatType)query["ChatType"];
-            _calleeId = Convert.ToInt64(query["CalleeId"]);
+            _targetId = Convert.ToInt64(query["TargetId"]);
             TargetAvatar = query["TargetAvatar"]?.ToString();
             TargetName = query["TargetName"]?.ToString();
         }
 
 
+        [RelayCommand]
+        async Task Appearing()
+        {
+        }
 
+        [RelayCommand]
+        void Disappearing()
+        {
+        }
 
         [RelayCommand]
         async Task HangUp()
         {
 
         }
-
-
 
     }
 }
