@@ -26,8 +26,7 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref targetName, value); }
         }
 
-        ChatType _chatType;
-        long _targetId;
+        string _callId;
 
 
         public CallStartVideoPageModel(ChatHubSignalR chatHub)
@@ -38,27 +37,50 @@ namespace HY.MAUI.PageModels.Chat
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            _chatType = (ChatType)query["ChatType"];
-            _targetId = Convert.ToInt64(query["TargetId"]);
+            _callId = query["CallId"]?.ToString();
             TargetAvatar = query["TargetAvatar"]?.ToString();
             TargetName = query["TargetName"]?.ToString();
+        }
+
+        private async void OnCallAbnormal_ChatHub(string callId)
+        {
+            if (callId == _callId)
+            {
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "通话异常断开", "退出");
+                await Shell.Current.GoToAsync("..", false);
+            }
+        }
+
+        private async void OnCallHangUp_ChatHub(string callId)
+        {
+            if (callId == _callId)
+            {
+                //_ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "通话已在其他设备处理", "退出");
+                await Shell.Current.GoToAsync("..", false);
+            }
         }
 
 
         [RelayCommand]
         async Task Appearing()
         {
+            _chatHub.OnCallAbnormal_ChatHub += OnCallAbnormal_ChatHub;
+            _chatHub.OnCallHangUp_ChatHub += OnCallHangUp_ChatHub;
         }
+
 
         [RelayCommand]
         void Disappearing()
         {
+            _chatHub.OnCallAbnormal_ChatHub -= OnCallAbnormal_ChatHub;
+            _chatHub.OnCallHangUp_ChatHub -= OnCallHangUp_ChatHub;
         }
 
         [RelayCommand]
         async Task HangUp()
         {
-
+            await _chatHub.HangUpCall(_callId, CancellationToken.None);
+            await Shell.Current.GoToAsync("..", false);
         }
 
     }

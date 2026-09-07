@@ -1,4 +1,4 @@
-﻿namespace HY.MAUI.Communication.Requests
+﻿namespace HY.MAUI.Communication.Http.Requests
 {
     public class RefreshRequest
     {

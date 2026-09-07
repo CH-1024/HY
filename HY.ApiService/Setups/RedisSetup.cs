@@ -23,9 +23,10 @@ namespace HY.ApiService.Setups
         public static void AddRedisServices(this IServiceCollection services)
         {
             // 在这里注册使用 Redis 的服务，例如：
-            services.AddSingleton<IRedisService, RedisService>();
+            services.AddSingleton<IRedisBaseService, RedisBaseService>();
             services.AddSingleton<IRedisTokenService, RedisTokenService>();
             services.AddSingleton<IRedisConnectionService, RedisConnectionService>();
+            services.AddSingleton<IRedisCallService, RedisCallService>();
         }
     }
 }

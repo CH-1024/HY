@@ -11,6 +11,7 @@ namespace HY.ApiService.Setups
             {
                 options.EnableDetailedErrors = true;
                 options.MaximumReceiveMessageSize = 102400000; // 100 MB
+                options.KeepAliveInterval = TimeSpan.FromSeconds(15);
                 options.ClientTimeoutInterval = TimeSpan.FromSeconds(3600);
             })
             .AddJsonProtocol(options =>
