@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
 using HY.MAUI.Mapping;
@@ -503,11 +504,16 @@ namespace HY.MAUI.PageModels.Chat
                 return;
             }
 
+            var request = new CreateCallRequest
+            {
+                CallType = CallType.Video,
+                ChatType = _currentChat!.Type,
+                CalleeId = _currentChat!.Target_Id
+            };
+
             var parameters = new Dictionary<string, object>
             {
-                { "CallType", CallType.Video },
-                { "ChatType", _currentChat?.Type },
-                { "CalleeId", _currentChat?.Target_Id },
+                { "CreateCallRequest", request },
                 { "CalleeAvatar", _currentChat?.Target_Avatar },
                 { "CalleeName", _currentChat?.Target_Name },
             };

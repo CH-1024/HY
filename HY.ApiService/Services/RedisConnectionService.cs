@@ -18,9 +18,9 @@ namespace HY.ApiService.Services
 
     public class RedisConnectionService : IRedisConnectionService
     {
-        private readonly IRedisService _redis;
+        private readonly IRedisBaseService _redis;
 
-        public RedisConnectionService(IRedisService redis)
+        public RedisConnectionService(IRedisBaseService redis)
         {
             _redis = redis;
         }
@@ -41,7 +41,7 @@ namespace HY.ApiService.Services
         {
             var ckey = ConnectionKey(userId, platform);
 
-            return await _redis.GetAsync(ckey);
+            return await _redis.StringGetAsync(ckey);
         }
 
         public async Task SetConnectionAsync(long userId, int platform, string connectionId)
@@ -49,7 +49,7 @@ namespace HY.ApiService.Services
             var ckey = ConnectionKey(userId, platform);
             var pkey = PlatformsKey(userId);
 
-            await _redis.SetAsync(ckey, connectionId);
+            await _redis.StringSetAsync(ckey, connectionId);
             await _redis.SetAddAsync(pkey, platform.ToString());
         }
 
@@ -58,13 +58,13 @@ namespace HY.ApiService.Services
             var ckey = ConnectionKey(userId, platform);
             var pkey = PlatformsKey(userId);
 
-            var currentConnection = await _redis.GetAsync(ckey);
+            var currentConnection = await _redis.StringGetAsync(ckey);
 
             // 防止旧连接把新连接删除
             if (currentConnection != connectionId)
                 return;
 
-            await _redis.RemoveAsync(ckey);
+            await _redis.KeyDeleteAsync(ckey);
             await _redis.SetRemoveAsync(pkey, platform.ToString());
         }
 
@@ -80,7 +80,7 @@ namespace HY.ApiService.Services
             {
                 var ckey = ConnectionKey(userId, int.Parse(platform));
 
-                var connectionId = await _redis.GetAsync(ckey);
+                var connectionId = await _redis.StringGetAsync(ckey);
 
                 if (!string.IsNullOrEmpty(connectionId))
                     result.Add(connectionId);
@@ -104,7 +104,7 @@ namespace HY.ApiService.Services
 
                 var ckey = ConnectionKey(userId, int.Parse(item));
 
-                var connectionId = await _redis.GetAsync(ckey);
+                var connectionId = await _redis.StringGetAsync(ckey);
 
                 if (!string.IsNullOrEmpty(connectionId))
                     result.Add(connectionId);

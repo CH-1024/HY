@@ -104,8 +104,8 @@ namespace HY.ApiService.Controllers
             var result = await _contactService.RequestContact(userId, contactId, source, message);
             if (result == null) return Ok(new Response(false, "请求联系人失败"));
 
-            // 2. 通知接收方
-            await _chatNotificationService.OnRequestContactNotice(contactId, result!);
+            // 通知接收方
+            await _chatNotificationService.RequestContactNotify(contactId, result!);
 
             return Ok(new Response(true)
             {
@@ -128,8 +128,8 @@ namespace HY.ApiService.Controllers
             var result = await _contactService.RespondContact(userId, contactRequestId, handle, message);
             if (result == null) return Ok(new Response(false, "处理联系人请求失败"));
 
-            // 2. 通知接收方
-            await _chatNotificationService.OnRespondContactNotice(handle, result!);
+            // 通知接收方
+            await _chatNotificationService.RespondContactNotify(handle, result!);
 
             ContactRequestDto? contactRequest = null;
             ContactDto? receiverContact = null;

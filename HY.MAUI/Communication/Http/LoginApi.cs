@@ -1,4 +1,4 @@
-﻿using HY.MAUI.Communication.Requests;
+﻿using HY.MAUI.Communication.Http.Requests;
 using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
 using System;

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication.Auth;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
 using HY.MAUI.Mapping;
@@ -226,26 +227,22 @@ namespace HY.MAUI.PageModels.Login
             if (e != null) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("异常", $"与服务器的连接已关闭，原因：{e.Message}", "确定");
         }
 
-        private async void OnReceiveCall_ChatHub(CallType callType, ChatType chatType, long callerId, DateTime expiry, int callerPlatform)
+        private async void OnReceiveCall_ChatHub(ReceiveCallRequest request)
         {
-            if (chatType == ChatType.Private)
+            if (request.ChatType == ChatType.Private)
             {
-                var contact = _contactStore.GetContact(callerId);
+                var contact = _contactStore.GetContact(request.CallerId);
                 if (contact == null) return;
 
                 var parameters = new Dictionary<string, object>
                 {
-                    { "CallType", callType },
-                    { "ChatType", chatType },
-                    { "CallerId", callerId },
-                    { "Expiry", expiry },
-                    { "CallerPlatform", callerPlatform },
+                    { "ReceiveCallRequest", request },
                     { "CallerAvatar", contact.Avatar },
                     { "CallerName", contact.Nickname },
                 };
                 await Shell.Current.GoToAsync(nameof(CallSelectPage), false, parameters);
             }
-            else if (chatType == ChatType.Group)
+            else if (request.ChatType == ChatType.Group)
             {
 
             }

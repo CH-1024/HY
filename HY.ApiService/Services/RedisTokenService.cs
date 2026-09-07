@@ -18,9 +18,9 @@ namespace HY.ApiService.Services
 
     public class RedisTokenService : IRedisTokenService
     {
-        private readonly IRedisService _redis;
+        private readonly IRedisBaseService _redis;
 
-        public RedisTokenService(IRedisService redis)
+        public RedisTokenService(IRedisBaseService redis)
         {
             _redis = redis;
         }
@@ -37,14 +37,14 @@ namespace HY.ApiService.Services
             var key = TokenKey(userId, deviceId);
             var expiry = expires - DateTime.UtcNow;
 
-            await _redis.SetAsync(key, accessToken, expiry);
+            await _redis.StringSetAsync(key, accessToken, expiry);
         }
 
         public async Task<bool> ExistsAsync(long userId, string deviceId, string accessToken)
         {
             var key = TokenKey(userId, deviceId);
 
-            var token = await _redis.GetAsync(key);
+            var token = await _redis.StringGetAsync(key);
 
             return token == accessToken;
         }
@@ -53,7 +53,7 @@ namespace HY.ApiService.Services
         {
             var key = TokenKey(userId, deviceId);
 
-            await _redis.RemoveAsync(key);
+            await _redis.KeyDeleteAsync(key);
         }
     }
 }

@@ -26,8 +26,7 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref targetName, value); }
         }
 
-        ChatType _chatType;
-        long _targetId;
+        string _callId;
 
 
         public CallStartVoicePageModel(ChatHubSignalR chatHub)
@@ -38,8 +37,7 @@ namespace HY.MAUI.PageModels.Chat
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            _chatType = (ChatType)query["ChatType"];
-            _targetId = Convert.ToInt64(query["TargetId"]);
+            _callId = query["CallId"]?.ToString();
             TargetAvatar = query["TargetAvatar"]?.ToString();
             TargetName = query["TargetName"]?.ToString();
         }

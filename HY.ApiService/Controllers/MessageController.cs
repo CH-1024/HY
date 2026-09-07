@@ -112,8 +112,8 @@ namespace HY.ApiService.Controllers
                 return Ok(new Response(false, "事务处理失败"));
             }
 
-            // 2. 通知接收方
-            await _chatNotificationService.OnSendMessageNotice(messageDto, platform);
+            // 通知接收方
+            await _chatNotificationService.SendMessageNotify(messageDto, platform);
 
             return Ok(new Response(true)
             {
@@ -148,8 +148,8 @@ namespace HY.ApiService.Controllers
             var result = await _messageService.RecallMessage(messageId);
             if (!result) return Ok(new Response(false, "撤回消息失败"));
 
-            // 2. 通知接收方
-            await _chatNotificationService.OnRecallMessageNotice(messageDto, platform);
+            // 通知接收方
+            await _chatNotificationService.RecallMessageNotify(messageDto, platform);
 
             return Ok(new Response(true));
         }
