@@ -8,6 +8,5 @@ namespace HY.ApiService.Hubs.Requests
         public CallType CallType { get; set; }
         public ChatType ChatType { get; set; }
         public long CallerId { get; set; }
-        public DateTime Expiry { get; set; }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using HY.ApiService.Enums;
 using System.Runtime.CompilerServices;
 
-namespace HY.ApiService.Dtos
+namespace HY.ApiService.Models
 {
-    public class CallDto
+    public class CallInfo
     {        
         public string CallId { get; set; }
 
@@ -16,7 +16,7 @@ namespace HY.ApiService.Dtos
         public long CalleeId { get; set; }
         public int CalleePlatform { get; set; }
 
-        public CallState CallState { get; set; }
+        public CallStatus CallState { get; set; }
 
         public DateTime CreateAt { get; set; }
         public DateTime ExpiryAt { get; set; }

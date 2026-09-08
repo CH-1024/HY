@@ -1,6 +1,7 @@
-﻿using HY.ApiService.Dtos;
-using HY.ApiService.Enums;
+﻿using HY.ApiService.Enums;
+using HY.ApiService.Models;
 using StackExchange.Redis;
+using System.Runtime.InteropServices;
 
 namespace HY.ApiService.Services
 {
@@ -9,16 +10,15 @@ namespace HY.ApiService.Services
         Task<bool> IsUserCalling(long userId);
         Task<bool> IsUserPlatformCalling(long userId, int platform);
         Task<string?> GetCallId(long userId);
-        Task<CallDto?> GetCall(string callId);
+        Task<CallInfo?> GetCallInfo(string callId);
 
-        Task<bool> CreateCall(CallDto callDto);
-        Task<bool> CancelCall(string callId, long callerId, int callerPlatform);
+        Task<bool> CreateCall(CallInfo callDto);
         Task<bool> AcceptCall(string callId, long calleeId, int calleePlatform);
+        Task<bool> CancelCall(string callId, long callerId);
         Task<bool> RejectCall(string callId, long calleeId, int calleePlatform);
         Task<bool> HangUpCall(string callId, long userId);
         Task<bool> AbnormalCall(string callId);
-
-        Task<bool> EndCall(string callId);
+        Task<bool> ExpiryCall(string callId);
     }
 
 
@@ -47,52 +47,37 @@ namespace HY.ApiService.Services
 
         public async Task<bool> IsUserCalling(long userId)
         {
-            var userKey = UserKey(userId);
-
-            var callId = await _redis.StringGetAsync(userKey);
+            var callId = await GetCallId(userId);
             if (string.IsNullOrEmpty(callId))
             {
                 return false;
             }
 
-            var callKey = CallKey(callId);
+            var callDto = await GetCallInfo(callId);
 
-            var callStateStr = await _redis.HashGetAsync(callKey, new RedisValue("CallState"));
-            if (!Enum.TryParse<CallState>(callStateStr, out var callState))
-                throw new Exception($"CallState Error : {callStateStr}");
-
-            return callState == CallState.Calling &&
-                   callState == CallState.Accepted &&
-                   callState == CallState.Connected;
+            return callDto!.CallState == CallStatus.Calling &&
+                   callDto!.CallState == CallStatus.Accepted &&
+                   callDto!.CallState == CallStatus.Connected;
         }
 
         public async Task<bool> IsUserPlatformCalling(long userId, int platform)
         {
-            var userKey = UserKey(userId);
-
-            var callId = await _redis.StringGetAsync(userKey);
+            var callId = await GetCallId(userId);
             if (string.IsNullOrEmpty(callId))
             {
                 return false;
             }
 
-            var callDto = await GetCall(callId);
-            if (callDto!.CallerId == userId && callDto!.CallerPlatform == platform)
+            var callDto = await GetCallInfo(callId);
+            if ((callDto!.CallerId == userId && callDto!.CallerPlatform == platform) || 
+                (callDto!.CalleeId == userId && callDto!.CalleePlatform == platform))
             {
-                return callDto.CallState == CallState.Calling &&
-                       callDto.CallState == CallState.Accepted &&
-                       callDto.CallState == CallState.Connected;
+                return callDto.CallState == CallStatus.Calling &&
+                       callDto.CallState == CallStatus.Accepted &&
+                       callDto.CallState == CallStatus.Connected;
             }
-            else if (callDto!.CalleeId == userId && callDto!.CalleePlatform == platform)
-            {
-                return callDto.CallState == CallState.Calling &&
-                       callDto.CallState == CallState.Accepted &&
-                       callDto.CallState == CallState.Connected;
-            }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public async Task<string?> GetCallId(long userId)
@@ -102,7 +87,7 @@ namespace HY.ApiService.Services
             return await _redis.StringGetAsync(userKey);
         }
 
-        public async Task<CallDto?> GetCall(string callId)
+        public async Task<CallInfo?> GetCallInfo(string callId)
         {
             var callKey = CallKey(callId);
 
@@ -124,7 +109,7 @@ namespace HY.ApiService.Services
                 return null;
             }
 
-            return new CallDto
+            return new CallInfo
             {
                 CallId = callId,
                 CallType = Enum.Parse<CallType>(values[0]),
@@ -133,14 +118,14 @@ namespace HY.ApiService.Services
                 CallerPlatform = int.Parse(values[3]),
                 CalleeId = long.Parse(values[4]),
                 CalleePlatform = int.Parse(values[5]),
-                CallState = Enum.Parse<CallState>(values[6]),
+                CallState = Enum.Parse<CallStatus>(values[6]),
                 CreateAt = DateTime.Parse(values[7]),
                 ExpiryAt = DateTime.Parse(values[8]),
             };
         }
 
 
-        public async Task<bool> CreateCall(CallDto callDto)
+        public async Task<bool> CreateCall(CallInfo callDto)
         {
             var callKey = CallKey(callDto.CallId);
             var callerKey = UserKey(callDto.CallerId);
@@ -180,77 +165,69 @@ namespace HY.ApiService.Services
             return await transaction.ExecuteAsync();
         }
 
-        public async Task<bool> CancelCall(string callId, long callerId, int callerPlatform)
+        public async Task<bool> AcceptCall(string callId, long calleeId, int calleePlatform)
         {
-            var callKey = CallKey(callId);
-            var callerKey = UserKey(callerId);
-
-            var entries = new HashEntry[]
-            {
-                new("CallState", CallState.Cancelled.ToString())
-            };
-
-            // callId 必须与 callerKey 中的值匹配
-            var _callId = await _redis.StringGetAsync(callerKey);
+            // callId 必须匹配
+            var _callId = await GetCallId(calleeId);
             if (string.IsNullOrEmpty(_callId) || _callId != callId)
                 return false;
 
-            // callKey 中的 CallerId 必须与 callerId 匹配
-            var _callerId = await _redis.HashGetAsync(callKey, new RedisValue("CallerId"));
-            if (!long.TryParse(_callerId, out var parsedCallerId) || parsedCallerId != callerId)
+            // calleeId 必须匹配
+            var callDto = await GetCallInfo(callId);
+            if (callDto == null || callDto.CalleeId != calleeId)
                 return false;
+
+            var callKey = CallKey(callId);
+
+            var entries = new HashEntry[]
+            {
+                new("CalleePlatform", calleePlatform),
+                new("CallState", CallStatus.Accepted.ToString())
+            };
 
             await _redis.HashSetAsync(callKey, entries);
 
             return true;
         }
 
-        public async Task<bool> AcceptCall(string callId, long calleeId, int calleePlatform)
+        public async Task<bool> CancelCall(string callId, long callerId)
         {
-            var callKey = CallKey(callId);
-            var calleeKey = UserKey(calleeId);
-
-            var entries = new HashEntry[]
-            {
-                new("CalleePlatform", calleePlatform),
-                new("CallState", CallState.Accepted.ToString())
-            };
-
-            // callId 必须与 calleeKey 中的值匹配
-            var _callId = await _redis.StringGetAsync(calleeKey);
+            // callId 必须匹配
+            var _callId = await GetCallId(callerId);
             if (string.IsNullOrEmpty(_callId) || _callId != callId)
                 return false;
 
-            // callKey 中的 CalleeId 必须与 calleeId 匹配
-            var _calleeId = await _redis.HashGetAsync(callKey, new RedisValue("CalleeId"));
-            if (!long.TryParse(_calleeId, out var parsedCalleeId) || parsedCalleeId != calleeId)
+            // callerId 必须匹配
+            var callDto = await GetCallInfo(callId);
+            if (callDto == null || callDto.CallerId != callerId)
                 return false;
 
-            await _redis.HashSetAsync(callKey, entries);
+            var callKey = CallKey(callId);
+
+            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallStatus.Cancelled.ToString()));
 
             return true;
         }
 
         public async Task<bool> RejectCall(string callId, long calleeId, int calleePlatform)
         {
+            // callId 必须匹配
+            var _callId = await GetCallId(calleeId);
+            if (string.IsNullOrEmpty(_callId) || _callId != callId)
+                return false;
+
+            // calleeId 必须匹配
+            var callDto = await GetCallInfo(callId);
+            if (callDto == null || callDto.CalleeId != calleeId)
+                return false;
+
             var callKey = CallKey(callId);
-            var calleeKey = UserKey(calleeId);
 
             var entries = new HashEntry[]
             {
                 new("CalleePlatform", calleePlatform),
-                new("CallState", CallState.Rejected.ToString())
+                new("CallState", CallStatus.Rejected.ToString())
             };
-
-            // callId 必须与 calleeKey 中的值匹配
-            var _callId = await _redis.StringGetAsync(calleeKey);
-            if (string.IsNullOrEmpty(_callId) || _callId != callId)
-                return false;
-
-            // callKey 中的 CalleeId 必须与 calleeId 匹配
-            var _calleeId = await _redis.HashGetAsync(callKey, new RedisValue("CalleeId"));
-            if (!long.TryParse(_calleeId, out var parsedCalleeId) || parsedCalleeId != calleeId)
-                return false;
 
             await _redis.HashSetAsync(callKey, entries);
 
@@ -259,30 +236,40 @@ namespace HY.ApiService.Services
 
         public async Task<bool> HangUpCall(string callId, long userId)
         {
-            var callKey = CallKey(callId);
-            var userKey = UserKey(userId);
-
-            // callId 必须与 userKey 中的值匹配
-            var _callId = await _redis.StringGetAsync(userKey);
+            // callId 必须匹配
+            var _callId = await GetCallId(userId);
             if (string.IsNullOrEmpty(_callId) || _callId != callId)
                 return false;
 
-            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallState.Ended.ToString()));
+            var callKey = CallKey(callId);
+
+            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallStatus.Ended.ToString()));
 
             return true;
         }
 
-        // 仅 OnDisconnectedAsync 调用
+        // 不对外公开，仅 OnDisconnectedAsync 调用
         public async Task<bool> AbnormalCall(string callId)
         {
             var callKey = CallKey(callId);
 
-            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallState.Abnormal.ToString()));
+            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallStatus.Abnormal.ToString()));
 
             return true;
         }
 
-        public async Task<bool> EndCall(string callId)
+        // 不对外公开，仅 RedisTimeoutService 调用
+        public async Task<bool> ExpiryCall(string callId)
+        {
+            var callKey = CallKey(callId);
+
+            await _redis.HashSetAsync(callKey, new HashEntry("CallState", CallStatus.Expired.ToString()));
+
+            return true;
+        }
+
+
+        private async Task<bool> EndCall(string callId)
         {
             var callKey = CallKey(callId);
 
@@ -291,11 +278,26 @@ namespace HY.ApiService.Services
             var callerKey = UserKey(long.Parse(values[0]));
             var calleeKey = UserKey(long.Parse(values[1]));
 
-            await _redis.KeyDeleteAsync(callKey);
-            await _redis.KeyDeleteAsync(callerKey);
-            await _redis.KeyDeleteAsync(calleeKey);
+            var transaction = _redis.CreateTransaction();
 
-            return true;
+            // 双方都必须有正在进行的通话
+            transaction.AddCondition(Condition.KeyExists(callerKey));
+            transaction.AddCondition(Condition.KeyExists(calleeKey));
+
+            // 删除通话记录和索引
+            transaction.KeyDeleteAsync(callKey);
+            transaction.KeyDeleteAsync(callerKey);
+            transaction.KeyDeleteAsync(calleeKey);
+
+            return await transaction.ExecuteAsync();
         }
+
+        //private async Task UpdateCallState(string callId, CallState newState)
+        //{
+        //    var callKey = CallKey(callId);
+
+        //     await _redis.HashSetAsync(callKey, new HashEntry("CallState", newState.ToString()));
+        //}
+
     }
 }

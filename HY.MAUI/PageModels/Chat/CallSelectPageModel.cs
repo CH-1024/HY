@@ -13,12 +13,6 @@ namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallSelectPageModel : ObservableObject, IQueryAttributable
     {
-        CancellationTokenSource _globalCts;
-        //CancellationToken linkedToken1 = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token, new CancellationTokenSource().Token).Token;
-
-        IDispatcherTimer _timer;
-
-
         readonly ChatHubSignalR _chatHub;
 
 
@@ -53,7 +47,7 @@ namespace HY.MAUI.PageModels.Chat
 
         private async void OnCallCanceled_ChatHub(string callId)
         {
-            if (callId == _receiveCallRequest.CallId && !_globalCts.IsCancellationRequested)
+            if (callId == _receiveCallRequest.CallId)
             {
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "对方取消", "退出");
                 await Shell.Current.GoToAsync("..", false);
@@ -62,57 +56,45 @@ namespace HY.MAUI.PageModels.Chat
 
         private async void OnCallHandled_ChatHub(string callId)
         {
-            if (callId == _receiveCallRequest.CallId && !_globalCts.IsCancellationRequested)
+            if (callId == _receiveCallRequest.CallId)
             {
                 //_ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "通话已在其他设备处理", "退出");
                 await Shell.Current.GoToAsync("..", false);
             }
         }
 
-        private async void DispatcherTimer_Tick(object? sender, EventArgs e)
+        private async void OnCallExpiry_ChatHub(string callId)
         {
-            await _globalCts.CancelAsync();
-
-            _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求超时", "退出");
-            await Shell.Current.GoToAsync("..", false);
+            if (callId == _receiveCallRequest.CallId)
+            {
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求超时", "退出");
+                await Shell.Current.GoToAsync("..", false);
+            }
         }
+
+
 
 
         [RelayCommand]
         async Task Appearing()
         {
-            _globalCts = new CancellationTokenSource();
-            _timer = Dispatcher.GetForCurrentThread()!.CreateTimer();
-
-            _timer.Interval = _receiveCallRequest.Expiry - DateTime.UtcNow;
-            _timer.IsRepeating = false;
-            _timer.Tick += DispatcherTimer_Tick;
-            _timer.Start();
-
             _chatHub.OnCallCanceled_ChatHub += OnCallCanceled_ChatHub;
             _chatHub.OnCallHandled_ChatHub += OnCallHandled_ChatHub;
+            _chatHub.OnCallExpiry_ChatHub += OnCallExpiry_ChatHub;
         }
 
         [RelayCommand]
         void Disappearing()
         {
-            _timer.Stop();
-            _timer.Tick -= DispatcherTimer_Tick;
-
             _chatHub.OnCallCanceled_ChatHub -= OnCallCanceled_ChatHub;
             _chatHub.OnCallHandled_ChatHub -= OnCallHandled_ChatHub;
+            _chatHub.OnCallExpiry_ChatHub -= OnCallExpiry_ChatHub;
         }
 
         [RelayCommand]
         async Task Accept()
         {
-            if (_receiveCallRequest.Expiry <= DateTime.UtcNow)
-            {
-                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "呼叫已过期", "退出");
-                return;
-            }
-
-            var resp = await _chatHub.AcceptCall(_receiveCallRequest.CallId, _globalCts.Token);
+            var resp = await _chatHub.AcceptCall(_receiveCallRequest.CallId);
             if (resp.IsSucc)
             {
                 var parameters = new Dictionary<string, object>
@@ -136,13 +118,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Reject()
         {
-            if (_receiveCallRequest.Expiry <= DateTime.UtcNow)
-            {
-                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "呼叫已过期", "退出");
-                return;
-            }
-
-            await _chatHub.RejectCall(_receiveCallRequest.CallId, _globalCts.Token);
+            await _chatHub.RejectCall(_receiveCallRequest.CallId);
             await Shell.Current.GoToAsync("..");
         }
     }

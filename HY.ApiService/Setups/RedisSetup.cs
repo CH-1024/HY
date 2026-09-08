@@ -16,6 +16,8 @@ namespace HY.ApiService.Setups
 
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 
+            services.AddHostedService<RedisTimeoutService>();
+
             services.AddRedisServices();
         }
 

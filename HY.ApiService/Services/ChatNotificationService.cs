@@ -2,10 +2,13 @@
 using HY.ApiService.Enums;
 using HY.ApiService.Hubs;
 using HY.ApiService.Hubs.Requests;
+using HY.ApiService.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace HY.ApiService.Services
 {
@@ -14,12 +17,13 @@ namespace HY.ApiService.Services
         Task SendMessageNotify(MessageDto messageDto, int platform);
         Task RecallMessageNotify(MessageDto messageDto, int platform);
 
-        Task CreateCallNotify(CallDto callDto);
-        Task CancelCallNotify(CallDto callDto);
-        Task<bool> AcceptCallNotify(CallDto callDto);
-        Task RejectCallNotify(CallDto callDto);
-        Task AbnormalCallNotify(ChatType chatType, string callId, long userId, int userPlatform);
-        Task HangUpCallNotify(ChatType chatType, string callId, long userId, int userPlatform);
+        Task CreateCallNotify(CallInfo callDto);
+        Task CancelCallNotify(CallInfo callDto);
+        Task<bool> AcceptCallNotify(CallInfo callDto);
+        Task RejectCallNotify(CallInfo callDto);
+        Task AbnormalCallNotify(CallInfo callDto, long currentUserId);
+        Task HangUpCallNotify(CallInfo callDto, long currentUserId);
+        Task ExpiryCallNotify(CallInfo callDto);
 
         Task RequestContactNotify(long contactId, RequestContactReturn result);
         Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result);
@@ -32,16 +36,18 @@ namespace HY.ApiService.Services
         readonly IRedisConnectionService _redisConnectionService;
 
         readonly IChatService _chatService;
+        readonly IMessageService _messageService;
         readonly IContactService _contactService;
         readonly IGroupMemberService _groupMemberService;
 
 
-        public ChatNotificationService(IHubContext<ChatHub> chatHub, IRedisConnectionService redisConnectionService, IChatService chatService, IContactService contactService, IGroupMemberService groupMemberService)
+        public ChatNotificationService(IHubContext<ChatHub> chatHub, IRedisConnectionService redisConnectionService, IChatService chatService, IMessageService messageService, IContactService contactService, IGroupMemberService groupMemberService)
         {
             _chatHub = chatHub;
             _redisConnectionService = redisConnectionService;
 
             _chatService = chatService;
+            _messageService = messageService;
             _contactService = contactService;
             _groupMemberService = groupMemberService;
         }
@@ -315,7 +321,7 @@ namespace HY.ApiService.Services
         }
 
 
-        public async Task CreateCallNotify(CallDto callDto)
+        public async Task CreateCallNotify(CallInfo callDto)
         {
             var callId = callDto.CallId;
             var callType = callDto.CallType;
@@ -344,7 +350,6 @@ namespace HY.ApiService.Services
                     CallType = callType,
                     ChatType = chatType,
                     CallerId = callerId,
-                    Expiry = expiry,
                 };
                 await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
                 {
@@ -368,52 +373,7 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task CancelCallNotify(CallDto callDto)
-        {
-            var callId = callDto.CallId;
-            var callType = callDto.CallType;
-            var chatType = callDto.ChatType;
-            var callerId = callDto.CallerId;
-            var callerPlatform = callDto.CallerPlatform;
-            var calleeId = callDto.CalleeId;
-            var expiry = callDto.ExpiryAt;
-
-            if (chatType == ChatType.Private)
-            {
-                // 私聊
-
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = 20,
-                    CancellationToken = CancellationToken.None
-                };
-
-                var calleeConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
-
-                #region 通知被呼叫方所有在线设备
-                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
-                {
-                    try
-                    {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("CallCanceled", callId);
-                    }
-                    catch (Exception ex)
-                    {
-                        // 记录日志
-                        // _logger.LogError(ex, "[CancelCallNotification] : ConnectionId: {ConnectionId}", connectionId);
-                    }
-                });
-                #endregion
-
-            }
-            else if (chatType == ChatType.Group)
-            {
-                // 群聊
-
-            }
-        }
-
-        public async Task<bool> AcceptCallNotify(CallDto callDto)
+        public async Task<bool> AcceptCallNotify(CallInfo callDto)
         {
             var callId = callDto.CallId;
             var callType = callDto.CallType;
@@ -468,7 +428,75 @@ namespace HY.ApiService.Services
             return false;
         }
 
-        public async Task RejectCallNotify(CallDto callDto)
+        public async Task CancelCallNotify(CallInfo callDto)
+        {
+            var callId = callDto.CallId;
+            var callType = callDto.CallType;
+            var chatType = callDto.ChatType;
+            var callerId = callDto.CallerId;
+            var callerPlatform = callDto.CallerPlatform;
+            var calleeId = callDto.CalleeId;
+            var create = callDto.CreateAt;
+            var expiry = callDto.ExpiryAt;
+
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                #region 先发记录
+                var msgDto = new MessageDto
+                {
+                    Chat_Type = chatType,
+                    Sender_Id = callerId,
+                    Target_Id = calleeId,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)CallStatus.Cancelled },
+                        { "Duration", 0 }
+                    }),
+                    Message_Status = MessageStatus.Sented,
+                    Created_At = create
+                };
+                await SendMessageDto(msgDto);
+                #endregion
+
+
+                #region 在通知
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var calleeConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(calleeId);
+
+                #region 通知被呼叫方所有在线设备
+                await Parallel.ForEachAsync(calleeConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("CallCanceled", callId);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "[CancelCallNotification] : ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+                #endregion
+                #endregion
+
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task RejectCallNotify(CallInfo callDto)
         {
             var callId = callDto.CallId;
             var callType = callDto.CallType;
@@ -477,12 +505,34 @@ namespace HY.ApiService.Services
             var callerPlatform = callDto.CallerPlatform;
             var calleeId = callDto.CalleeId;
             var calleePlatform = callDto.CalleePlatform;
+            var create = callDto.CreateAt;
             var expiry = callDto.ExpiryAt;
 
             if (chatType == ChatType.Private)
             {
                 // 私聊
 
+                #region 先发记录
+                var msgDto = new MessageDto
+                {
+                    Chat_Type = chatType,
+                    Sender_Id = callerId,
+                    Target_Id = calleeId,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)CallStatus.Rejected },
+                        { "Duration", 0 }
+                    }),
+                    Message_Status = MessageStatus.Sented,
+                    Created_At = create
+                };
+                await SendMessageDto(msgDto);
+                #endregion
+
+
+                #region 在通知
                 var parallelOptions = new ParallelOptions
                 {
                     MaxDegreeOfParallelism = 20,
@@ -511,31 +561,6 @@ namespace HY.ApiService.Services
                     }
                 });
                 #endregion
-
-            }
-            else if (chatType == ChatType.Group)
-            {
-                // 群聊
-
-            }
-        }
-
-        public async Task AbnormalCallNotify(ChatType chatType, string callId, long userId, int userPlatform)
-        {
-            if (chatType == ChatType.Private)
-            {
-                // 私聊
-
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = 20,
-                    CancellationToken = CancellationToken.None
-                };
-
-                var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
-
-                #region 通知对方在线设备
-                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallAbnormal", callId, parallelOptions.CancellationToken);
                 #endregion
             }
             else if (chatType == ChatType.Group)
@@ -545,22 +570,166 @@ namespace HY.ApiService.Services
             }
         }
 
-        public async Task HangUpCallNotify(ChatType chatType, string callId, long userId, int userPlatform)
+        public async Task AbnormalCallNotify(CallInfo callDto, long currentUserId)
         {
+            var callId = callDto.CallId;
+            var callType = callDto.CallType;
+            var chatType = callDto.ChatType;
+            var callerId = callDto.CallerId;
+            var callerPlatform = callDto.CallerPlatform;
+            var calleeId = callDto.CalleeId;
+            var calleePlatform = callDto.CalleePlatform;
+            var create = callDto.CreateAt;
+            var expiry = callDto.ExpiryAt;
+
             if (chatType == ChatType.Private)
             {
                 // 私聊
 
-                var parallelOptions = new ParallelOptions
+                #region 先发记录
+                var msgDto = new MessageDto
                 {
-                    MaxDegreeOfParallelism = 20,
-                    CancellationToken = CancellationToken.None
+                    Chat_Type = chatType,
+                    Sender_Id = callerId,
+                    Target_Id = calleeId,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)CallStatus.Abnormal },
+                        { "Duration", (DateTime.UtcNow - create).TotalSeconds }
+                    }),
+                    Message_Status = MessageStatus.Sented,
+                    Created_At = create
                 };
+                await SendMessageDto(msgDto);
+                #endregion
+
+
+                #region 在通知
+
+                var userId = currentUserId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
+                var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
 
                 var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
 
                 #region 通知对方在线设备
-                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, parallelOptions.CancellationToken);
+                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallAbnormal", callId, CancellationToken.None);
+                #endregion
+                #endregion
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task HangUpCallNotify(CallInfo callDto, long currentUserId)
+        {
+            var callId = callDto.CallId;
+            var callType = callDto.CallType;
+            var chatType = callDto.ChatType;
+            var callerId = callDto.CallerId;
+            var callerPlatform = callDto.CallerPlatform;
+            var calleeId = callDto.CalleeId;
+            var calleePlatform = callDto.CalleePlatform;
+            var create = callDto.CreateAt;
+            var expiry = callDto.ExpiryAt;
+
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                #region 先发记录
+                var msgDto = new MessageDto
+                {
+                    Chat_Type = chatType,
+                    Sender_Id = callerId,
+                    Target_Id = calleeId,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)CallStatus.Ended },
+                        { "Duration", (DateTime.UtcNow - create).TotalSeconds }
+                    }),
+                    Message_Status = MessageStatus.Sented,
+                    Created_At = create
+                };
+                await SendMessageDto(msgDto);
+                #endregion
+
+
+
+                #region 在通知
+
+                var userId = currentUserId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
+                var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
+
+                var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
+
+                #region 通知对方在线设备
+                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
+                #endregion
+
+                #endregion
+            }
+            else if (chatType == ChatType.Group)
+            {
+                // 群聊
+
+            }
+        }
+
+        public async Task ExpiryCallNotify(CallInfo callDto)
+        {
+            var callId = callDto.CallId;
+            var callType = callDto.CallType;
+            var chatType = callDto.ChatType;
+            var callerId = callDto.CallerId;
+            var callerPlatform = callDto.CallerPlatform;
+            var calleeId = callDto.CalleeId;
+            var calleePlatform = callDto.CalleePlatform;
+            var create = callDto.CreateAt;
+            var expiry = callDto.ExpiryAt;
+
+            if (chatType == ChatType.Private)
+            {
+                // 私聊
+
+                #region 先发记录
+                var msgDto = new MessageDto
+                {
+                    Chat_Type = chatType,
+                    Sender_Id = callerId,
+                    Target_Id = calleeId,
+                    Message_Type = MessageType.VideoCall,
+                    Content = null,
+                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        { "CallStatus", (int)CallStatus.Expired },
+                        { "Duration", 0 }
+                    }),
+                    Message_Status = MessageStatus.Sented,
+                    Created_At = create
+                };
+                await SendMessageDto(msgDto);
+                #endregion
+
+                #region 在通知
+                var callerConnectionId = await _redisConnectionService.GetConnectionIdAsync(callerId, callerPlatform);
+                var calleeConnectionId = await _redisConnectionService.GetConnectionIdAsync(calleeId, calleePlatform);
+
+                #region 通知呼叫方在线设备
+                await _chatHub.Clients.Client(callerConnectionId!).SendAsync("CallExpiry", callId, CancellationToken.None);
+                #endregion
+
+
+                #region 通知被呼叫方在线设备
+                await _chatHub.Clients.Client(calleeConnectionId!).SendAsync("CallExpiry", callId, CancellationToken.None);
+                #endregion
+
                 #endregion
             }
             else if (chatType == ChatType.Group)
@@ -655,5 +824,88 @@ namespace HY.ApiService.Services
             });
         }
 
+
+
+
+
+
+
+
+
+
+        private async Task SendMessageDto(MessageDto messageDto)
+        {
+            if (messageDto == null)
+            {
+                return;
+            }
+
+            await _messageService.HandleNewMessage(messageDto);
+
+            if (messageDto.Chat_Type == ChatType.Private)
+            {
+                // 单人
+
+                var parallelOptions = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 20,
+                    CancellationToken = CancellationToken.None
+                };
+
+                var senderPlatformConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(messageDto.Sender_Id);
+                var receiverConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(messageDto.Target_Id);
+
+                #region 通知对方所有在线设备
+                var sendResults = new ConcurrentBag<bool>();
+
+                await Parallel.ForEachAsync(receiverConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        var success = await _chatHub.Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+
+                        sendResults.Add(success);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+
+                        sendResults.Add(false);
+                    }
+                });
+
+                // 至少有一个接收成功，更新未读数
+                if (sendResults.Any(x => x))
+                {
+                    await _chatService.ClearChatUnread(messageDto.Target_Id, messageDto.Sender_Id, ChatType.Private);
+                }
+                #endregion
+
+
+                #region 通知自己所有在线设备
+                await Parallel.ForEachAsync(senderPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).InvokeAsync<bool>("ReceiveMessage", messageDto, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "发送消息失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+
+                // 自己发的消息不需要更新未读数
+                #endregion
+            }
+            else if (messageDto.Chat_Type == ChatType.Group)
+            {
+                // 群聊
+
+            }
+
+        }
     }
 }
