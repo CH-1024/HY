@@ -8,7 +8,7 @@ namespace HY.ApiService.Services
 
         Task<string> HashGetAsync(string key, RedisValue redisValue);
         Task<string[]> HashGetAsync(string key, RedisValue[] redisValues);
-        Task HashSetAsync(string key, HashEntry[] hashEntries);
+        Task<bool> HashSetAsync(string key, HashEntry[] hashEntries);
         Task<bool> HashSetAsync(string key, HashEntry hashEntry);
 
         Task<string?> StringGetAsync(string key);
@@ -17,6 +17,7 @@ namespace HY.ApiService.Services
         Task<bool> KeyDeleteAsync(string key);
         Task<bool> KeyExpireAsync(string key, TimeSpan expiry);
         Task<bool> KeyExpireAsync(string key, DateTime expiry);
+        Task<bool> KeyPersistAsync(string key);
 
         Task<bool> SetAddAsync(string key, string value);
         Task<bool> SetRemoveAsync(string key, string value);
@@ -56,14 +57,16 @@ namespace HY.ApiService.Services
             return values?.Select(x => x.ToString()).ToArray() ?? [];
         }
 
-        public Task HashSetAsync(string key, HashEntry[] hashEntries)
+        public async Task<bool> HashSetAsync(string key, HashEntry[] hashEntries)
         {
-            return  Db.HashSetAsync(key, hashEntries);
+            await Db.HashSetAsync(key, hashEntries);
+            return true;
         }
 
         public async Task<bool> HashSetAsync(string key, HashEntry hashEntry)
         {
-            return await Db.HashSetAsync(key, hashEntry.Name, hashEntry.Value);
+            await Db.HashSetAsync(key, hashEntry.Name, hashEntry.Value);
+            return true;
         }
 
 
@@ -96,6 +99,10 @@ namespace HY.ApiService.Services
             return await Db.KeyExpireAsync(key, expiry);
         }
 
+        public async Task<bool> KeyPersistAsync(string key)
+        {
+            return await Db.KeyPersistAsync(key);
+        }
 
 
         public async Task<bool> SetAddAsync(string key, string value)

@@ -50,7 +50,7 @@ namespace HY.MAUI.PageModels.Chat
             CalleeName = query["CalleeName"]?.ToString();
         }
 
-        private async Task<bool> OnCallAccepted_ChatHub(string callId)
+        private async Task<bool> OnCallAccepted_ChatHub(string callId, DateTime start)
         {
             if (callId == _callId)
             {
@@ -59,6 +59,7 @@ namespace HY.MAUI.PageModels.Chat
                     { "CallId", callId },
                     { "TargetAvatar", CalleeAvatar },
                     { "TargetName", CalleeName },
+                    { "StartAt", start },
                 };
 
                 if (_createCallRequest.CallType == CallType.Video)

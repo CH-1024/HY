@@ -51,17 +51,19 @@
         <Label Text="图片" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>-->
 
-    <Grid RowDefinitions="*,*,*">
+    <Grid RowDefinitions="*,*,50,*">
 
         <Grid Grid.Row="1" RowDefinitions="auto,auto,*">
             <Image Grid.Row="0" Source="{Binding TargetAvatar}" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Background="AliceBlue" Aspect="AspectFit" />
             <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetName}" FontSize="Medium"/>
         </Grid>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
-            <Button Grid.Column="0" Text="静音" FontSize="18" WidthRequest="80" HeightRequest="80" CornerRadius="40"/>
-            <Button Grid.Column="1" Text="挂断" FontSize="18" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding HangUpCommand}"/>
-            <Button Grid.Column="2" Text="免提" FontSize="18" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding SoundCommand}"/>
+        <Label Grid.Row="2" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding StartTime, StringFormat='{0:hh\\:mm\\:ss}'}" FontSize="Medium"/>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,*,*">
+            <Button Grid.Column="0" Text="静音" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Background="White"/>
+            <Button Grid.Column="1" Text="挂断" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding HangUpCommand}" Background="Red"/>
+            <Button Grid.Column="2" Text="免提" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding SoundCommand}" Background="White"/>
         </Grid>
 
     </Grid>

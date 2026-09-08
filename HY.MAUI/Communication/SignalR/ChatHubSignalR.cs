@@ -219,7 +219,7 @@ namespace HY.MAUI.Communication.SignalR
 
             _connection?.On<ReceiveCallRequest>("ReceiveCall", OnReceiveCall);
             _connection?.On<string>("CallCanceled", OnCallCanceled);
-            _connection?.On<string, bool>("CallAccepted", OnCallAccepted);
+            _connection?.On<string, DateTime, bool>("CallAccepted", OnCallAccepted);
             _connection?.On<string>("CallRejected", OnCallRejected);
             _connection?.On<string>("CallAbnormal", OnCallAbnormal);
             _connection?.On<string>("CallHangUp", OnCallHangUp);
@@ -308,9 +308,9 @@ namespace HY.MAUI.Communication.SignalR
 
         #region HubMethods
 
-        public event Func<MessageDto, bool> OnReceiveMessage_ChatHub;
+        public event Func<MessageDto, Task<bool>> OnReceiveMessage_ChatHub;
 
-        private bool OnReceiveMessage(MessageDto messageDto)
+        private async Task<bool> OnReceiveMessage(MessageDto messageDto)
         {
             var currentUser = _globalCache.GetCurrentUser();
             var chat = _chatStore.GetChat(currentUser.Id, messageDto);
@@ -336,7 +336,8 @@ namespace HY.MAUI.Communication.SignalR
             }
 
             if (OnReceiveMessage_ChatHub == null) return false;
-            else return OnReceiveMessage_ChatHub.Invoke(messageDto);
+
+            return await UI.Run(async () => await OnReceiveMessage_ChatHub.Invoke(messageDto!));
         }
 
         private void OnRecallMessage(MessageDto messageDto)
@@ -362,7 +363,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        private bool OnRequestContact(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto, MessageDto? messageDto)
+        private async Task<bool> OnRequestContact(ContactRequestDto contactRequestDto, ContactDto? contactDto, ChatDto? chatDto, MessageDto? messageDto)
         {
             var currentUser = _globalCache.GetCurrentUser();
 
@@ -377,7 +378,8 @@ namespace HY.MAUI.Communication.SignalR
                 _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
 
                 if (OnReceiveMessage_ChatHub == null) return false;
-                else return OnReceiveMessage_ChatHub.Invoke(messageDto!);
+
+                return await UI.Run(async () => await OnReceiveMessage_ChatHub.Invoke(messageDto!));
             }
 
             return false;
@@ -417,12 +419,12 @@ namespace HY.MAUI.Communication.SignalR
             UI.Run(() => OnCallCanceled_ChatHub?.Invoke(callId));
         }
 
-        public event Func<string, Task<bool>> OnCallAccepted_ChatHub;
-        private async Task<bool> OnCallAccepted(string callId)
+        public event Func<string, DateTime, Task<bool>> OnCallAccepted_ChatHub;
+        private async Task<bool> OnCallAccepted(string callId, DateTime start)
         {
             if (OnCallAccepted_ChatHub == null) return false;
 
-            return await UI.Run(async () => await OnCallAccepted_ChatHub.Invoke(callId));
+            return await UI.Run(async () => await OnCallAccepted_ChatHub.Invoke(callId, start));
         }
 
         public event Action<string> OnCallRejected_ChatHub;

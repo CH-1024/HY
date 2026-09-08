@@ -62,11 +62,11 @@ namespace HY.ApiService.Services
 
             _logger.LogInformation("Redis key expired: {Key}", key);
 
-            // 只处理 Call:{CallId}
-            if (!key.StartsWith("Call:", StringComparison.Ordinal))
+            // 只处理 Expire:{CallId}
+            if (!key.StartsWith("CallExpire:", StringComparison.Ordinal))
                 return;
 
-            var callId = key["Call:".Length..];
+            var callId = key["CallExpire:".Length..];
 
             if (string.IsNullOrWhiteSpace(callId))
                 return;
@@ -76,9 +76,7 @@ namespace HY.ApiService.Services
             var _chatNotificationService = scope.ServiceProvider.GetRequiredService<IChatNotificationService>();
 
             // 使用 Scoped 的 _redisCallService
-            await _redisCallService.ExpiryCall(callId);
-
-            var callDto = await _redisCallService.GetCallInfo(callId);
+            var callDto = await _redisCallService.ExpiryCall(callId);
 
             await _chatNotificationService.ExpiryCallNotify(callDto!);
         }

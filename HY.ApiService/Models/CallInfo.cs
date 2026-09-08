@@ -20,5 +20,6 @@ namespace HY.ApiService.Models
 
         public DateTime CreateAt { get; set; }
         public DateTime ExpiryAt { get; set; }
+        public DateTime? StartAt { get; set; }
     }
 }

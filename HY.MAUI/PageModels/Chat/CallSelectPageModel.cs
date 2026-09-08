@@ -97,11 +97,14 @@ namespace HY.MAUI.PageModels.Chat
             var resp = await _chatHub.AcceptCall(_receiveCallRequest.CallId);
             if (resp.IsSucc)
             {
+                var startAt = resp.GetValue<DateTime>("StartAt");
+
                 var parameters = new Dictionary<string, object>
                 {
                     { "CallId", _receiveCallRequest.CallId },
                     { "TargetAvatar", CallerAvatar },
                     { "TargetName", CallerName },
+                    { "StartAt", startAt},
                 };
 
                 if (_receiveCallRequest.CallType == CallType.Video)
