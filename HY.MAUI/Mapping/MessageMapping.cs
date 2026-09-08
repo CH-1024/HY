@@ -98,7 +98,7 @@ namespace HY.MAUI.Mapping
                     Created_At = dto.Created_At,
                     IsSelf = isSelf,
 
-                    Call_Status = extraData != null && extraData.TryGetValue("CallStatus", out var callStatus) ? (CallStatus)int.Parse(callStatus?.ToString() ?? "0") : CallStatus.NotAnswered,
+                    Call_Status = extraData != null && extraData.TryGetValue("CallStatus", out var callStatus) ? (CallStatus)int.Parse(callStatus?.ToString() ?? "0") : CallStatus.Abnormal,
                     Duration = extraData != null && extraData.TryGetValue("Duration", out var duration) ? TimeSpan.FromSeconds(double.Parse(duration?.ToString() ?? "0")) : TimeSpan.Zero
                 };
             }

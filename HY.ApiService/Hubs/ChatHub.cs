@@ -95,13 +95,10 @@ namespace HY.ApiService.Hubs
 
                 await _redisCallService.AbnormalCall(callId!);
 
-                var callDto = await _redisCallService.GetCall(callId!);
+                var callDto = await _redisCallService.GetCallInfo(callId!);
 
-                var chatType = callDto!.ChatType;
-                var anotherUserId = userId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
-                var anotherUserPlatform = userId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
                 // 通知接收方
-                await _chatNotificationService.AbnormalCallNotify(chatType, callId!, anotherUserId, anotherUserPlatform);
+                await _chatNotificationService.AbnormalCallNotify(callDto!, userId);
             }
 
             await base.OnDisconnectedAsync(exception);
@@ -151,7 +148,7 @@ namespace HY.ApiService.Hubs
 
             var sec = _configuration.GetSection("Call:Expire").Value ?? throw new Exception("Call:Expire is not configured");
 
-            var callDto = new CallDto
+            var callDto = new CallInfo
             {
                 CallId = Guid.NewGuid().ToString("N"),
 
@@ -164,7 +161,7 @@ namespace HY.ApiService.Hubs
                 CalleeId = calleeId,
                 CalleePlatform = -1,        // -1: 未知
 
-                CallState = CallState.Calling,
+                CallState = CallStatus.Calling,
 
                 CreateAt = DateTime.UtcNow,
                 ExpiryAt = DateTime.UtcNow.AddSeconds(double.Parse(sec)),
@@ -183,7 +180,6 @@ namespace HY.ApiService.Hubs
                 Data = new Dictionary<string, object?>
                 {
                     { "CallId",  callDto.CallId},
-                    { "ExpiryAt",  callDto.ExpiryAt},
                 }
             };
         }
@@ -193,13 +189,13 @@ namespace HY.ApiService.Hubs
             var callerId = _userId;
             var callerPlatform = _devicePlatform;
 
-            var bol = await _redisCallService.CancelCall(callId, callerId, callerPlatform);
+            var bol = await _redisCallService.CancelCall(callId, callerId);
             if (!bol)
             {
                 return new Response(false, "取消通话失败");
             }
 
-            var callDto = await _redisCallService.GetCall(callId);
+            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             await _chatNotificationService.CancelCallNotify(callDto!);
@@ -218,7 +214,7 @@ namespace HY.ApiService.Hubs
                 return new Response(false, "接听通话失败");
             }
 
-            var callDto = await _redisCallService.GetCall(callId);
+            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             var acceptResult = await _chatNotificationService.AcceptCallNotify(callDto!);
@@ -237,7 +233,7 @@ namespace HY.ApiService.Hubs
                 return new Response(false, "拒绝通话失败");
             }
 
-            var callDto = await _redisCallService.GetCall(callId);
+            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             await _chatNotificationService.RejectCallNotify(callDto!);
@@ -255,14 +251,10 @@ namespace HY.ApiService.Hubs
                 return new Response(false, "挂断通话失败");
             }
 
-            var callDto = await _redisCallService.GetCall(callId);
-
-            var chatType = callDto!.ChatType;
-            var anotherUserId = userId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
-            var anotherUserPlatform = userId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
+            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
-            await _chatNotificationService.HangUpCallNotify(chatType, callId!, anotherUserId, anotherUserPlatform);
+            await _chatNotificationService.HangUpCallNotify(callDto!, userId);
 
             return new Response(true);
         }

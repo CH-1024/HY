@@ -112,7 +112,7 @@ namespace HY.MAUI.Communication.SignalR
         // InvokeAsync  等待服务器响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
-        public async Task<Response> CreateCall(CreateCallRequest request, CancellationToken cancel)
+        public async Task<Response> CreateCall(CreateCallRequest request, CancellationToken cancel = default)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> CancelCall(string callId, CancellationToken cancel)
+        public async Task<Response> CancelCall(string callId, CancellationToken cancel = default)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> AcceptCall(string callId, CancellationToken cancel)
+        public async Task<Response> AcceptCall(string callId, CancellationToken cancel = default)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> RejectCall(string callId, CancellationToken cancel)
+        public async Task<Response> RejectCall(string callId, CancellationToken cancel = default)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
-        public async Task<Response> HangUpCall(string callId, CancellationToken cancel)
+        public async Task<Response> HangUpCall(string callId, CancellationToken cancel = default)
         {
             try
             {
@@ -224,6 +224,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<string>("CallAbnormal", OnCallAbnormal);
             _connection?.On<string>("CallHangUp", OnCallHangUp);
             _connection?.On<string>("CallHandled", OnCallHandled);
+            _connection?.On<string>("CallExpiry", OnCallExpiry);
 
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
@@ -251,6 +252,7 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.Remove("CallAbnormal");
             _connection?.Remove("CallHangUp");
             _connection?.Remove("CallHandled");
+            _connection?.Remove("CallExpiry");
 
             _connection?.Remove("RequestContact");
             _connection?.Remove("RespondContact");
@@ -406,11 +408,6 @@ namespace HY.MAUI.Communication.SignalR
         public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
         private void OnReceiveCall(ReceiveCallRequest request)
         {
-            if (request.Expiry <= DateTime.UtcNow)
-            {
-                return;
-            }
-
             UI.Run(() => OnReceiveCall_ChatHub?.Invoke(request));
         }
 
@@ -452,6 +449,11 @@ namespace HY.MAUI.Communication.SignalR
             UI.Run(() => OnCallHandled_ChatHub?.Invoke(callId));
         }
 
+        public event Action<string> OnCallExpiry_ChatHub;
+        private void OnCallExpiry(string callId)
+        {
+            UI.Run(() => OnCallExpiry_ChatHub?.Invoke(callId));
+        }
         #endregion
 
 
