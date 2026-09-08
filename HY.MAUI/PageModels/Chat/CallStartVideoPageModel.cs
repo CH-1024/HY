@@ -26,7 +26,17 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref targetName, value); }
         }
 
+        private TimeSpan startTime;
+        public TimeSpan StartTime
+        {
+            get { return startTime; }
+            set { SetProperty(ref startTime, value); }
+        }
+
+
+
         string _callId;
+        DateTime _startAt;
 
 
         public CallStartVideoPageModel(ChatHubSignalR chatHub)
@@ -38,6 +48,7 @@ namespace HY.MAUI.PageModels.Chat
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             _callId = query["CallId"]?.ToString();
+            _startAt = (DateTime)query["StartAt"];
             TargetAvatar = query["TargetAvatar"]?.ToString();
             TargetName = query["TargetName"]?.ToString();
         }
@@ -60,10 +71,24 @@ namespace HY.MAUI.PageModels.Chat
             }
         }
 
+        private void DispatcherTimer_Tick(object? sender, EventArgs e)
+        {
+            StartTime = DateTime.UtcNow - _startAt;
+        }
+
+
+        IDispatcherTimer _timer;
 
         [RelayCommand]
         async Task Appearing()
         {
+            _timer = Application.Current!.Dispatcher.CreateTimer();
+
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.IsRepeating = true;
+            _timer.Tick += DispatcherTimer_Tick;
+            _timer.Start();
+
             _chatHub.OnCallAbnormal_ChatHub += OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub += OnCallHangUp_ChatHub;
         }
@@ -72,6 +97,9 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         void Disappearing()
         {
+            _timer.Stop();
+            _timer.Tick -= DispatcherTimer_Tick;
+
             _chatHub.OnCallAbnormal_ChatHub -= OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub -= OnCallHangUp_ChatHub;
         }

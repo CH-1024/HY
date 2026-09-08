@@ -119,7 +119,7 @@
                             <MultiTrigger TargetType="Label">
                                 <MultiTrigger.Conditions>
                                     <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
-                                    <BindingCondition Binding="{Binding Call_Status}" Value="NotAnswered"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Expired"/>
                                     <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
                                 </MultiTrigger.Conditions>
                                 <Setter Property="Text" Value="对方无应答"/>
@@ -128,7 +128,7 @@
                             <MultiTrigger TargetType="Label">
                                 <MultiTrigger.Conditions>
                                     <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
-                                    <BindingCondition Binding="{Binding Call_Status}" Value="NotAnswered"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Expired"/>
                                     <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
                                 </MultiTrigger.Conditions>
                                 <Setter Property="Text" Value="无应答"/>
@@ -136,12 +136,20 @@
 
                             <MultiTrigger TargetType="Label">
                                 <MultiTrigger.Conditions>
-                                    <BindingCondition Binding="{Binding Call_Status}" Value="Accepted"/>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Abnormal"/>
                                     <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
                                 </MultiTrigger.Conditions>
-                                <Setter Property="Text" Value="{Binding Duration,StringFormat='通话时长 {0}'}"/>
+                                <Setter Property="Text" Value="{Binding Duration,StringFormat='通话异常'}"/>
                             </MultiTrigger>
-                            
+
+                            <MultiTrigger TargetType="Label">
+                                <MultiTrigger.Conditions>
+                                    <BindingCondition Binding="{Binding Call_Status}" Value="Ended"/>
+                                    <BindingCondition Binding="{Binding Chat_Type}" Value="Private"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Text" Value="{Binding Duration, StringFormat='通话时长 {0:hh\\:mm\\:ss}'}" />
+                            </MultiTrigger>
+
                             <MultiTrigger TargetType="Label">
                                 <MultiTrigger.Conditions>
                                     <BindingCondition Binding="{Binding IsSelf}" Value="True"/>

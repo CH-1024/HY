@@ -21,7 +21,6 @@ namespace HY.ApiService.Hubs
 {
     public class ChatHub : Hub
     {
-        readonly IConfiguration _configuration;
         readonly IRedisConnectionService _redisConnectionService;
         readonly IRedisCallService _redisCallService;
         readonly IChatNotificationService _chatNotificationService;
@@ -36,9 +35,8 @@ namespace HY.ApiService.Hubs
         private int _devicePlatform => int.TryParse(Context.User?.FindFirst("DevicePlatform")?.Value, out var platform) ? platform : throw new Exception("DevicePlatform not found in claims");
 
 
-        public ChatHub(IConfiguration configuration, IRedisConnectionService redisConnectionService, IRedisCallService redisCallService, IChatNotificationService chatNotificationService, ILoginService loginService, IContactService contactService, IGroupMemberService groupMemberService)
+        public ChatHub(IRedisConnectionService redisConnectionService, IRedisCallService redisCallService, IChatNotificationService chatNotificationService, ILoginService loginService, IContactService contactService, IGroupMemberService groupMemberService)
         {
-            _configuration = configuration;
             _redisConnectionService = redisConnectionService;
             _redisCallService = redisCallService;
             _chatNotificationService = chatNotificationService;
@@ -91,11 +89,7 @@ namespace HY.ApiService.Hubs
             var isCalling = await _redisCallService.IsUserPlatformCalling(userId, platform);
             if (isCalling)
             {
-                var callId = await _redisCallService.GetCallId(userId);
-
-                await _redisCallService.AbnormalCall(callId!);
-
-                var callDto = await _redisCallService.GetCallInfo(callId!);
+                var callDto = await _redisCallService.AbnormalCall(userId!);
 
                 // 通知接收方
                 await _chatNotificationService.AbnormalCallNotify(callDto!, userId);
@@ -146,28 +140,8 @@ namespace HY.ApiService.Hubs
                 return new Response(false, "类型异常");
             }
 
-            var sec = _configuration.GetSection("Call:Expire").Value ?? throw new Exception("Call:Expire is not configured");
-
-            var callDto = new CallInfo
-            {
-                CallId = Guid.NewGuid().ToString("N"),
-
-                CallType = callType,
-                ChatType = chatType,
-
-                CallerId = callerId,
-                CallerPlatform = callerPlatform,
-
-                CalleeId = calleeId,
-                CalleePlatform = -1,        // -1: 未知
-
-                CallState = CallStatus.Calling,
-
-                CreateAt = DateTime.UtcNow,
-                ExpiryAt = DateTime.UtcNow.AddSeconds(double.Parse(sec)),
-            };
-            var bol = await _redisCallService.CreateCall(callDto);
-            if (!bol)
+            var callDto = await _redisCallService.CreateCall(callType, chatType, callerId, callerPlatform, calleeId);
+            if (callDto == null)
             {
                 return new Response(false, "创建通话失败");
             }
@@ -189,13 +163,11 @@ namespace HY.ApiService.Hubs
             var callerId = _userId;
             var callerPlatform = _devicePlatform;
 
-            var bol = await _redisCallService.CancelCall(callId, callerId);
-            if (!bol)
+            var callDto = await _redisCallService.CancelCall(callId, callerId);
+            if (callDto == null)
             {
                 return new Response(false, "取消通话失败");
             }
-
-            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             await _chatNotificationService.CancelCallNotify(callDto!);
@@ -208,18 +180,22 @@ namespace HY.ApiService.Hubs
             var calleeId = _userId;
             var calleePlatform = _devicePlatform;
 
-            var bol = await _redisCallService.AcceptCall(callId, calleeId, calleePlatform);
-            if (!bol)
+            var callDto = await _redisCallService.AcceptCall(callId, calleeId, calleePlatform);
+            if (callDto == null)
             {
                 return new Response(false, "接听通话失败");
             }
 
-            var callDto = await _redisCallService.GetCallInfo(callId);
-
             // 通知接收方
             var acceptResult = await _chatNotificationService.AcceptCallNotify(callDto!);
 
-            return new Response(acceptResult);
+            return new Response(acceptResult)
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    { "StartAt", callDto.StartAt }
+                }
+            };
         }
 
         public async Task<Response> RejectCall(string callId)
@@ -227,13 +203,11 @@ namespace HY.ApiService.Hubs
             var calleeId = _userId;
             var calleePlatform = _devicePlatform;
 
-            var bol = await _redisCallService.RejectCall(callId, calleeId, calleePlatform);
-            if (!bol)
+            var callDto = await _redisCallService.RejectCall(callId, calleeId, calleePlatform);
+            if (callDto == null)
             {
                 return new Response(false, "拒绝通话失败");
             }
-
-            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             await _chatNotificationService.RejectCallNotify(callDto!);
@@ -245,13 +219,11 @@ namespace HY.ApiService.Hubs
         {
             var userId = _userId;
 
-            var bol = await _redisCallService.HangUpCall(callId, userId);
-            if (!bol)
+            var callDto = await _redisCallService.HangUpCall(callId, userId);
+            if (callDto == null)
             {
                 return new Response(false, "挂断通话失败");
             }
-
-            var callDto = await _redisCallService.GetCallInfo(callId);
 
             // 通知接收方
             await _chatNotificationService.HangUpCallNotify(callDto!, userId);

@@ -155,32 +155,29 @@ namespace HY.MAUI.PageModels.Chat
             }
         }
 
-        bool ChatHub_OnReceiveMessage_ChatHub(MessageDto messageDto)
+        private async Task<bool> ChatHub_OnReceiveMessage_ChatHub(MessageDto messageDto)
         {
             if (messageDto.Chat_Type != _currentChat.Type) return false;
             else if (messageDto.Chat_Type == ChatType.Private && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Sender_Id) return false;
             else if (messageDto.Chat_Type == ChatType.Group && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Target_Id) return false;
 
-            UI.Run(async() =>
+            _currentChat.Unread_Count = 0;
+
+            if (_lastVisibleItemIndex <= MessageCollection.Count - 2)
             {
-                _currentChat.Unread_Count = 0;
+                UnreadCount = 0;
+                ShowUnread = false;
 
-                if (_lastVisibleItemIndex <= MessageCollection.Count - 2)
-                {
-                    UnreadCount = 0;
-                    ShowUnread = false;
+                _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
+                //await Task.Delay(100);
+            }
+            else
+            {
+                UnreadCount++;
+                ShowUnread = true;
+            }
 
-                    await Task.Delay(100);
-                    _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
-                }
-                else
-                {
-                    UnreadCount++;
-                    ShowUnread = true;
-                }
-            });
-
-            return true;
+            return await Task.FromResult(true);
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
