@@ -5,9 +5,9 @@ using HY.MAUI.PageModels.Chat.MessageCommands;
 
 namespace HY.MAUI.Controls;
 
-public partial class VideoCallBubble : ContentView
+public partial class CallVoiceBubble : ContentView
 {
-    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(VideoCallBubble), null);
+    public static readonly BindableProperty CommandProperty = BindableProperty.Create(nameof(Command), typeof(IAsyncRelayCommand), typeof(CallVoiceBubble), null);
     public IAsyncRelayCommand Command
     {
         get => (IAsyncRelayCommand)GetValue(CommandProperty);
@@ -16,7 +16,7 @@ public partial class VideoCallBubble : ContentView
 
 
 
-    public VideoCallBubble()
+    public CallVoiceBubble()
     {
         InitializeComponent();
     }
@@ -32,7 +32,7 @@ public partial class VideoCallBubble : ContentView
         var param = new MessageCommandInvocation
         {
             Command = CommandNames.ContactDetail,
-            Message = this.BindingContext as VideoCallMessageVM,
+            Message = this.BindingContext as CallVoiceMessageVM,
         };
 
         if (Command != null && Command.CanExecute(param))
@@ -46,12 +46,12 @@ public partial class VideoCallBubble : ContentView
         if (sender is not Border border)
             return;
 
-        if (border.BindingContext is not VideoCallMessageVM msg)
+        if (border.BindingContext is not CallVoiceMessageVM msg)
             return;
 
         var param = new MessageCommandInvocation
         {
-            Command = CommandNames.TapVideoCallMessage,
+            Command = CommandNames.TapVoiceCallMessage,
             Message = msg,
         };
 
@@ -66,14 +66,14 @@ public partial class VideoCallBubble : ContentView
         if (sender is not Border border)
             return;
 
-        if (border.BindingContext is not VideoCallMessageVM msg)
+        if (border.BindingContext is not CallVoiceMessageVM msg)
             return;
 
         var flyout = CreateFlyout(msg);
         FlyoutBase.SetContextFlyout(border, flyout);
     }
 
-    private async Task MenuFlyoutItem_Delete_Clicked(VideoCallMessageVM msg)
+    private async Task MenuFlyoutItem_Delete_Clicked(CallVoiceMessageVM msg)
     {
         var param = new MessageCommandInvocation
         {
@@ -89,7 +89,7 @@ public partial class VideoCallBubble : ContentView
 
 
 
-    private MenuFlyout CreateFlyout(VideoCallMessageVM msg)
+    private MenuFlyout CreateFlyout(CallVoiceMessageVM msg)
     {
         var flyout = new MenuFlyout();
 

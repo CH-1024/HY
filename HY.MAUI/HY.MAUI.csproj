@@ -71,17 +71,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.1" />
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="9.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
+		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Compile Update="AppShell_Desktop.xaml.cs">
 	    <DependentUpon>AppShell_Desktop.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Controls\CallVideoBubble.xaml.cs">
+	    <DependentUpon>CallVideoBubble.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Controls\CallVoiceBubble.xaml.cs">
+	    <DependentUpon>CallVoiceBubble.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Pages\Chat\CallSelectPage.xaml.cs">
 	    <DependentUpon>CallSelectPage.xaml</DependentUpon>
@@ -128,7 +134,13 @@
 	  <MauiXaml Update="Controls\VideoBubble.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Controls\VideoCallBubble.xaml">
+	  <MauiXaml Update="Controls\CallVideoBubble.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Controls\VoiceBubble.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Controls\CallVoiceBubble.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\CallStartVideoPage.xaml">
@@ -164,6 +176,9 @@
 	  <MauiXaml Update="Pages\Chat\MessagePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Pages\Contact\Popups\SelectCallPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\Contact\SearchContactPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -190,7 +205,6 @@
 	<ItemGroup>
 	  <Folder Include="Behaviors\" />
 	  <Folder Include="Handlers\" />
-	  <Folder Include="Pages\Contact\Popups\" />
 	  <Folder Include="Pages\Login\Popups\" />
 	  <Folder Include="Pages\Mine\Popups\" />
 	</ItemGroup>

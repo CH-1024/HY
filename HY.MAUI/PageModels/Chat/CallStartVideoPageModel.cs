@@ -1,16 +1,26 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
+using HY.MAUI.Mapping;
+using HY.MAUI.Models.MsgVM;
+using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Stores;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallStartVideoPageModel : ObservableObject, IQueryAttributable
     {
-        readonly ChatHubSignalR _chatHub;
+        private readonly IGlobalCache _globalCache;
+
+        private readonly ChatHubSignalR _chatHub;
+
+        private readonly ChatStore _chatStore;
 
         private string targetAvatar;
         public string TargetAvatar
@@ -39,9 +49,11 @@ namespace HY.MAUI.PageModels.Chat
         DateTime _startAt;
 
 
-        public CallStartVideoPageModel(ChatHubSignalR chatHub)
+        public CallStartVideoPageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore)
         {
+            _globalCache = globalCache;
             _chatHub = chatHub;
+            _chatStore = chatStore;
         }
 
 
@@ -71,6 +83,29 @@ namespace HY.MAUI.PageModels.Chat
             }
         }
 
+        private Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            var chat = _chatStore.GetChat(currentUser.Id, msgDto);
+            if (chat != null)
+            {
+                var messageVM = msgDto.ToVM(currentUser.Id);
+                if (messageVM is CallVideoMessageVM videoCallMsg && videoCallMsg.CallId == _callId)
+                {
+                    if (!messageVM.IsSelf)
+                    {
+                        if (chat.Unread_Count > 0)
+                        {
+                            chat.Unread_Count -= 1;
+                        }
+                    }
+
+                    return Task.FromResult(true);
+                }
+            }
+            return Task.FromResult(false);
+        }
+
         private void DispatcherTimer_Tick(object? sender, EventArgs e)
         {
             StartTime = DateTime.UtcNow - _startAt;
@@ -91,6 +126,7 @@ namespace HY.MAUI.PageModels.Chat
 
             _chatHub.OnCallAbnormal_ChatHub += OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub += OnCallHangUp_ChatHub;
+            _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
         }
 
 
@@ -102,13 +138,13 @@ namespace HY.MAUI.PageModels.Chat
 
             _chatHub.OnCallAbnormal_ChatHub -= OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub -= OnCallHangUp_ChatHub;
+            _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
         }
 
         [RelayCommand]
         async Task HangUp()
         {
             await _chatHub.HangUpCall(_callId, CancellationToken.None);
-            await Shell.Current.GoToAsync("..", false);
         }
 
     }

@@ -56,7 +56,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="联系人资料" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="联系人资料" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -111,7 +111,7 @@
             <VerticalStackLayout Spacing="10">
                 <Button Style="{StaticResource IconBtn1}" Text="发消息" Command="{Binding SendMessageCommand}"/>
 
-                <Button Style="{StaticResource IconBtn1}" Text="音视频通话"/>
+                <Button Style="{StaticResource IconBtn1}" Text="音视频通话" Clicked="SelectCall_Clicked"/>
             </VerticalStackLayout>
 
         </VerticalStackLayout>

@@ -21,7 +21,7 @@
 
 
     <Shell.TitleView>
-        <Label Text="聊天" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="聊天" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -105,6 +105,18 @@
                                                 </MultiTrigger.Conditions>
                                                 <Setter Property="Text" Value="[图片]"/>
                                             </MultiTrigger>
+
+                                            <MultiTrigger TargetType="Label">
+                                                <MultiTrigger.Conditions>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Voice"/>
+                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
+                                                </MultiTrigger.Conditions>
+                                                <Setter Property="Text" Value="[语音]"/>
+                                            </MultiTrigger>
+
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="VoiceCall">
+                                                <Setter Property="Text" Value="[语音通话]"/>
+                                            </DataTrigger>
 
                                             <MultiTrigger TargetType="Label">
                                                 <MultiTrigger.Conditions>

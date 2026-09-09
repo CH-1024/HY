@@ -26,13 +26,13 @@ namespace HY.MAUI
             var window = new Window();
 
 #if WINDOWS || MACCATALYST
-            //window.MinimumHeight = 900;
-            //window.MaximumHeight = 900;
-            //window.MinimumWidth = 480;
-            //window.MaximumWidth = 480;
+            window.MinimumHeight = 900;
+            window.MaximumHeight = 900;
+            window.MinimumWidth = 600;
+            window.MaximumWidth = 600;
 
             window.Height = 900;
-            window.Width = 480;
+            window.Width = 600;
 #endif
 
             if (_loginService.IsLoggedIn)

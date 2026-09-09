@@ -9,25 +9,25 @@
     xmlns:contact="clr-namespace:HY.MAUI.Pages.Contact"
     xmlns:mine="clr-namespace:HY.MAUI.Pages.Mine"
     Shell.FlyoutBehavior="Locked"
-    Shell.FlyoutWidth="60"
+    Shell.FlyoutWidth="100"
     Title="HY.MAUI">
 
     <Shell.ItemTemplate>
         <DataTemplate>
-            <Image Source="{Binding FlyoutIcon}" Margin="0" Aspect="AspectFit" HeightRequest="35" WidthRequest="35" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+            <!--<Image Source="{Binding FlyoutIcon}" Margin="0" Aspect="AspectFit" HeightRequest="35" WidthRequest="35" HorizontalOptions="Fill" VerticalOptions="Fill"/>-->
 
-            <!--<Grid ColumnDefinitions="35,60">
+            <Grid ColumnDefinitions="35,60">
                 <Image Source="{Binding FlyoutIcon}" Margin="5" HeightRequest="35" WidthRequest="35" VerticalOptions="Center"/>
                 <Label Grid.Column="1" Text="{Binding Title}" HeightRequest="45" WidthRequest="80" VerticalTextAlignment="Center" />
-            </Grid>-->
+            </Grid>
             
         </DataTemplate>
     </Shell.ItemTemplate>
 
-    <ShellContent Title="Chat" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}" />
+    <ShellContent Title="聊天" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}" />
 
-    <ShellContent Title="Contact" FlyoutIcon="dotnet_bot.png"  ContentTemplate="{DataTemplate contact:ContactPage}" />
+    <ShellContent Title="好友" FlyoutIcon="dotnet_bot.png"  ContentTemplate="{DataTemplate contact:ContactPage}" />
 
-    <ShellContent Title="Mine" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}" />
+    <ShellContent Title="我的" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}" />
 
 </Shell>

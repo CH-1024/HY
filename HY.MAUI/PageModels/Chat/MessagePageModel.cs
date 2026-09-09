@@ -123,43 +123,18 @@ namespace HY.MAUI.PageModels.Chat
                 {
                     var newMessage = e.NewItems[0] as MessageVM;
 
-                    if (newMessage is TextMessageVM textMessageVM)
-                    {
-                        _currentChat.Last_Msg_Time = textMessageVM.Created_At;
-                        _currentChat.Last_Msg_Brief = textMessageVM.Content?.Length > 20 ? textMessageVM.Content.Substring(0, 20) + "..." : textMessageVM.Content;
-                        _currentChat.Last_Msg_Status = textMessageVM.Message_Status;
-                        _currentChat.Is_Deleted = false;
-                    }
-                    else if (newMessage is ImageMessageVM imageMessageVM)
-                    {
-                        _currentChat.Last_Msg_Time = imageMessageVM.Created_At;
-                        //_currentChat.Last_Msg_Brief = "[图片]";
-                        _currentChat.Last_Msg_Status = imageMessageVM.Message_Status;
-                        _currentChat.Is_Deleted = false;
-                    }
-                    else if (newMessage is VideoMessageVM videoMessageVM)
-                    {
-                        _currentChat.Last_Msg_Time = videoMessageVM.Created_At;
-                        //_currentChat.Last_Msg_Brief = "[视频]";
-                        _currentChat.Last_Msg_Status = videoMessageVM.Message_Status;
-                        _currentChat.Is_Deleted = false;
-                    }
-
-                    UI.Run(async() =>
-                    {
-                        await Task.Delay(100);
-                        _collectionView.ScrollTo(newMessage, position: ScrollToPosition.End, animate: true);
-                    });
+                    UI.Run(() => _collectionView.ScrollTo(newMessage, position: ScrollToPosition.End, animate: true));
 
                 }
             }
         }
 
-        private async Task<bool> ChatHub_OnReceiveMessage_ChatHub(MessageDto messageDto)
+        private Task<bool> OnReceiveMessage_ChatHub(MessageDto messageDto)
         {
-            if (messageDto.Chat_Type != _currentChat.Type) return false;
-            else if (messageDto.Chat_Type == ChatType.Private && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Sender_Id) return false;
-            else if (messageDto.Chat_Type == ChatType.Group && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Target_Id) return false;
+            if (messageDto.Chat_Type != _currentChat.Type) return Task.FromResult(false);
+            else if (messageDto.Chat_Type == ChatType.Private && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Sender_Id) return Task.FromResult(false);
+            else if (messageDto.Chat_Type == ChatType.Group && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Target_Id) return Task.FromResult(false);
+            else if (messageDto.Message_Type == MessageType.System && _currentUser.Id != messageDto.Sender_Id && _currentChat.Target_Id != messageDto.Target_Id) return Task.FromResult(false);
 
             _currentChat.Unread_Count = 0;
 
@@ -177,7 +152,7 @@ namespace HY.MAUI.PageModels.Chat
                 ShowUnread = true;
             }
 
-            return await Task.FromResult(true);
+            return Task.FromResult(true);
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -216,8 +191,6 @@ namespace HY.MAUI.PageModels.Chat
             if (_isNavigatedTo) return;
 
             MessageCollection = _messageStore.GetMessages(_currentChat.Id);
-
-            MessageCollection.CollectionChanged += MessageCollection_CollectionChanged;
         }
 
         [RelayCommand]
@@ -225,20 +198,23 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (_isNavigatedTo) return;
 
-            MessageCollection.CollectionChanged -= MessageCollection_CollectionChanged;
         }
 
         [RelayCommand]
-        async Task Loaded()
+        void Loaded()
         {
             if (_isNavigatedTo) return;
 
-            _chatHub.OnReceiveMessage_ChatHub += ChatHub_OnReceiveMessage_ChatHub;
+            _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
+            //MessageCollection.CollectionChanged += MessageCollection_CollectionChanged;
 
             if (_currentChat.Unread_Count != 0)
             {
-                var resp = await _chatApi.ReadAll(_currentChat.Id);
-                if (resp?.IsSucc == true) _currentChat.Unread_Count = 0;
+                _ = Task.Run(async() =>
+                {
+                    var resp = await _chatApi.ReadAll(_currentChat.Id);
+                    if (resp?.IsSucc == true) _currentChat.Unread_Count = 0;
+                });
             }
         }
 
@@ -247,7 +223,8 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (_isNavigatedTo) return;
 
-            _chatHub.OnReceiveMessage_ChatHub -= ChatHub_OnReceiveMessage_ChatHub;
+            _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
+            //MessageCollection.CollectionChanged -= MessageCollection_CollectionChanged;
         }
 
         [RelayCommand]
@@ -410,7 +387,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task TapVideoCallMessage(MessageVM message)
         {
-            if (message is VideoCallMessageVM videoCallMessage)
+            if (message is CallVideoMessageVM videoCallMessage)
             {
                 ;
             }
@@ -426,7 +403,7 @@ namespace HY.MAUI.PageModels.Chat
 
             var textMessageVM = CreateTextMessageVM();
 
-            MessageCollection.Add(textMessageVM);
+            HandleMessage(textMessageVM);
 
             await _messageApi.SendMessage(_currentChat, textMessageVM);
 
@@ -450,7 +427,7 @@ namespace HY.MAUI.PageModels.Chat
             {
                 var imageMessageVM = CreateImageMessageVM();
 
-                MessageCollection.Add(imageMessageVM);
+                HandleMessage(imageMessageVM);
 
                 tasks.Add(UploadImageAsync(imageResult, imageMessageVM, semaphore));
             }
@@ -474,7 +451,7 @@ namespace HY.MAUI.PageModels.Chat
             {
                 var videoMessageVM = CreateVideoMessageVM();
 
-                MessageCollection.Add(videoMessageVM);
+                HandleMessage(videoMessageVM);
 
                 tasks.Add(UploadVideoAsync(videoResult, videoMessageVM, semaphore));
             }
@@ -483,17 +460,34 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         [RelayCommand]
+        async Task SendVoiceCall()
+        {
+            var isOnline = await _loginApi.Ping();
+            if (!isOnline)
+            {
+                await Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "网络连接不可用", "确定");
+                return;
+            }
+
+            var request = new CreateCallRequest
+            {
+                CallType = CallType.Voice,
+                ChatType = _currentChat!.Type,
+                CalleeId = _currentChat!.Target_Id
+            };
+
+            var parameters = new Dictionary<string, object>
+            {
+                { "CreateCallRequest", request },
+                { "CalleeAvatar", _currentChat?.Target_Avatar },
+                { "CalleeName", _currentChat?.Target_Name },
+            };
+            await Shell.Current.GoToAsync(nameof(CallCreatePage), false, parameters);
+        }
+
+        [RelayCommand]
         async Task SendVideoCall()
         {
-            //var videoCallMessageVM = CreateVideoCallMessageVM();
-
-            //MessageCollection.Add(videoCallMessageVM);
-
-            //await _messageApi.SendMessage(_currentChat, videoCallMessageVM);
-
-            //await _chatHub.CreateCall();
-
-
             var isOnline = await _loginApi.Ping();
             if (!isOnline)
             {
@@ -528,6 +522,19 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
+        void HandleMessage(MessageVM msgVM)
+        {
+            MessageCollection.Add(msgVM);
+
+            UI.Run(() => _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true));
+
+            //chat.Last_Msg_Id = messageVM.Id;
+            _currentChat.Last_Msg_Time = msgVM.Created_At;
+            _currentChat.Last_Msg_Brief = msgVM is TextMessageVM textMsg ? textMsg.Content?.Length > 20 ? textMsg.Content.Substring(0, 20) + "..." : textMsg.Content : null;
+            _currentChat.Last_Msg_Status = msgVM.Message_Status;
+            //_currentChat.Unread_Count += msgVM.IsSelf ? 0 : 1;
+            _currentChat.Is_Deleted = false;
+        }
 
 
 
@@ -552,6 +559,7 @@ namespace HY.MAUI.PageModels.Chat
 
             return result?.ToList() ?? [];
         }
+
 
 
         TextMessageVM CreateTextMessageVM()
@@ -602,22 +610,6 @@ namespace HY.MAUI.PageModels.Chat
             };
         }
 
-        VideoCallMessageVM CreateVideoCallMessageVM()
-        {
-            return new VideoCallMessageVM
-            {
-                Chat_Type = _currentChat.Type,
-                Sender_Id = _currentUser.Id,
-                Sender_Avatar = _currentUser.Avatar,
-                Target_Id = _currentChat.Target_Id,
-                Created_At = DateTime.UtcNow,
-                IsSelf = true,
-                Message_Status = MessageStatus.Sending,
-
-                Call_Status = CallStatus.Accepted,
-                Duration = TimeSpan.FromSeconds(10000)
-            };
-        }
 
 
         async Task UploadImageAsync(FileResult photoResult, ImageMessageVM vm, SemaphoreSlim semaphore)

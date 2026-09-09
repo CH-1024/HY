@@ -21,10 +21,10 @@
 
                 <Label Text="登录" FontSize="24" />
 
-                <Entry Text="{Binding Username}" Placeholder="用户名" />
-                <Entry Text="{Binding Password}" Placeholder="密码" IsPassword="True" />
+                <Entry x:Name="username" Text="{Binding Username}" Placeholder="用户名" toolkit:SetFocusOnEntryCompletedBehavior.NextElement="{x:Reference password}"/>
+                <Entry x:Name="password" Text="{Binding Password}" Placeholder="密码" toolkit:SetFocusOnEntryCompletedBehavior.NextElement="{x:Reference login}" IsPassword="True"/>
 
-                <Button Text="登录" Command="{Binding LoginCommand}"/>
+                <Button x:Name="login" Text="登录" Command="{Binding LoginCommand}"/>
                 <Button Text="注册" Command="{Binding RegisterCommand}"/>
             </VerticalStackLayout>
             <ActivityIndicator IsRunning="{Binding LoginCommand.IsRunning}" Color="White" HorizontalOptions="Center" VerticalOptions="Center" />

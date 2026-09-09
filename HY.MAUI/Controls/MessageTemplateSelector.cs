@@ -13,8 +13,8 @@ namespace HY.MAUI.Controls
         public DataTemplate? VoiceTemplate { get; set; }
         public DataTemplate? VideoTemplate { get; set; }
         public DataTemplate? SystemTemplate { get; set; }
-        public DataTemplate? VoiceCallTemplate { get; set; }
-        public DataTemplate? VideoCallTemplate { get; set; }
+        public DataTemplate? CallVoiceTemplate { get; set; }
+        public DataTemplate? CallVideoTemplate { get; set; }
 
         protected override DataTemplate? OnSelectTemplate(object item, BindableObject container)
         {
@@ -26,8 +26,8 @@ namespace HY.MAUI.Controls
                 VoiceMessageVM => VoiceTemplate,
                 VideoMessageVM => VideoTemplate,
                 SystemMessageVM => SystemTemplate,
-                VoiceCallMessageVM => VoiceCallTemplate,
-                VideoCallMessageVM => VideoCallTemplate,
+                CallVoiceMessageVM => CallVoiceTemplate,
+                CallVideoMessageVM => CallVideoTemplate,
                 _ => throw new InvalidOperationException("Unsupported message type.")
             };
         }

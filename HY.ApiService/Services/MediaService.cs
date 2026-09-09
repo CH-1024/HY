@@ -1065,7 +1065,7 @@ namespace HY.ApiService.Services
             var ratio = (float)width / original.Width;
             var height = (int)(original.Height * ratio);
 
-            using var resized = original.Resize(new SKImageInfo(width.Value, height), SKFilterQuality.Medium);
+            using var resized = original.Resize(new SKImageInfo(width.Value, height), new SKSamplingOptions(SKFilterMode.Linear));
 
             using var image = SKImage.FromBitmap(resized);
             using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality.Value);
