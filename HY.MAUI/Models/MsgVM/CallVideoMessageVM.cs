@@ -5,8 +5,10 @@ using System.Text;
 
 namespace HY.MAUI.Models.MsgVM
 {
-    public class VoiceCallMessageVM : MessageVM
+    public class CallVideoMessageVM : MessageVM
     {
+        public string? CallId { get; set; }
+
         private CallStatus call_Status;
         public CallStatus Call_Status
         {

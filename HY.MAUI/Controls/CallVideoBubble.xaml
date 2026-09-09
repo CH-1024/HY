@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="HY.MAUI.Controls.VideoCallBubble"
-             x:Name="_VideoCallBubble"
+             x:Class="HY.MAUI.Controls.CallVideoBubble"
+             x:Name="_CallVideoBubble"
              xmlns:msgvm="clr-namespace:HY.MAUI.Models.MsgVM"
              xmlns:controls="clr-namespace:HY.MAUI.Controls"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             x:DataType="msgvm:VideoCallMessageVM">
+             x:DataType="msgvm:CallVideoMessageVM">
+
+    <ContentView.Resources>
+
+        <PathGeometry x:Key="VideoIcon" Figures="M94.208 192S0 192 0 282.624v458.752C0 832 94.272 832 94.272 832h498.176s94.272 0 94.272-90.624v-456C686.656 192 592.32 192 592.32 192H94.208z m861.312 49.472L769.792 384.256c-5.44 5.504-8.256 11.008-8.256 16.512v227.968c0 5.504 2.816 13.76 8.32 16.512L955.52 788.032c3.84 3.456 8.768 5.376 13.888 5.504 2.816 0 5.504 0 11.072-2.752 8.32-2.752 11.072-10.944 11.072-19.2V257.92a20.672 20.672 0 0 0-13.888-19.2c-8.256-2.752-16.576-2.752-22.144 2.752z" />
+
+    </ContentView.Resources>
 
     <ContentView.Triggers>
 
@@ -86,7 +92,7 @@
 
                 <!-- 内容 -->
                 <Grid ColumnDefinitions="auto,*,auto" HorizontalOptions="Start">
-                    
+
                     <Grid.Triggers>
 
                         <!-- 自己的消息在右 -->
@@ -96,7 +102,7 @@
 
                     </Grid.Triggers>
 
-                    <Path Grid.Column="0" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" HorizontalOptions="Center" VerticalOptions="Center" Data="M 3,6 Q 3,4 5,4 H 13 Q 15,4 15,6 V 12 Q 15,14 13,14 H 5 Q 3,14 3,12 Z M 15,7 L 20,4.5 V 13.5 L 15,11 Z" IsVisible="False">
+                    <Path Grid.Column="0" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" HorizontalOptions="Center" VerticalOptions="Center" Data="{StaticResource VideoIcon}" IsVisible="False">
                         <Path.Triggers>
                             <DataTrigger TargetType="Path" Binding="{Binding IsSelf}" Value="False">
                                 <Setter Property="IsVisible" Value="True"/>
@@ -189,7 +195,7 @@
                         </Label.Triggers>
                     </Label>
 
-                    <Path Grid.Column="2" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" ScaleX="-1" HorizontalOptions="Center" VerticalOptions="Center" Data="M 3,6 Q 3,4 5,4 H 13 Q 15,4 15,6 V 12 Q 15,14 13,14 H 5 Q 3,14 3,12 Z M 15,7 L 20,4.5 V 13.5 L 15,11 Z" IsVisible="False">
+                    <Path Grid.Column="2" Margin="8,0" WidthRequest="18" HeightRequest="18" Fill="#999999" Aspect="Uniform" HorizontalOptions="Center" VerticalOptions="Center" Data="{StaticResource VideoIcon}" IsVisible="False" ScaleX="-1">
                         <Path.Triggers>
                             <DataTrigger TargetType="Path" Binding="{Binding IsSelf}" Value="True">
                                 <Setter Property="IsVisible" Value="True"/>

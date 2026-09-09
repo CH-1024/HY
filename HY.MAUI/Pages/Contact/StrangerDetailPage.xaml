@@ -55,7 +55,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="用户资料" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="用户资料" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>

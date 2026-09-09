@@ -42,12 +42,12 @@ namespace HY.ApiService.Services
 
         private static string UserKey(long userId)
         {
-            return $"User:{userId}:Call";
+            return $"Call:User:{userId}";
         }
 
         private string ExpireKey(string callId)
         {
-            return $"CallExpire:{callId}";
+            return $"Call:Expire:{callId}";
         }
 
 
@@ -148,9 +148,9 @@ namespace HY.ApiService.Services
             transaction.StringSetAsync(expireKey, callDto.CallId);
 
             // 设置过期时间
-            //transaction.KeyExpireAsync(callKey, callDto.ExpiryAt);    // CallKey 不设置过期时间，在 ExpireKey 过期时手动清理
-            transaction.KeyExpireAsync(callerKey, callDto.ExpiryAt);
-            transaction.KeyExpireAsync(calleeKey, callDto.ExpiryAt);
+            //transaction.KeyExpireAsync(callKey, callDto.ExpiryAt);    // 在 ExpireKey 过期时手动清理
+            //transaction.KeyExpireAsync(callerKey, callDto.ExpiryAt);  // 在 ExpireKey 过期时手动清理
+            //transaction.KeyExpireAsync(calleeKey, callDto.ExpiryAt);  // 在 ExpireKey 过期时手动清理
             transaction.KeyExpireAsync(expireKey, callDto.ExpiryAt);    // ExpireKey 负责触发 expired
 
             if (!await transaction.ExecuteAsync())
@@ -386,13 +386,6 @@ namespace HY.ApiService.Services
 
             return await _redis.StringGetAsync(userKey);
         }
-
-        //private async Task UpdateCallState(string callId, CallState newState)
-        //{
-        //    var callKey = CallKey(callId);
-
-        //     await _redis.HashSetAsync(callKey, new HashEntry("CallState", newState.ToString()));
-        //}
 
     }
 }

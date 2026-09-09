@@ -123,6 +123,16 @@ public partial class MessagePage : ContentPage
         }
     }
 
+    private async void Send_VoiceCall_Clicked(object sender, EventArgs e)
+    {
+        await CollapseWithStatus();
+
+        if (BindingContext is MessagePageModel vm)
+        {
+            vm.SendVoiceCallCommand.Execute(null);
+        }
+    }
+
 
     async Task ExpandWithStatus()
     {

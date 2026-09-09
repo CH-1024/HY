@@ -309,6 +309,14 @@ namespace HY.MAUI.Communication.SignalR
         #region HubMethods
 
         public event Func<MessageDto, Task<bool>> OnReceiveMessage_ChatHub;
+        public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
+        public event Action<string> OnCallCanceled_ChatHub;
+        public event Func<string, DateTime, Task<bool>> OnCallAccepted_ChatHub;
+        public event Action<string> OnCallRejected_ChatHub;
+        public event Action<string> OnCallAbnormal_ChatHub;
+        public event Action<string> OnCallHangUp_ChatHub;
+        public event Action<string> OnCallHandled_ChatHub;
+        public event Action<string> OnCallExpiry_ChatHub;
 
         private async Task<bool> OnReceiveMessage(MessageDto messageDto)
         {
@@ -337,7 +345,21 @@ namespace HY.MAUI.Communication.SignalR
 
             if (OnReceiveMessage_ChatHub == null) return false;
 
-            return await UI.Run(async () => await OnReceiveMessage_ChatHub.Invoke(messageDto!));
+            return await UI.Run(async () =>
+            {
+                bool result = false;
+                var handlers = OnReceiveMessage_ChatHub.GetInvocationList();
+
+                foreach (var handler in handlers)
+                {
+                    if (handler is Func<MessageDto, Task<bool>> func)
+                    {
+                        result |= await func(messageDto);
+                    }
+                }
+
+                return result;
+            });
         }
 
         private void OnRecallMessage(MessageDto messageDto)
@@ -407,19 +429,16 @@ namespace HY.MAUI.Communication.SignalR
         }
 
 
-        public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
         private void OnReceiveCall(ReceiveCallRequest request)
         {
             UI.Run(() => OnReceiveCall_ChatHub?.Invoke(request));
         }
 
-        public event Action<string> OnCallCanceled_ChatHub;
         private void OnCallCanceled(string callId)
         {
             UI.Run(() => OnCallCanceled_ChatHub?.Invoke(callId));
         }
 
-        public event Func<string, DateTime, Task<bool>> OnCallAccepted_ChatHub;
         private async Task<bool> OnCallAccepted(string callId, DateTime start)
         {
             if (OnCallAccepted_ChatHub == null) return false;
@@ -427,35 +446,31 @@ namespace HY.MAUI.Communication.SignalR
             return await UI.Run(async () => await OnCallAccepted_ChatHub.Invoke(callId, start));
         }
 
-        public event Action<string> OnCallRejected_ChatHub;
         private void OnCallRejected(string callId)
         {
             UI.Run(() => OnCallRejected_ChatHub?.Invoke(callId));
         }
 
-        public event Action<string> OnCallAbnormal_ChatHub;
         private void OnCallAbnormal(string callId)
         {
             UI.Run(() => OnCallAbnormal_ChatHub?.Invoke(callId));
         }
 
-        public event Action<string> OnCallHangUp_ChatHub;
         private void OnCallHangUp(string callId)
         {
             UI.Run(() => OnCallHangUp_ChatHub?.Invoke(callId));
         }
 
-        public event Action<string> OnCallHandled_ChatHub;
         private void OnCallHandled(string callId)
         {
             UI.Run(() => OnCallHandled_ChatHub?.Invoke(callId));
         }
 
-        public event Action<string> OnCallExpiry_ChatHub;
         private void OnCallExpiry(string callId)
         {
             UI.Run(() => OnCallExpiry_ChatHub?.Invoke(callId));
         }
+
         #endregion
 
 

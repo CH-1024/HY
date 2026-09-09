@@ -41,13 +41,13 @@
     </ContentPage.Behaviors>
 
     <Shell.TitleView>
-        <Label Text="我的" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="我的" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
-    <!--<ContentPage.ToolbarItems>
+    <ContentPage.ToolbarItems>
         <ToolbarItem Text="设置" Order="Secondary" Priority="0" Command="{Binding SettingCommand}"/>
         <ToolbarItem Text="退出" Order="Secondary" Priority="100" Command="{Binding LogoutCommand}"/>
-    </ContentPage.ToolbarItems>-->
+    </ContentPage.ToolbarItems>
 
 
 

@@ -35,7 +35,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="添加联系人" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="添加联系人" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <!--<ContentPage.ToolbarItems>

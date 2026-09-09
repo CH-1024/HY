@@ -86,7 +86,7 @@ namespace HY.MAUI.Mapping
             else if (dto.Message_Type == MessageType.VideoCall)
             {
                 var extraData = JsonSerializer.Deserialize<Dictionary<string, object?>>(dto.Extra ?? "{}");
-                return new VideoCallMessageVM
+                return new CallVideoMessageVM
                 {
                     Id = dto.Id,
                     Chat_Type = dto.Chat_Type,
@@ -98,6 +98,27 @@ namespace HY.MAUI.Mapping
                     Created_At = dto.Created_At,
                     IsSelf = isSelf,
 
+                    CallId = extraData != null && extraData.TryGetValue("CallId", out var callId) ? callId?.ToString() : null,
+                    Call_Status = extraData != null && extraData.TryGetValue("CallStatus", out var callStatus) ? (CallStatus)int.Parse(callStatus?.ToString() ?? "0") : CallStatus.Abnormal,
+                    Duration = extraData != null && extraData.TryGetValue("Duration", out var duration) ? TimeSpan.FromSeconds(double.Parse(duration?.ToString() ?? "0")) : TimeSpan.Zero
+                };
+            }
+            else if (dto.Message_Type == MessageType.VoiceCall)
+            {
+                var extraData = JsonSerializer.Deserialize<Dictionary<string, object?>>(dto.Extra ?? "{}");
+                return new CallVoiceMessageVM
+                {
+                    Id = dto.Id,
+                    Chat_Type = dto.Chat_Type,
+                    Sender_Id = dto.Sender_Id,
+                    Sender_Avatar = dto.Sender_Avatar,
+                    Sender_Nickname = dto.Sender_Nickname,
+                    Target_Id = dto.Target_Id,
+                    Message_Status = dto.Message_Status,
+                    Created_At = dto.Created_At,
+                    IsSelf = isSelf,
+
+                    CallId = extraData != null && extraData.TryGetValue("CallId", out var callId) ? callId?.ToString() : null,
                     Call_Status = extraData != null && extraData.TryGetValue("CallStatus", out var callStatus) ? (CallStatus)int.Parse(callStatus?.ToString() ?? "0") : CallStatus.Abnormal,
                     Duration = extraData != null && extraData.TryGetValue("Duration", out var duration) ? TimeSpan.FromSeconds(double.Parse(duration?.ToString() ?? "0")) : TimeSpan.Zero
                 };
@@ -167,29 +188,18 @@ namespace HY.MAUI.Mapping
             }
             else if (model is SystemMessageVM systemMsg)
             {
-                // 客户端无权发送系统消息
+                // 客户端无权发送此消息
                 throw new NotImplementedException("System message cannot be sent from client.");
             }
-            else if (model is VideoCallMessageVM videoCallMsg)
+            else if (model is CallVideoMessageVM videoCallMsg)
             {
-                return new MessageDto
-                {
-                    Id = videoCallMsg.Id,
-                    Chat_Type = videoCallMsg.Chat_Type,
-                    Sender_Id = videoCallMsg.Sender_Id,
-                    Sender_Avatar = videoCallMsg.Sender_Avatar,
-                    Sender_Nickname = videoCallMsg.Sender_Nickname,
-                    Target_Id = videoCallMsg.Target_Id,
-                    Message_Type = MessageType.VideoCall,
-                    Content = null,
-                    Extra = JsonSerializer.Serialize(new Dictionary<string, object?>
-                    {
-                        { "CallStatus", (int)videoCallMsg.Call_Status },
-                        { "Duration", videoCallMsg.Duration.TotalSeconds }
-                    }),
-                    Message_Status = videoCallMsg.Message_Status,
-                    Created_At = videoCallMsg.Created_At
-                };
+                // 客户端无权发送此消息
+                throw new NotImplementedException("Video message cannot be sent from client.");
+            }
+            else if (model is CallVoiceMessageVM voiceCallMsg)
+            {
+                // 客户端无权发送此消息
+                throw new NotImplementedException("Voice message cannot be sent from client.");
             }
             else
                 throw new NotImplementedException("Message type not implemented in mapping.");

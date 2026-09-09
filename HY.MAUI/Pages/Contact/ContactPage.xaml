@@ -21,7 +21,7 @@
     </ContentPage.Behaviors>
 
     <Shell.TitleView>
-        <Label Text="联系人" TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="联系人" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>

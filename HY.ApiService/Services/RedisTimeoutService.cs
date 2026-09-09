@@ -57,16 +57,16 @@ namespace HY.ApiService.Services
 
 
         private async Task OnCallExpiry(RedisValue value)
-        {
+         {
             var key = value.ToString();
 
             _logger.LogInformation("Redis key expired: {Key}", key);
 
             // 只处理 Expire:{CallId}
-            if (!key.StartsWith("CallExpire:", StringComparison.Ordinal))
+            if (!key.StartsWith("Call:Expire:", StringComparison.Ordinal))
                 return;
 
-            var callId = key["CallExpire:".Length..];
+            var callId = key["Call:Expire:".Length..];
 
             if (string.IsNullOrWhiteSpace(callId))
                 return;
