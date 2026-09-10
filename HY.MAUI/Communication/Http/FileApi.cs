@@ -15,59 +15,49 @@ namespace HY.MAUI.Communication.Http
         }
 
 
-        public async Task<Response?> UploadHead(FileResult? fileResult)
+        public async Task<Response?> UploadHead(FileResult? fileResult, CancellationToken token = default)
         {
             if (fileResult == null) return null;
 
-            using var stream = await fileResult.OpenReadAsync();
+            await using var stream = await fileResult.OpenReadAsync();
 
             var streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType ?? "application/octet-stream");
 
-            var content = new MultipartFormDataContent
-            {
-                { streamContent, "file", fileResult.FileName },
-            };
+            using var content = new MultipartFormDataContent();
+            content.Add(streamContent, "file", fileResult.FileName);
 
-            return await PostAsync(ApiUrl.UploadHead, content);
+            return await PostAsync(ApiUrl.UploadHead, content, token);
         }
 
-
-        public async Task<Response?> UploadImage(FileResult? fileResult, IProgress<double> progress)
+        public async Task<Response?> UploadImage(FileResult? fileResult, CancellationToken token = default)
         {
             if (fileResult == null) return null;
 
-            using var stream = await fileResult.OpenReadAsync();
+            await using var stream = await fileResult.OpenReadAsync();
 
-            var progressContent = new ProgressableStreamContent(stream, 81920, progress);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType ?? "application/octet-stream");
 
-            progressContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType);
+            using var content = new MultipartFormDataContent();
+            content.Add(streamContent, "file", fileResult.FileName);
 
-            var content = new MultipartFormDataContent
-            {
-                { progressContent, "file", fileResult.FileName },
-            };
-
-            return await PostAsync(ApiUrl.UploadImage, content);
+            return await PostAsync(ApiUrl.UploadImage, content, token);
         }
 
-
-        public async Task<Response?> UploadVideo(FileResult? fileResult, IProgress<double> progress)
+        public async Task<Response?> UploadVideo(FileResult? fileResult, CancellationToken token = default)
         {
             if (fileResult == null) return null;
 
-            using var stream = await fileResult.OpenReadAsync();
+            await using var stream = await fileResult.OpenReadAsync();
 
-            var progressContent = new ProgressableStreamContent(stream, 81920, progress);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType ?? "application/octet-stream");
 
-            progressContent.Headers.ContentType = new MediaTypeHeaderValue(fileResult.ContentType);
+            using var content = new MultipartFormDataContent();
+            content.Add(streamContent, "file", fileResult.FileName);
 
-            var content = new MultipartFormDataContent
-            {
-                { progressContent, "file", fileResult.FileName },
-            };
-
-            return await PostAsync(ApiUrl.UploadVideo, content);
+            return await PostAsync(ApiUrl.UploadVideo, content, token);
         }
 
     }
