@@ -121,8 +121,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Reject()
         {
-            await _chatHub.RejectCall(_receiveCallRequest.CallId);
-            await Shell.Current.GoToAsync("..");
+            var resp = await _chatHub.RejectCall(_receiveCallRequest.CallId);
+            if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
     }
 }
