@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using HY.MAUI.Communication;
 using HY.MAUI.Communication.Http;
+using HY.MAUI.Communication.SendQueue;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Dtos;
@@ -35,6 +35,7 @@ namespace HY.MAUI.PageModels.Chat
         private readonly IDispatcher _dispatcher;
 
         private readonly ChatHubSignalR _chatHub;
+        private readonly MessageSendService _messageSendService;
 
         private readonly ChatStore _chatStore;
         private readonly MessageStore _messageStore;
@@ -94,7 +95,7 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref messageCollection, value); }
         }
 
-        public MessagePageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, IDispatcher dispatcher, ChatHubSignalR chatHub,
+        public MessagePageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, IDispatcher dispatcher, ChatHubSignalR chatHub, MessageSendService messageSendService,
                                 ChatStore chatStore, MessageStore messageStore, ContactStore contactStore,
                                 ChatApi chatApi, MessageApi messageApi, ContactApi contactApi, FileApi fileApi, LoginApi loginApi)
         {
@@ -103,6 +104,7 @@ namespace HY.MAUI.PageModels.Chat
             _dispatcher = dispatcher;
 
             _chatHub = chatHub;
+            _messageSendService = messageSendService;
 
             _chatStore = chatStore;
             _messageStore = messageStore;
@@ -400,11 +402,15 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (string.IsNullOrWhiteSpace(InputText)) return;
 
-            var textMessageVM = CreateTextMessageVM();
+            var textVM = CreateTextMessageVM();
 
-            HandleMessage(textMessageVM);
+            var task = CreateSendTask(textVM, null);
 
-            await _messageApi.SendMessage(_currentChat, textMessageVM);
+            // 先显示
+            HandleMessage(task.Message);
+
+            // 再入队
+            await _messageSendService.EnqueueAsync(task);
 
             // 清空输入框
             InputText = "";
@@ -413,49 +419,46 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task SendImage()
         {
-            var imageResults = await PickImages();
-            if (imageResults.Count == 0) return;
+            var fileResults = await PickImages();
+            if (fileResults.Count == 0) return;
 
             InputText = "";
 
-            using var semaphore = new SemaphoreSlim(3);
-
-            var tasks = new List<Task>();
-
-            foreach (var imageResult in imageResults)
+            foreach (var file in fileResults)
             {
-                var imageMessageVM = CreateImageMessageVM();
+                var imageVM = CreateImageMessageVM();
 
-                HandleMessage(imageMessageVM);
+                var task = CreateSendTask(imageVM, file);
 
-                tasks.Add(UploadImageAsync(imageResult, imageMessageVM, semaphore));
+                // 先显示
+                HandleMessage(task.Message);
+
+                // 再入队
+                await _messageSendService.EnqueueAsync(task);
             }
-
-            await Task.WhenAll(tasks);
         }
+
 
         [RelayCommand]
         async Task SendVideo()
         {
-            var videoResults = await PickVideos();
-            if (videoResults.Count == 0) return;
+            var fileResults = await PickVideos();
+            if (fileResults.Count == 0) return;
 
             InputText = "";
 
-            using var semaphore = new SemaphoreSlim(3);
-
-            var tasks = new List<Task>();
-
-            foreach (var videoResult in videoResults)
+            foreach (var file in fileResults)
             {
-                var videoMessageVM = CreateVideoMessageVM();
+                var videoVM = CreateVideoMessageVM();
 
-                HandleMessage(videoMessageVM);
+                var task = CreateSendTask(videoVM, file);
 
-                tasks.Add(UploadVideoAsync(videoResult, videoMessageVM, semaphore));
+                // 先显示
+                HandleMessage(task.Message);
+
+                // 再入队
+                await _messageSendService.EnqueueAsync(task);
             }
-
-            await Task.WhenAll(tasks);
         }
 
         [RelayCommand]
@@ -525,13 +528,12 @@ namespace HY.MAUI.PageModels.Chat
         {
             MessageCollection.Add(msgVM);
 
-            UI.Run(() => _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true));
+            _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true);
 
             //chat.Last_Msg_Id = messageVM.Id;
             _currentChat.Last_Msg_Time = msgVM.Created_At;
             _currentChat.Last_Msg_Brief = msgVM is TextMessageVM textMsg ? textMsg.Content?.Length > 20 ? textMsg.Content.Substring(0, 20) + "..." : textMsg.Content : null;
             _currentChat.Last_Msg_Status = msgVM.Message_Status;
-            //_currentChat.Unread_Count += msgVM.IsSelf ? 0 : 1;
             _currentChat.Is_Deleted = false;
         }
 
@@ -561,6 +563,17 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
+        SendMessageTask CreateSendTask(MessageVM msgVM, FileResult? file)
+        {
+            return new SendMessageTask
+            {
+                Chat = _currentChat,
+                Message = msgVM,
+                file = file,
+                Status = SendTaskStatus.Waiting
+            };
+        }
+
         TextMessageVM CreateTextMessageVM()
         {
             return new TextMessageVM
@@ -588,8 +601,6 @@ namespace HY.MAUI.PageModels.Chat
                 Created_At = DateTime.UtcNow,
                 IsSelf = true,
                 Message_Status = MessageStatus.Sending,
-
-                UploadProgress = 0,
             };
         }
 
@@ -604,79 +615,7 @@ namespace HY.MAUI.PageModels.Chat
                 Created_At = DateTime.UtcNow,
                 IsSelf = true,
                 Message_Status = MessageStatus.Sending,
-
-                UploadProgress = 0,
             };
-        }
-
-
-
-        async Task UploadImageAsync(FileResult photoResult, ImageMessageVM vm, SemaphoreSlim semaphore)
-        {
-            await semaphore.WaitAsync();
-
-            try
-            {
-                var progress = new Progress<double>(p => UI.Run(() => vm.UploadProgress = p));
-
-                var resp = await _fileApi.UploadImage(photoResult, progress);
-                if (resp?.IsSucc == true)
-                {
-                    UI.Run(() =>
-                    {
-                        vm.File_Id = resp.GetValue<string>("File_Id");
-                        vm.Message_Status = MessageStatus.Sented;
-                    });
-
-                    await _messageApi.SendMessage(_currentChat, vm);
-                }
-                else
-                {
-                    UI.Run(() => vm.Message_Status = MessageStatus.Failed);
-                }
-            }
-            catch
-            {
-                UI.Run(() => vm.Message_Status = MessageStatus.Failed);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        }
-
-        async Task UploadVideoAsync(FileResult videoResult, VideoMessageVM vm, SemaphoreSlim semaphore)
-        {
-            await semaphore.WaitAsync();
-
-            try
-            {
-                var progress = new Progress<double>(p => UI.Run(() => vm.UploadProgress = p));
-
-                var resp = await _fileApi.UploadVideo(videoResult, progress);
-                if (resp?.IsSucc == true)
-                {
-                    UI.Run(() =>
-                    {
-                        vm.File_Id = resp.GetValue<string>("File_Id");
-                        vm.Message_Status = MessageStatus.Sented;
-                    });
-
-                    await _messageApi.SendMessage(_currentChat, vm);
-                }
-                else
-                {
-                    UI.Run(() => vm.Message_Status = MessageStatus.Failed);
-                }
-            }
-            catch
-            {
-                UI.Run(() => vm.Message_Status = MessageStatus.Failed);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
         }
 
     }

@@ -1,4 +1,5 @@
-﻿using HY.MAUI.Pages.Login;
+﻿using HY.MAUI.Communication.SendQueue;
+using HY.MAUI.Pages.Login;
 using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,11 +12,14 @@ namespace HY.MAUI
         private readonly IServiceProvider _serviceProvider;
         private readonly ILoginService _loginService;
 
-        public App(IServiceProvider serviceProvider, ILoginService loginService)
+        public App(IServiceProvider serviceProvider, ILoginService loginService, MessageSendWorker worker)
         {
             InitializeComponent();
+
             _serviceProvider = serviceProvider;
             _loginService = loginService;
+
+            _ = worker.RunAsync(CancellationToken.None);
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

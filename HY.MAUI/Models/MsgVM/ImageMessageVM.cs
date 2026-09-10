@@ -7,14 +7,6 @@ namespace HY.MAUI.Models.MsgVM
 {
     public class ImageMessageVM : MessageVM
     {
-        private double uploadProgress;
-        public double UploadProgress
-        {
-            get { return uploadProgress; }
-            set { SetProperty(ref uploadProgress, value); }
-        }
-
-
         private string? file_Id;
         public string? File_Id
         {

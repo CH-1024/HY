@@ -1,4 +1,5 @@
-﻿using HY.MAUI.Services;
+﻿using HY.MAUI.Communication.SendQueue;
+using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
 using System;
@@ -13,6 +14,10 @@ namespace HY.MAUI.Setups
         {
             services.AddSingleton<IGlobalCache, GlobalCache>();
             services.AddSingleton<ILoginService, LoginService>();
+
+            services.AddSingleton<MessageSendQueue>();
+            services.AddSingleton<MessageSendService>();
+            services.AddSingleton<MessageSendWorker>();
 
             services.AddSingleton<ChatStore>();
             services.AddSingleton<ContactStore>();
