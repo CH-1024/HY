@@ -143,7 +143,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task HangUp()
         {
-            await _chatHub.HangUpCall(_callId, CancellationToken.None);
+            var resp = await _chatHub.HangUpCall(_callId);
+            if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
 
     }

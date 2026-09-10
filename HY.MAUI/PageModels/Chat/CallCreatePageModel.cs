@@ -125,8 +125,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Cancel()
         {
-            await _chatHub.CancelCall(_callId);
-            await Shell.Current.GoToAsync("..", false);
+            var resp = await _chatHub.CancelCall(_callId);
+            if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
 
 

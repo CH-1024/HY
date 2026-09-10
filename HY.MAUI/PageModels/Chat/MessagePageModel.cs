@@ -83,7 +83,7 @@ namespace HY.MAUI.PageModels.Chat
         private string inputText = "";
         public string InputText
         {
-            get { return inputText; } 
+            get { return inputText; }
             set { SetProperty(ref inputText, value); }
         }
 
@@ -94,8 +94,8 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref messageCollection, value); }
         }
 
-        public MessagePageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, IDispatcher dispatcher, ChatHubSignalR chatHub, 
-                                ChatStore chatStore, MessageStore messageStore, ContactStore contactStore, 
+        public MessagePageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, IDispatcher dispatcher, ChatHubSignalR chatHub,
+                                ChatStore chatStore, MessageStore messageStore, ContactStore contactStore,
                                 ChatApi chatApi, MessageApi messageApi, ContactApi contactApi, FileApi fileApi, LoginApi loginApi)
         {
             _serviceProvider = serviceProvider;
@@ -115,36 +115,31 @@ namespace HY.MAUI.PageModels.Chat
             _loginApi = loginApi;
         }
 
-        void MessageCollection_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+
+        private Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
         {
-            if (e.Action == NotifyCollectionChangedAction.Add)
+            // 1. 聊天类型不匹配
+            if (msgDto.Chat_Type != _currentChat.Type) return Task.FromResult(false);
+
+            // 2. 判断消息是否属于当前聊天
+            bool isCurrentChat = msgDto.Chat_Type switch
             {
-                if (_collectionView != null && e.NewItems != null && e.NewItems.Count > 0 && e.NewStartingIndex > 0)
-                {
-                    var newMessage = e.NewItems[0] as MessageVM;
+                ChatType.Private => (msgDto.Sender_Id == _currentUser.Id && msgDto.Target_Id == _currentChat.Target_Id) || (msgDto.Target_Id == _currentUser.Id && msgDto.Sender_Id == _currentChat.Target_Id),
+                ChatType.Group => msgDto.Target_Id == _currentChat.Target_Id,
+                _ => false
+            };
 
-                    UI.Run(() => _collectionView.ScrollTo(newMessage, position: ScrollToPosition.End, animate: true));
+            if (!isCurrentChat) return Task.FromResult(false);
 
-                }
-            }
-        }
-
-        private Task<bool> OnReceiveMessage_ChatHub(MessageDto messageDto)
-        {
-            if (messageDto.Chat_Type != _currentChat.Type) return Task.FromResult(false);
-            else if (messageDto.Chat_Type == ChatType.Private && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Sender_Id) return Task.FromResult(false);
-            else if (messageDto.Chat_Type == ChatType.Group && messageDto.Message_Type != MessageType.System && _currentChat.Target_Id != messageDto.Target_Id) return Task.FromResult(false);
-            else if (messageDto.Message_Type == MessageType.System && _currentUser.Id != messageDto.Sender_Id && _currentChat.Target_Id != messageDto.Target_Id) return Task.FromResult(false);
-
+            // 3. 当前聊天处理消息
             _currentChat.Unread_Count = 0;
 
-            if (_lastVisibleItemIndex <= MessageCollection.Count - 2)
+            if (_lastVisibleItemIndex + 2 >= MessageCollection.Count)
             {
                 UnreadCount = 0;
                 ShowUnread = false;
 
                 _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
-                //await Task.Delay(100);
             }
             else
             {
@@ -190,7 +185,14 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (_isNavigatedTo) return;
 
-            MessageCollection = _messageStore.GetMessages(_currentChat.Id);
+            if (_currentChat.Unread_Count != 0)
+            {
+                _ = Task.Run(async () =>
+                {
+                    var resp = await _chatApi.ReadAll(_currentChat.Id);
+                    if (resp?.IsSucc == true) _currentChat.Unread_Count = 0;
+                });
+            }
         }
 
         [RelayCommand]
@@ -205,17 +207,14 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (_isNavigatedTo) return;
 
-            _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
-            //MessageCollection.CollectionChanged += MessageCollection_CollectionChanged;
-
-            if (_currentChat.Unread_Count != 0)
+            // 加快进入页面的速度
+            _dispatcher.Dispatch(() =>
             {
-                _ = Task.Run(async() =>
-                {
-                    var resp = await _chatApi.ReadAll(_currentChat.Id);
-                    if (resp?.IsSucc == true) _currentChat.Unread_Count = 0;
-                });
-            }
+                MessageCollection = _messageStore.GetMessages(_currentChat.Id);
+                _collectionView?.ScrollTo(MessageCollection.LastOrDefault(), animate: false);
+            });
+
+            _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
         }
 
         [RelayCommand]
@@ -224,7 +223,6 @@ namespace HY.MAUI.PageModels.Chat
             if (_isNavigatedTo) return;
 
             _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
-            //MessageCollection.CollectionChanged -= MessageCollection_CollectionChanged;
         }
 
         [RelayCommand]
@@ -252,7 +250,6 @@ namespace HY.MAUI.PageModels.Chat
             if (_isNavigatedTo) return;
 
             _collectionView = collectionView;
-            _collectionView?.ScrollTo(MessageCollection.LastOrDefault(), animate: false);
         }
 
         int _lastVisibleItemIndex;
@@ -262,7 +259,9 @@ namespace HY.MAUI.PageModels.Chat
             InputText = $"{args.FirstVisibleItemIndex}";
             _lastVisibleItemIndex = args.LastVisibleItemIndex;
 
-            if (args.VerticalDelta < 0 && _lastVisibleItemIndex <= MessageCollection.Count - 1)
+            if (args.VerticalDelta == 0) return;
+
+            if (args.VerticalDelta > 0 && _lastVisibleItemIndex + UnreadCount >= MessageCollection.Count)
             {
                 UnreadCount = 0;
                 ShowUnread = false;

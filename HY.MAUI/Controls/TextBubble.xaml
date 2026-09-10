@@ -122,14 +122,14 @@
 
                 <!-- 圆角 -->
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="0,8,8,8">
-                        <RoundRectangle.Triggers>
+                    <RoundRectangle CornerRadius="8,8,8,8">
+                        <!--<RoundRectangle.Triggers>
 
                             <DataTrigger TargetType="RoundRectangle" Binding="{Binding IsSelf}" Value="True">
                                 <Setter Property="CornerRadius" Value="8,0,8,8"/>
                             </DataTrigger>
 
-                        </RoundRectangle.Triggers>
+                        </RoundRectangle.Triggers>-->
                     </RoundRectangle>
                 </Border.StrokeShape>
 

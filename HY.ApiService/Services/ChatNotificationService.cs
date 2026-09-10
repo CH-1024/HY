@@ -660,14 +660,12 @@ namespace HY.ApiService.Services
 
                 #region 在通知
 
-                #region 通知呼叫方在线设备
-                var callerConnectionId = await _redisConnectionService.GetConnectionIdAsync(callerId, callerPlatform);
-                await _chatHub.Clients.Client(callerConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
-                #endregion
+                #region 通知对方在线设备
+                var userId = currentUserId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
+                var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
 
-                #region 通知被呼叫方在线设备
-                var calleeConnectionId = await _redisConnectionService.GetConnectionIdAsync(calleeId, calleePlatform);
-                await _chatHub.Clients.Client(calleeConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
+                var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
+                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
                 #endregion
 
                 #endregion
