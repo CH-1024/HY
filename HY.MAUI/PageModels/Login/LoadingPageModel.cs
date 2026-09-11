@@ -173,7 +173,7 @@ namespace HY.MAUI.PageModels.Login
                 var chatDtos = resp.GetValue<List<ChatDto>>("Chats") ?? [];
                 foreach (var chatDto in chatDtos)
                 {
-                    _chatStore.Upsert(chatDto.ToVM());
+                    _chatStore.Upsert(chatDto.ToVM(currentUser.Id));
                 }
             }
         }

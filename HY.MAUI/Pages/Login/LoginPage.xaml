@@ -26,6 +26,8 @@
 
                 <Button x:Name="login" Text="登录" Command="{Binding LoginCommand}"/>
                 <Button Text="注册" Command="{Binding RegisterCommand}"/>
+                
+                
             </VerticalStackLayout>
             <ActivityIndicator IsRunning="{Binding LoginCommand.IsRunning}" Color="White" HorizontalOptions="Center" VerticalOptions="Center" />
         </Grid>

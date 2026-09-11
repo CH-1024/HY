@@ -8,6 +8,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
              xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:enum="clr-namespace:HY.MAUI.Enums"
              Padding="{OnIdiom Phone=0, Desktop=5}"
              x:DataType="pm:ChatPageModel">
 
@@ -64,89 +65,23 @@
                                     <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" FontSize="14" TextColor="Gray" Padding="0" VerticalOptions="End">
                                         <Label.Triggers>
 
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Text"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sending"/>
-                                                </MultiTrigger.Conditions>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sending}">
                                                 <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='⇢{0}'}"/>
-                                            </MultiTrigger>
+                                            </DataTrigger>
 
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Image"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sending"/>
-                                                </MultiTrigger.Conditions>
-                                                <Setter Property="Text" Value="⇢[图片]"/>
-                                            </MultiTrigger>
-
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Video"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sending"/>
-                                                </MultiTrigger.Conditions>
-                                                <Setter Property="Text" Value="⇢[视频]"/>
-                                            </MultiTrigger>
-                                            
-                                            
-
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Text"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
-                                                </MultiTrigger.Conditions>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sented}">
                                                 <Setter Property="Text" Value="{Binding Last_Msg_Brief}"/>
-                                            </MultiTrigger>
-
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Image"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
-                                                </MultiTrigger.Conditions>
-                                                <Setter Property="Text" Value="[图片]"/>
-                                            </MultiTrigger>
-
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Voice"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
-                                                </MultiTrigger.Conditions>
-                                                <Setter Property="Text" Value="[语音]"/>
-                                            </MultiTrigger>
-
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="VoiceCall">
-                                                <Setter Property="Text" Value="[语音通话]"/>
                                             </DataTrigger>
 
-                                            <MultiTrigger TargetType="Label">
-                                                <MultiTrigger.Conditions>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Type}" Value="Video"/>
-                                                    <BindingCondition Binding="{Binding Last_Msg_Status}" Value="Sented"/>
-                                                </MultiTrigger.Conditions>
-                                                <Setter Property="Text" Value="[视频]"/>
-                                            </MultiTrigger>
-
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="VideoCall">
-                                                <Setter Property="Text" Value="[视频通话]"/>
-                                            </DataTrigger>
-
-
-
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Type}" Value="System">
-                                                <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='[{0}]'}"/>
-                                            </DataTrigger>
-
-
-
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Status}" Value="Recalled">
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Recalled}">
                                                 <Setter Property="Text" Value="[消息已撤回]"/>
                                             </DataTrigger>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Status}" Value="Deleted">
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Deleted}">
                                                 <Setter Property="Text" Value="[消息已删除]"/>
                                             </DataTrigger>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg_Status}" Value="Failed">
+                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Failed}">
                                                 <Setter Property="Text" Value="[消息发送失败]"/>
                                             </DataTrigger>
 

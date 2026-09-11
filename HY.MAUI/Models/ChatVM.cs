@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HY.MAUI.Enums;
+using HY.MAUI.Models.MsgVM;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,34 +19,6 @@ namespace HY.MAUI.Models
         public bool Is_Top { get; set; }
         public bool Is_Deleted { get; set; }
 
-        public long Last_Msg_Id { get; set; }
-        public MessageType? Last_Msg_Type { get; set; }
-
-        private DateTime? last_Msg_Time;
-        public DateTime? Last_Msg_Time
-        {
-            get { return last_Msg_Time; }
-            set 
-            {
-                last_Msg_Time = value;
-                OnPropertyChanged(nameof(Last_Msg_Time_Show));
-            }
-        }
-
-        private string? last_Msg_Brief;
-        public string? Last_Msg_Brief
-        {
-            get { return last_Msg_Brief; }
-            set { SetProperty(ref last_Msg_Brief, value); }
-        }
-
-        private MessageStatus? last_Msg_Status;
-        public MessageStatus? Last_Msg_Status
-        {
-            get { return last_Msg_Status; }
-            set { SetProperty(ref last_Msg_Status, value); }
-        }
-
         private int unread_Count;
         public int Unread_Count
         {
@@ -58,8 +31,57 @@ namespace HY.MAUI.Models
             }
         }
 
+        private MessageVM? last_Msg;
+        public MessageVM? Last_Msg
+        {
+            get { return last_Msg; }
+            set
+            {
+                SetProperty(ref last_Msg, value);
+                OnPropertyChanged(nameof(Last_Msg_Type));
+                OnPropertyChanged(nameof(Last_Msg_Time));
+                OnPropertyChanged(nameof(Last_Msg_Brief));
+            }
+        }
+
+
+
+
+
+
+
         public string Unread_Count_Show => unread_Count > 99 ? "99+" : $"{unread_Count}";
         public bool Unread_Count_Visible => unread_Count > 0;
-        public DateTime? Last_Msg_Time_Show => last_Msg_Time != null ? DateTime.SpecifyKind(last_Msg_Time.Value, DateTimeKind.Utc).ToLocalTime() : null;
+
+        public MessageType? Last_Msg_Type => Last_Msg switch
+        {
+            TextMessageVM => MessageType.Text,
+            ImageMessageVM => MessageType.Image,
+            FileMessageVM => MessageType.File,
+            VoiceMessageVM => MessageType.Voice,
+            VideoMessageVM => MessageType.Video,
+            SystemMessageVM => MessageType.System,
+            CallVoiceMessageVM => MessageType.VoiceCall,
+            CallVideoMessageVM => MessageType.VideoCall,
+            _ => null
+        };
+
+        public DateTime? Last_Msg_Time => Last_Msg != null ? DateTime.SpecifyKind(Last_Msg.Created_At, DateTimeKind.Utc).ToLocalTime() : null;
+
+        public string? Last_Msg_Brief => Last_Msg switch
+        {
+            TextMessageVM textVM => textVM.Content?.Length > 20 ? textVM.Content.Substring(0, 20) + "..." : textVM.Content,
+            ImageMessageVM => "[图片]",
+            FileMessageVM => "[文件]",
+            VoiceMessageVM => "[语音]",
+            VideoMessageVM => "[视频]",
+            SystemMessageVM sysVM=> sysVM.Text?.Length > 20 ? sysVM.Text.Substring(0, 20) + "..." : sysVM.Text,
+            CallVoiceMessageVM => "[语音通话]",
+            CallVideoMessageVM => "[视频通话]",
+            _ => null
+        };
+
+
+
     }
 }

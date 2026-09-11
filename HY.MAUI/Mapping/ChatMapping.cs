@@ -8,7 +8,7 @@ namespace HY.MAUI.Mapping
 {
     public static class ChatMapping
     {
-        public static ChatVM ToVM(this ChatDto dto)
+        public static ChatVM ToVM(this ChatDto dto, long currentUserId)
         {
             return new ChatVM
             {
@@ -19,12 +19,8 @@ namespace HY.MAUI.Mapping
                 Target_Avatar = dto.Target_Avatar,
                 Is_Top = dto.Is_Top,
                 Is_Deleted = dto.Is_Deleted,
-                Last_Msg_Id = dto.Last_Msg_Id,
-                Last_Msg_Type = dto.Last_Msg_Type,
-                Last_Msg_Time = dto.Last_Msg_Time,
-                Last_Msg_Brief = dto.Last_Msg_Brief,
-                Last_Msg_Status = dto.Last_Msg_Status,
                 Unread_Count = dto.Unread_Count,
+                Last_Msg = dto.Last_Msg?.ToVM(currentUserId),
             };
         }
 

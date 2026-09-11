@@ -10,6 +10,7 @@ namespace HY.ApiService.Repositories
     {
         Task<long> InsertMessage(MessageEntity messageEntity);
 
+        Task<MessageEntity?> GetMessageById(long messageId);
         Task<MessageEntity?> GetMessageById(long currentUserId, long messageId);
         Task<List<MessageEntity>> GetMessagesByIds(long currentUserId, List<long> msgIds);
         Task<List<MessageEntity>> GetPrivateChatMessages(long currentUserId, long targetUserId, long skipMessageId, int take);
@@ -38,6 +39,10 @@ namespace HY.ApiService.Repositories
         }
 
 
+        public async Task<MessageEntity?> GetMessageById(long messageId)
+        {
+            return await _db.Queryable<MessageEntity>().InSingleAsync(messageId);
+        }
 
         public async Task<MessageEntity?> GetMessageById(long currentUserId, long messageId)
         {

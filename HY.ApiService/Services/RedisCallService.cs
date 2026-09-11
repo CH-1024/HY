@@ -91,7 +91,7 @@ namespace HY.ApiService.Services
 
         public async Task<CallInfo?> CreateCall(CallType callType, ChatType chatType, long callerId, int callerPlatform, long calleeId)
         {
-            var sec = _configuration.GetSection("Call:Expire").Value ?? throw new Exception("Call:Expire is not configured");
+            var sec = _configuration.GetSection("Call")?.GetValue<double>("Expire") ?? 30;
 
             var callDto = new CallInfo
             {
@@ -109,7 +109,7 @@ namespace HY.ApiService.Services
                 CallState = CallStatus.Calling,
 
                 CreateAt = DateTime.UtcNow,
-                ExpiryAt = DateTime.UtcNow.AddSeconds(double.Parse(sec)),
+                ExpiryAt = DateTime.UtcNow.AddSeconds(sec),
                 //StartAt = ,
             };
 

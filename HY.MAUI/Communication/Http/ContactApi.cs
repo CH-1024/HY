@@ -69,7 +69,7 @@ namespace HY.MAUI.Communication.Http
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
 
                 _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
             }
@@ -92,7 +92,7 @@ namespace HY.MAUI.Communication.Http
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
 
                 _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
             }

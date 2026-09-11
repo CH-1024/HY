@@ -46,12 +46,8 @@ namespace HY.MAUI.Stores
                 existing.Target_Avatar = chat.Target_Avatar;
                 existing.Is_Top = chat.Is_Top;
                 existing.Is_Deleted = chat.Is_Deleted;
-                existing.Last_Msg_Id = chat.Last_Msg_Id;
-                existing.Last_Msg_Type = chat.Last_Msg_Type;
-                existing.Last_Msg_Time = chat.Last_Msg_Time;
-                existing.Last_Msg_Brief = chat.Last_Msg_Brief;
-                existing.Last_Msg_Status = chat.Last_Msg_Status;
                 existing.Unread_Count = chat.Unread_Count;
+                existing.Last_Msg = chat.Last_Msg;
             }
             else
             {
@@ -72,12 +68,8 @@ namespace HY.MAUI.Stores
                 existing.Target_Avatar = chat.Target_Avatar;
                 existing.Is_Top = chat.Is_Top;
                 existing.Is_Deleted = chat.Is_Deleted;
-                existing.Last_Msg_Id = chat.Last_Msg_Id;
-                existing.Last_Msg_Type = chat.Last_Msg_Type;
-                existing.Last_Msg_Time = chat.Last_Msg_Time;
-                existing.Last_Msg_Brief = chat.Last_Msg_Brief;
-                existing.Last_Msg_Status = chat.Last_Msg_Status;
                 existing.Unread_Count = chat.Unread_Count;
+                existing.Last_Msg = chat.Last_Msg;
 
                 Chats.Move(Chats.IndexOf(existing), 0);
             }
