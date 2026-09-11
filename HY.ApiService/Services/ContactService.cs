@@ -309,16 +309,15 @@ namespace HY.ApiService.Services
                     var bol3 = await _chatRepository.UpdateChat(senderChatEntity);
                     if (!bol3) throw new Exception("更新发送方聊天记录失败");
 
-                    senderChatDto = senderChatEntity.Adapt<ChatDto>();
-                    senderChatDto.Target_Name = receiver.Nickname;
-                    senderChatDto.Target_Avatar = receiver.Avatar;
-                    senderChatDto.Last_Msg_Type = senderSysMsg.Message_Type;
-                    senderChatDto.Last_Msg_Brief = senderSysMsg.Content?.Length > 20 ? senderSysMsg.Content.Substring(0, 20) + "..." : senderSysMsg.Content;
-                    senderChatDto.Last_Msg_Status = senderSysMsg.Message_Status;
-
                     senderMessageDto = senderSysMsg.Adapt<MessageDto>();
                     senderMessageDto.Sender_Avatar = sender.Avatar;
                     senderMessageDto.Sender_Nickname = sender.Nickname;
+
+                    senderChatDto = senderChatEntity.Adapt<ChatDto>();
+                    senderChatDto.Target_Name = receiver.Nickname;
+                    senderChatDto.Target_Avatar = receiver.Avatar;
+                    senderChatDto.Last_Msg = senderMessageDto;
+
                     #endregion
 
                     #region ReceiverChat
@@ -345,16 +344,14 @@ namespace HY.ApiService.Services
                     var bol4 = await _chatRepository.UpdateChat(receiverChatEntity);
                     if (!bol4) throw new Exception("更新接收方聊天记录失败");
 
-                    receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
-                    receiverChatDto.Target_Name = sender.Nickname;
-                    receiverChatDto.Target_Avatar = sender.Avatar;
-                    receiverChatDto.Last_Msg_Type = receiverSysMsg.Message_Type;
-                    receiverChatDto.Last_Msg_Brief = receiverSysMsg.Content?.Length > 20 ? receiverSysMsg.Content.Substring(0, 20) + "..." : receiverSysMsg.Content;
-                    receiverChatDto.Last_Msg_Status = receiverSysMsg.Message_Status;
-
                     receiverMessageDto = receiverSysMsg.Adapt<MessageDto>();
                     receiverMessageDto.Sender_Avatar = receiver.Avatar;
                     receiverMessageDto.Sender_Nickname = receiver.Nickname;
+
+                    receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
+                    receiverChatDto.Target_Name = sender.Nickname;
+                    receiverChatDto.Target_Avatar = sender.Avatar;
+                    receiverChatDto.Last_Msg = receiverMessageDto;
                     #endregion
                 }
             });
@@ -560,16 +557,14 @@ namespace HY.ApiService.Services
                         if (!bol) throw new Exception("更新发送方聊天记录失败");
                     }
 
-                    senderChatDto = senderChatEntity.Adapt<ChatDto>();
-                    senderChatDto.Target_Name = receiver.Nickname;
-                    senderChatDto.Target_Avatar = receiver.Avatar;
-                    senderChatDto.Last_Msg_Type = senderSysMsg.Message_Type;
-                    senderChatDto.Last_Msg_Brief = senderSysMsg.Content?.Length > 20 ? senderSysMsg.Content.Substring(0, 20) + "..." : senderSysMsg.Content;
-                    senderChatDto.Last_Msg_Status = senderSysMsg.Message_Status;
-
                     senderMessageDto = senderSysMsg.Adapt<MessageDto>();
                     senderMessageDto.Sender_Avatar = sender.Avatar;
                     senderMessageDto.Sender_Nickname = sender.Nickname;
+
+                    senderChatDto = senderChatEntity.Adapt<ChatDto>();
+                    senderChatDto.Target_Name = receiver.Nickname;
+                    senderChatDto.Target_Avatar = receiver.Avatar;
+                    senderChatDto.Last_Msg = senderMessageDto;
 
                     #endregion
 
@@ -618,16 +613,14 @@ namespace HY.ApiService.Services
                         if (!bol) throw new Exception("更新接收方聊天记录失败");
                     }
 
-                    receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
-                    receiverChatDto.Target_Name = sender.Nickname;
-                    receiverChatDto.Target_Avatar = sender.Avatar;
-                    receiverChatDto.Last_Msg_Type = receiverSysMsg.Message_Type;
-                    receiverChatDto.Last_Msg_Brief = receiverSysMsg.Content?.Length > 20 ? receiverSysMsg.Content.Substring(0, 20) + "..." : receiverSysMsg.Content;
-                    receiverChatDto.Last_Msg_Status = receiverSysMsg.Message_Status;
-
                     receiverMessageDto = receiverSysMsg.Adapt<MessageDto>();
                     receiverMessageDto.Sender_Avatar = receiver.Avatar;
                     receiverMessageDto.Sender_Nickname = receiver.Nickname;
+
+                    receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
+                    receiverChatDto.Target_Name = sender.Nickname;
+                    receiverChatDto.Target_Avatar = sender.Avatar;
+                    receiverChatDto.Last_Msg = receiverMessageDto;
 
                     #endregion
 

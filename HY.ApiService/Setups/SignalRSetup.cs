@@ -4,15 +4,19 @@ namespace HY.ApiService.Setups
 {
     public static class SignalRSetup
     {
-        public static void AddSignalRSetup(this IServiceCollection services)
+        public static void AddSignalRSetup(this IServiceCollection services, IConfiguration configuration)
         {
+            // 获取连接字符串
+            var keepAlive = configuration.GetSection("SignalR")?.GetValue<long>("KeepAlive") ?? 15;
+            var clientTimeout = configuration.GetSection("SignalR")?.GetValue<long>("ClientTimeout") ?? 30;
+
             services
             .AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
                 options.MaximumReceiveMessageSize = 102400000; // 100 MB
-                options.KeepAliveInterval = TimeSpan.FromSeconds(15);
-                options.ClientTimeoutInterval = TimeSpan.FromSeconds(3600);
+                options.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(clientTimeout);
             })
             .AddJsonProtocol(options =>
              {

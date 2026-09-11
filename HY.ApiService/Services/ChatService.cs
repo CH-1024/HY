@@ -79,19 +79,21 @@ namespace HY.ApiService.Services
                 if (chatEntity.Last_Msg_Id == 0)
                 {
                     // 没有Last_Msg
+                    chatDto.Last_Msg = null;
                 }
                 else if (lastMsgMap.TryGetValue(chatEntity.Last_Msg_Id, out var lastMsg))
                 {
                     // 存在未删除Last_Msg
-                    chatDto.Last_Msg_Type = lastMsg.Message_Type;
-                    chatDto.Last_Msg_Brief = lastMsg.Content?.Length > 20 ? lastMsg.Content.Substring(0, 20) + "..." : lastMsg.Content;
-                    chatDto.Last_Msg_Status = lastMsg.Message_Status;
+                    chatDto.Last_Msg = lastMsg?.Adapt<MessageDto>();
                 }
                 else
                 {
                     // 已删除Last_Msg
-                    chatDto.Last_Msg_Brief = null;
-                    chatDto.Last_Msg_Status = MessageStatus.Deleted;
+                    var msg = await _messageRepository.GetMessageById(chatEntity.Last_Msg_Id);
+                    msg.Content = null;
+                    msg.Extra = null;
+                    msg.Message_Status = MessageStatus.Deleted;
+                    chatDto.Last_Msg = msg?.Adapt<MessageDto>();
                 }
 
                 chatDtos.Add(chatDto);

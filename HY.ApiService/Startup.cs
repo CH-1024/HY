@@ -43,7 +43,7 @@ namespace HY.ApiService
             // 配置授权
             services.AddAuthorizationSetup();
 
-            services.AddSignalRSetup();
+            services.AddSignalRSetup(Configuration);
         }
 
         // 配置 HTTP 请求管道

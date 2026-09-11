@@ -11,7 +11,6 @@ namespace HY.MAUI.Communication.SendQueue
     {
         public string TaskId { get; } = Guid.NewGuid().ToString();
 
-        public ChatVM Chat { get; set; }
         public MessageVM Message { get; set; }
 
         /// <summary>

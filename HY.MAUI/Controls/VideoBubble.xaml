@@ -23,12 +23,9 @@
         <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="37" HeightRequest="37" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
 
             <!-- 绑定头像 -->
-            <!--<Image.Source>
+            <toolkit:AvatarView.ImageSource>
                 <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
-            </Image.Source>-->
-            <!--<toolkit:AvatarView.ImageSource>
-                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
-            </toolkit:AvatarView.ImageSource>-->
+            </toolkit:AvatarView.ImageSource>
 
             <toolkit:AvatarView.Triggers>
 
@@ -36,12 +33,10 @@
                 <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
                     <Setter Property="Grid.Column" Value="2"/>
                     <Setter Property="IsVisible" Value="True"/>
-                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
                 </DataTrigger>
                 <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
                     <Setter Property="Grid.Column" Value="0"/>
                     <Setter Property="IsVisible" Value="True"/>
-                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
                 </DataTrigger>
 
                 <!-- 撤回时隐藏头像 -->
@@ -75,7 +70,28 @@
             </Grid.Triggers>
 
             <!-- 发送进度 -->
-            <controls:CircularProgressBar Grid.Column="2" IsVisible="False" Progress="{Binding UploadProgress}" ShowTrack="False" StrokeThickness="2" ProgressColor="DodgerBlue" TrackColor="#33000000" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0">
+            <ActivityIndicator Grid.Column="2" IsVisible="False" IsRunning="True" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0">
+
+                <ActivityIndicator.Triggers>
+
+                    <DataTrigger TargetType="ActivityIndicator" Binding="{Binding IsSelf}" Value="True">
+                        <Setter Property="Grid.Column" Value="0"/>
+                    </DataTrigger>
+
+                    <DataTrigger TargetType="ActivityIndicator" Binding="{Binding Message_Status}" Value="Sending">
+                        <Setter Property="IsVisible" Value="True"/>
+                    </DataTrigger>
+
+                    <DataTrigger TargetType="ActivityIndicator" Binding="{Binding Message_Status}" Value="Recalling">
+                        <Setter Property="Color" Value="Red"/>
+                        <Setter Property="IsVisible" Value="True"/>
+                    </DataTrigger>
+
+                </ActivityIndicator.Triggers>
+
+            </ActivityIndicator>
+
+            <!--<controls:CircularProgressBar Grid.Column="2" IsVisible="False" Progress="{Binding UploadProgress}" ShowTrack="False" StrokeThickness="2" ProgressColor="DodgerBlue" TrackColor="#33000000" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0">
 
                 <controls:CircularProgressBar.Triggers>
 
@@ -87,14 +103,9 @@
                         <Setter Property="IsVisible" Value="True"/>
                     </DataTrigger>
 
-                    <!--<DataTrigger TargetType="controls:CircularProgressBar" Binding="{Binding Message_Status}" Value="Recalling">
-                        <Setter Property="Color" Value="Red"/>
-                        <Setter Property="IsVisible" Value="True"/>
-                    </DataTrigger>-->
-
                 </controls:CircularProgressBar.Triggers>
 
-            </controls:CircularProgressBar>
+            </controls:CircularProgressBar>-->
 
             <!-- 重试按钮 -->
             <Button Grid.Column="2" Text="↻" IsVisible="False" TextColor="DarkGray" FontSize="Medium" BackgroundColor="Transparent" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" Margin="0" Padding="0">

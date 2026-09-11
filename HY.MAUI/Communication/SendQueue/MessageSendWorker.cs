@@ -41,11 +41,18 @@ namespace HY.MAUI.Communication.SendQueue
 
                     imageVM.File_Id = resp!.GetValue<string>("File_Id");
                 }
+                else if (task.Message is VideoMessageVM videoVM)
+                {
+                    // 上传文件
+                    var resp = await _fileApi.UploadVideo(task.file, token);
+
+                    videoVM.File_Id = resp!.GetValue<string>("File_Id");
+                }
 
                 task.Status = SendTaskStatus.Sending;
 
                 // 发送消息
-                await _messageApi.SendMessage(task.Chat, task.Message);
+                await _messageApi.SendMessage(task.Message);
 
                 task.Status = SendTaskStatus.Sent;
             }

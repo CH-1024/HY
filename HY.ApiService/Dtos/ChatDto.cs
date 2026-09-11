@@ -15,12 +15,8 @@ namespace HY.ApiService.Dtos
         public string? Target_Avatar { get; set; }
         public bool Is_Top { get; set; }
         public bool Is_Deleted { get; set; }
-        public long Last_Msg_Id { get; set; }
-        public MessageType? Last_Msg_Type { get; set; }
-        public DateTime? Last_Msg_Time { get; set; }
-        public string? Last_Msg_Brief { get; set; }
-        public MessageStatus? Last_Msg_Status { get; set; }
         public int Unread_Count { get; set; }
 
+        public MessageDto? Last_Msg { get; set; }
     }
 }

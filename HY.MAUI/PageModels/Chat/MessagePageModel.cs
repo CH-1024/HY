@@ -350,13 +350,13 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task DeleteMessage(MessageVM message)
         {
-            await _messageApi.DeleteMessage(_currentChat, message);
+            await _messageApi.DeleteMessage(message);
         }
 
         [RelayCommand]
         async Task RecallMessage(MessageVM message)
         {
-            await _messageApi.RecallMessage(_currentChat, message);
+            await _messageApi.RecallMessage(message);
         }
 
         [RelayCommand]
@@ -437,7 +437,6 @@ namespace HY.MAUI.PageModels.Chat
                 await _messageSendService.EnqueueAsync(task);
             }
         }
-
 
         [RelayCommand]
         async Task SendVideo()
@@ -528,13 +527,10 @@ namespace HY.MAUI.PageModels.Chat
         {
             MessageCollection.Add(msgVM);
 
-            _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true);
-
-            //chat.Last_Msg_Id = messageVM.Id;
-            _currentChat.Last_Msg_Time = msgVM.Created_At;
-            _currentChat.Last_Msg_Brief = msgVM is TextMessageVM textMsg ? textMsg.Content?.Length > 20 ? textMsg.Content.Substring(0, 20) + "..." : textMsg.Content : null;
-            _currentChat.Last_Msg_Status = msgVM.Message_Status;
+            _currentChat.Last_Msg = msgVM;
             _currentChat.Is_Deleted = false;
+
+            _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true);
         }
 
 
@@ -567,7 +563,6 @@ namespace HY.MAUI.PageModels.Chat
         {
             return new SendMessageTask
             {
-                Chat = _currentChat,
                 Message = msgVM,
                 file = file,
                 Status = SendTaskStatus.Waiting

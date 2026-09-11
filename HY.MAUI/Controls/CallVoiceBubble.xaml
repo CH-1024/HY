@@ -29,12 +29,9 @@
         <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="37" HeightRequest="37" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
 
             <!-- 绑定头像 -->
-            <!--<Image.Source>
+            <toolkit:AvatarView.ImageSource>
                 <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
-            </Image.Source>-->
-            <!--<toolkit:AvatarView.ImageSource>
-                <UriImageSource Uri="{Binding Sender_Avatar}" CacheValidity="10:00:00:00" CachingEnabled="True"/>
-            </toolkit:AvatarView.ImageSource>-->
+            </toolkit:AvatarView.ImageSource>
 
             <toolkit:AvatarView.Triggers>
 
@@ -42,12 +39,10 @@
                 <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
                     <Setter Property="Grid.Column" Value="2"/>
                     <Setter Property="IsVisible" Value="True"/>
-                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
                 </DataTrigger>
                 <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
                     <Setter Property="Grid.Column" Value="0"/>
                     <Setter Property="IsVisible" Value="True"/>
-                    <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
                 </DataTrigger>
 
             </toolkit:AvatarView.Triggers>

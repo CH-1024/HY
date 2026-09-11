@@ -21,7 +21,7 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync($"{ApiUrl.GetMessages}?chatId={chatId}&skipMessageId={skipMessageId}&take={take}");
         }
 
-        public async Task SendMessage(ChatVM chatVM, MessageVM messageVM)
+        public async Task SendMessage(MessageVM messageVM)
         {
             try
             {
@@ -30,9 +30,6 @@ namespace HY.MAUI.Communication.Http
                 {
                     var msgId = resp.GetValue<long>("MessageId");
                     var createdAt = resp.GetValue<DateTime>("CreatedAt");
-
-                    chatVM.Last_Msg_Id = msgId;
-                    chatVM.Last_Msg_Time = createdAt;
 
                     messageVM.Id = msgId;
                     messageVM.Created_At = createdAt;
@@ -48,13 +45,9 @@ namespace HY.MAUI.Communication.Http
                 // 发送失败
                 messageVM.Message_Status = MessageStatus.Failed;
             }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
-            }
         }
 
-        public async Task RecallMessage(ChatVM chatVM, MessageVM messageVM)
+        public async Task RecallMessage(MessageVM messageVM)
         {
             var statusOld = messageVM.Message_Status;
             try
@@ -77,13 +70,9 @@ namespace HY.MAUI.Communication.Http
                 // 撤回失败，还原消息状态
                 messageVM.Message_Status = statusOld;
             }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
-            }
         }
 
-        public async Task DeleteMessage(ChatVM chatVM, MessageVM messageVM)
+        public async Task DeleteMessage(MessageVM messageVM)
         {
             var statusOld = messageVM.Message_Status;
             try
@@ -105,10 +94,6 @@ namespace HY.MAUI.Communication.Http
             {
                 // 删除失败，还原消息状态
                 messageVM.Message_Status = statusOld;
-            }
-            finally
-            {
-                if (chatVM.Last_Msg_Id == messageVM.Id) chatVM.Last_Msg_Status = messageVM.Message_Status;
             }
         }
 

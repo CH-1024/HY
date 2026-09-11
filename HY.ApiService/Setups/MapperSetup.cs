@@ -79,13 +79,9 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Unread_Count, src => src.Unread_Count)
                 .Map(dest => dest.Is_Top, src => src.Is_Top)
                 .Map(dest => dest.Is_Deleted, src => src.Is_Deleted)
-                .Map(dest => dest.Last_Msg_Id, src => src.Last_Msg_Id)
-                .Map(dest => dest.Last_Msg_Time, src => src.Last_Msg_Time)
                 .Ignore(dest => dest.Target_Name)
                 .Ignore(dest => dest.Target_Avatar)
-                .Ignore(dest => dest.Last_Msg_Type)
-                .Ignore(dest => dest.Last_Msg_Brief)
-                .Ignore(dest => dest.Last_Msg_Status);
+                .Ignore(dest => dest.Last_Msg);
 
 
             TypeAdapterConfig<GroupEntity, GroupDto>.NewConfig()
@@ -161,11 +157,11 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Target_Id, src => src.Target_Id)
                 .Map(dest => dest.Is_Top, src => src.Is_Top)
                 .Map(dest => dest.Is_Deleted, src => src.Is_Deleted)
-                .Map(dest => dest.Last_Msg_Id, src => src.Last_Msg_Id)
-                .Map(dest => dest.Last_Msg_Time, src => src.Last_Msg_Time)
+                .Map(dest => dest.Last_Msg_Id, src => src.Last_Msg == null ? 0 : src.Last_Msg.Id)
+                .Map(dest => dest.Last_Msg_Time, src => src.Last_Msg == null ? (DateTime?)null : src.Last_Msg.Created_At)
                 .Map(dest => dest.Unread_Count, src => src.Unread_Count)
-                .Ignore (dest => dest.User_Id)
-                .Ignore (dest => dest.Read_Msg_Id);
+                .Ignore(dest => dest.User_Id)
+                .Ignore(dest => dest.Read_Msg_Id);
 
 
             TypeAdapterConfig<GroupDto, GroupEntity>.NewConfig()
