@@ -324,17 +324,10 @@ namespace HY.MAUI.Communication.SignalR
             var chat = _chatStore.GetChat(currentUser.Id, messageDto);
             if (chat != null)
             {
-                //MainThread.BeginInvokeOnMainThread(() =>
-                //{
-                //});
-
                 var messageVM = messageDto.ToVM(currentUser.Id);
                 _messageStore.Add(chat.Id, messageVM);
 
-                chat.Last_Msg_Id = messageDto.Id;
-                chat.Last_Msg_Time = messageDto.Created_At;
-                chat.Last_Msg_Brief = messageDto.Content?.Length > 20 ? messageDto.Content.Substring(0, 20) + "..." : messageDto.Content;
-                chat.Last_Msg_Status = messageDto.Message_Status;
+                chat.Last_Msg = messageVM;
                 chat.Unread_Count += messageVM.IsSelf ? 0 : 1;
                 chat.Is_Deleted = false;
             }
@@ -368,18 +361,14 @@ namespace HY.MAUI.Communication.SignalR
             var chat = _chatStore.GetChat(currentUser.Id, messageDto);
             if (chat != null)
             {
-                //MainThread.BeginInvokeOnMainThread(() =>
-                //{
-                //});
-
                 var message = _messageStore.GetMessages(chat.Id).FirstOrDefault(m => m.Id == messageDto.Id);
                 if (message != null)
                 {
                     message.Message_Status = MessageStatus.Recalled;
                 }
-                if (chat.Last_Msg_Id == messageDto.Id)
+                if (chat.Last_Msg?.Id == messageDto.Id)
                 {
-                    chat.Last_Msg_Status = MessageStatus.Recalled;
+                    chat.Last_Msg = message;
                     chat.Is_Deleted = false;
                 }
             }
@@ -395,7 +384,7 @@ namespace HY.MAUI.Communication.SignalR
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
 
                 _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
 
@@ -417,7 +406,7 @@ namespace HY.MAUI.Communication.SignalR
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
 
                 _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
             }

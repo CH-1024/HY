@@ -44,54 +44,63 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="m:ChatVM">
-                            <Border Padding="5" StrokeThickness="0.5">
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItem Text="置顶" BackgroundColor="SlateGray"/>
+                                        <SwipeItem Text="删除" BackgroundColor="LightPink"/>
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
 
-                                <Grid ColumnDefinitions="50,*,200" RowDefinitions="25,25" ColumnSpacing="5">
+                                <Border Padding="5" StrokeThickness="0.5">
 
-                                    <toolkit:AvatarView Grid.RowSpan="2" ImageSource="{Binding Target_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+                                    <Grid ColumnDefinitions="50,*,200" RowDefinitions="25,25" ColumnSpacing="5">
 
-                                    <Border IsVisible="{Binding Unread_Count_Visible}" BackgroundColor="Red" HorizontalOptions="End" VerticalOptions="Start" MinimumWidthRequest="22" HeightRequest="22" Margin="0" Padding="3,0">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="11" StrokeThickness="0"/>
-                                        </Border.StrokeShape>
-                                        <Border.Shadow>
-                                            <Shadow Brush="Black" Offset="0,0" Radius="5" Opacity="1"/>
-                                        </Border.Shadow>
-                                        <Label Text="{Binding Unread_Count_Show}" FontSize="Micro" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
-                                    </Border>
+                                        <toolkit:AvatarView Grid.RowSpan="2" ImageSource="{Binding Target_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
 
-                                    <Label Grid.Column="1" Text="{Binding Target_Name}" FontAttributes="Bold" FontSize="16" Padding="0" VerticalOptions="Start"/>
+                                        <Border IsVisible="{Binding Unread_Count_Visible}" BackgroundColor="Red" HorizontalOptions="End" VerticalOptions="Start" MinimumWidthRequest="22" HeightRequest="22" Margin="0" Padding="3,0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="11" StrokeThickness="0"/>
+                                            </Border.StrokeShape>
+                                            <Border.Shadow>
+                                                <Shadow Brush="Black" Offset="0,0" Radius="5" Opacity="1"/>
+                                            </Border.Shadow>
+                                            <Label Text="{Binding Unread_Count_Show}" FontSize="Micro" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+                                        </Border>
 
-                                    <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" FontSize="14" TextColor="Gray" Padding="0" VerticalOptions="End">
-                                        <Label.Triggers>
+                                        <Label Grid.Column="1" Text="{Binding Target_Name}" FontAttributes="Bold" FontSize="16" Padding="0" VerticalOptions="Start"/>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sending}">
-                                                <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='⇢{0}'}"/>
-                                            </DataTrigger>
+                                        <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" FontSize="14" TextColor="Gray" Padding="0" VerticalOptions="End">
+                                            <Label.Triggers>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sented}">
-                                                <Setter Property="Text" Value="{Binding Last_Msg_Brief}"/>
-                                            </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sending}">
+                                                    <Setter Property="Text" Value="{Binding Last_Msg_Brief, StringFormat='⇢{0}'}"/>
+                                                </DataTrigger>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Recalled}">
-                                                <Setter Property="Text" Value="[消息已撤回]"/>
-                                            </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sented}">
+                                                    <Setter Property="Text" Value="{Binding Last_Msg_Brief}"/>
+                                                </DataTrigger>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Deleted}">
-                                                <Setter Property="Text" Value="[消息已删除]"/>
-                                            </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Recalled}">
+                                                    <Setter Property="Text" Value="[消息已撤回]"/>
+                                                </DataTrigger>
 
-                                            <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Failed}">
-                                                <Setter Property="Text" Value="[消息发送失败]"/>
-                                            </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Deleted}">
+                                                    <Setter Property="Text" Value="[消息已删除]"/>
+                                                </DataTrigger>
 
-                                        </Label.Triggers>
-                                    </Label>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Failed}">
+                                                    <Setter Property="Text" Value="[消息发送失败]"/>
+                                                </DataTrigger>
 
-                                    <Label Grid.Column="2" Text="{Binding Last_Msg_Time_Show}" FontSize="12" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                </Grid>
-                            </Border>
+                                        <Label Grid.Column="2" Text="{Binding Last_Msg_Time_Show}" FontSize="12" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
+
+                                    </Grid>
+                                </Border>
+                            </SwipeView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>

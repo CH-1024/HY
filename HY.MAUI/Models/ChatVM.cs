@@ -83,5 +83,9 @@ namespace HY.MAUI.Models
 
 
 
+
+
+        // 扩展
+        public bool IsMsgEnd { get; set; } = false;
     }
 }

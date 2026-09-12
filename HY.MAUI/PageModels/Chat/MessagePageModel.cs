@@ -47,7 +47,6 @@ namespace HY.MAUI.PageModels.Chat
         private readonly FileApi _fileApi;
         private readonly LoginApi _loginApi;
 
-        bool _isTop = false;
         CollectionView _collectionView = null;
         ChatVM _currentChat = null;
         UserVM _currentUser = null;
@@ -118,10 +117,10 @@ namespace HY.MAUI.PageModels.Chat
         }
 
 
-        private Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
+        private async Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
         {
             // 1. 聊天类型不匹配
-            if (msgDto.Chat_Type != _currentChat.Type) return Task.FromResult(false);
+            if (msgDto.Chat_Type != _currentChat.Type) return false;
 
             // 2. 判断消息是否属于当前聊天
             bool isCurrentChat = msgDto.Chat_Type switch
@@ -131,16 +130,17 @@ namespace HY.MAUI.PageModels.Chat
                 _ => false
             };
 
-            if (!isCurrentChat) return Task.FromResult(false);
+            if (!isCurrentChat) return false;
 
             // 3. 当前聊天处理消息
             _currentChat.Unread_Count = 0;
 
-            if (_lastVisibleItemIndex + 2 >= MessageCollection.Count)
+            if (_lastVisibleItemIndex + 3 >= MessageCollection.Count)
             {
                 UnreadCount = 0;
                 ShowUnread = false;
 
+                await Task.Delay(50);
                 _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
             }
             else
@@ -149,7 +149,7 @@ namespace HY.MAUI.PageModels.Chat
                 ShowUnread = true;
             }
 
-            return Task.FromResult(true);
+            return true;
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -236,7 +236,7 @@ namespace HY.MAUI.PageModels.Chat
             {
                 var messageDtos = resp.GetValue<List<MessageDto>>("Messages") ?? [];
 
-                if (messageDtos.Count < takeCount) _isTop = true;
+                if (messageDtos.Count < takeCount) _currentChat.IsMsgEnd = true;
 
                 foreach (var messageDto in messageDtos)
                 {
@@ -254,25 +254,57 @@ namespace HY.MAUI.PageModels.Chat
             _collectionView = collectionView;
         }
 
+        double _lastOffset;
+        DateTime _lastTime;
         int _lastVisibleItemIndex;
         [RelayCommand]
         async Task CollectionViewScrolled(ItemsViewScrolledEventArgs args)
         {
+            //            InputText = $"{args.VerticalDelta.ToString("0.00")} | {args.VerticalOffset.ToString("0.00")}" +
+            //$"-----{args.FirstVisibleItemIndex} - {args.LastVisibleItemIndex}";
+            //            _lastVisibleItemIndex = args.LastVisibleItemIndex;
+
             InputText = $"{args.FirstVisibleItemIndex}";
             _lastVisibleItemIndex = args.LastVisibleItemIndex;
 
             if (args.VerticalDelta == 0) return;
 
-            if (args.VerticalDelta > 0 && _lastVisibleItemIndex + UnreadCount >= MessageCollection.Count)
+            if (args.VerticalDelta > 0 && args.LastVisibleItemIndex + UnreadCount >= MessageCollection.Count)
             {
                 UnreadCount = 0;
                 ShowUnread = false;
             }
 
-            if (args.VerticalDelta < 0 && args.FirstVisibleItemIndex <= 5 && !RefreshCommand.IsRunning && !_isTop)
+            if (args.VerticalDelta < 0 && args.FirstVisibleItemIndex <= 5 && !RefreshCommand.IsRunning && !_currentChat.IsMsgEnd)
             {
+                _collectionView.IsEnabled = false;
                 await RefreshCommand.ExecuteAsync(null);
+                _collectionView.IsEnabled = true;
+                //_collectionView.ScrollTo(args.FirstVisibleItemIndex, position: ScrollToPosition.MakeVisible, animate: false);
             }
+
+            await Task.Delay(100);
+
+            //var now = DateTime.UtcNow;
+
+            //if (_lastTime != default)
+            //{
+            //    var dt = (now - _lastTime).TotalSeconds;
+
+            //    if (dt > 0)
+            //    {
+            //        var velocity = Math.Abs(args.VerticalDelta) / dt;
+
+            //        InputText = velocity.ToString();
+
+            //        // velocity 就是近似的滚动速度
+            //    }
+            //}
+
+            //_lastOffset = args.VerticalOffset;
+            //_lastTime = now;
+
+            //await Task.Delay(10);
         }
 
         [RelayCommand]
@@ -407,7 +439,7 @@ namespace HY.MAUI.PageModels.Chat
             var task = CreateSendTask(textVM, null);
 
             // 先显示
-            HandleMessage(task.Message);
+            await HandleMessage(task.Message);
 
             // 再入队
             await _messageSendService.EnqueueAsync(task);
@@ -431,7 +463,7 @@ namespace HY.MAUI.PageModels.Chat
                 var task = CreateSendTask(imageVM, file);
 
                 // 先显示
-                HandleMessage(task.Message);
+                await HandleMessage(task.Message);
 
                 // 再入队
                 await _messageSendService.EnqueueAsync(task);
@@ -453,7 +485,7 @@ namespace HY.MAUI.PageModels.Chat
                 var task = CreateSendTask(videoVM, file);
 
                 // 先显示
-                HandleMessage(task.Message);
+                await HandleMessage(task.Message);
 
                 // 再入队
                 await _messageSendService.EnqueueAsync(task);
@@ -523,14 +555,15 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        void HandleMessage(MessageVM msgVM)
+        async Task HandleMessage(MessageVM msgVM)
         {
             MessageCollection.Add(msgVM);
 
             _currentChat.Last_Msg = msgVM;
             _currentChat.Is_Deleted = false;
 
-            _collectionView.ScrollTo(msgVM, position: ScrollToPosition.End, animate: true);
+            await Task.Delay(50);
+            _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
         }
 
 
