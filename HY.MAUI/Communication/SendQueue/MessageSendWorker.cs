@@ -48,6 +48,10 @@ namespace HY.MAUI.Communication.SendQueue
 
                     videoVM.File_Id = resp!.GetValue<string>("File_Id");
                 }
+                else if (task.Message is VoiceMessageVM voiceVM)
+                {
+                    throw new Exception("待实现");
+                }
 
                 task.Status = SendTaskStatus.Sending;
 

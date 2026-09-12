@@ -169,7 +169,12 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
-                        mediaStorageEntity.File_Path = filePathWithoutBucket;
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _thumbFilePathWithoutBucket = thumbFilePathWithoutBucket.Replace("\\", "/");
+                        var _compressFilePathWithoutBucket = compressFilePathWithoutBucket.Replace("\\", "/");
+
+                        mediaStorageEntity.File_Path = _filePathWithoutBucket;
                         mediaStorageEntity.Storage_Bucket = bucket;
                         mediaStorageEntity.Storage_Type = StorageType.Local;
                         mediaStorageEntity.Ref_Count = 1;
@@ -177,10 +182,10 @@ namespace HY.ApiService.Services
                         var bol1 = await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
                         if (!bol1) throw new Exception("恢复文件记录失败");
 
-                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, _thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
                         if (!bol2) throw new Exception("更新缩略图记录失败");
 
-                        var bol3 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Compress, compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol3 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Compress, _compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
                         if (!bol3) throw new Exception("更新压缩图记录失败");
 
                         mediaFileEntity = new MediaFileEntity
@@ -258,10 +263,15 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _thumbFilePathWithoutBucket = thumbFilePathWithoutBucket.Replace("\\", "/");
+                        var _compressFilePathWithoutBucket = compressFilePathWithoutBucket.Replace("\\", "/");
+
                         mediaStorageEntity = new MediaStorageEntity
                         {
                             File_MD5 = fileMD5,
-                            File_Path = filePathWithoutBucket,
+                            File_Path = _filePathWithoutBucket,
                             File_Size = file.Length,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -278,7 +288,7 @@ namespace HY.ApiService.Services
                         {
                             Storage_Id = mediaStorageEntity.Id,
                             Variant_Type = VariantType.Thumbnail,
-                            File_Path = thumbFilePathWithoutBucket,
+                            File_Path = _thumbFilePathWithoutBucket,
                             File_Size = thumbLength,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -293,7 +303,7 @@ namespace HY.ApiService.Services
                         {
                             Storage_Id = mediaStorageEntity.Id,
                             Variant_Type = VariantType.Compress,
-                            File_Path = compressFilePathWithoutBucket,
+                            File_Path = _compressFilePathWithoutBucket,
                             File_Size = compressLength,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -472,7 +482,12 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
-                        mediaStorageEntity.File_Path = filePathWithoutBucket;
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _coverFilePathWithoutBucket = coverFilePathWithoutBucket.Replace("\\", "/");
+                        //var _compressFilePathWithoutBucket = compressFilePathWithoutBucket.Replace("\\", "/");
+
+                        mediaStorageEntity.File_Path = _filePathWithoutBucket;
                         mediaStorageEntity.Storage_Bucket = bucket;
                         mediaStorageEntity.Storage_Type = StorageType.Local;
                         mediaStorageEntity.Ref_Count = 1;
@@ -480,10 +495,10 @@ namespace HY.ApiService.Services
                         var bol1 = await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
                         if (!bol1) throw new Exception("恢复文件记录失败");
 
-                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Cover, coverFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Cover, _coverFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
                         if (!bol2) throw new Exception("更新封面图记录失败");
 
-                        //var bol3 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.LowVideo, compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        //var bol3 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.LowVideo, _compressFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
                         //if (!bol3) throw new Exception("更新压缩视频记录失败");
 
                         mediaFileEntity = new MediaFileEntity
@@ -561,10 +576,15 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _coverFilePathWithoutBucket = coverFilePathWithoutBucket.Replace("\\", "/");
+                        //var _compressFilePathWithoutBucket = compressFilePathWithoutBucket.Replace("\\", "/");
+
                         mediaStorageEntity = new MediaStorageEntity
                         {
                             File_MD5 = fileMD5,
-                            File_Path = filePathWithoutBucket,
+                            File_Path = _filePathWithoutBucket,
                             File_Size = file.Length,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -581,7 +601,7 @@ namespace HY.ApiService.Services
                         {
                             Storage_Id = mediaStorageEntity.Id,
                             Variant_Type = VariantType.Cover,
-                            File_Path = coverFilePathWithoutBucket,
+                            File_Path = _coverFilePathWithoutBucket,
                             File_Size = coverLength,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -596,7 +616,7 @@ namespace HY.ApiService.Services
                         //{
                         //    Storage_Id = mediaStorageEntity.Id,
                         //    Variant_Type = VariantType.LowVideo,
-                        //    File_Path = compressFilePathWithoutBucket,
+                        //    File_Path = _compressFilePathWithoutBucket,
                         //    File_Size = compressLength,
                         //    Mime_Type = file.ContentType,
                         //    Storage_Bucket = bucket,
@@ -758,7 +778,11 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
-                        mediaStorageEntity.File_Path = filePathWithoutBucket;
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _thumbFilePathWithoutBucket = thumbFilePathWithoutBucket.Replace("\\", "/");
+
+                        mediaStorageEntity.File_Path = _filePathWithoutBucket;
                         mediaStorageEntity.Storage_Bucket = bucket;
                         mediaStorageEntity.Storage_Type = StorageType.Local;
                         mediaStorageEntity.Ref_Count = 1;
@@ -766,7 +790,7 @@ namespace HY.ApiService.Services
                         var bol1 = await _mediaStorageRepository.UpdateMediaStorage(mediaStorageEntity);
                         if (!bol1) throw new Exception("恢复文件记录失败");
 
-                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
+                        var bol2 = await _mediaStorageVariantRepository.UpdateMediaStorageVariant(mediaStorageEntity.Id, VariantType.Thumbnail, _thumbFilePathWithoutBucket, file.ContentType, bucket, StorageType.Local, 1);
                         if (!bol2) throw new Exception("更新缩略图记录失败");
 
                         mediaFileEntity = new MediaFileEntity
@@ -829,10 +853,14 @@ namespace HY.ApiService.Services
                     // 开启事务
                     var result = await _db.Ado.UseTranAsync(async () =>
                     {
+                        // 统一 Windows 和 Linux 的数据库存储格式
+                        var _filePathWithoutBucket = filePathWithoutBucket.Replace("\\", "/");
+                        var _thumbFilePathWithoutBucket = thumbFilePathWithoutBucket.Replace("\\", "/");
+
                         mediaStorageEntity = new MediaStorageEntity
                         {
                             File_MD5 = fileMD5,
-                            File_Path = filePathWithoutBucket,
+                            File_Path = _filePathWithoutBucket,
                             File_Size = file.Length,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -849,7 +877,7 @@ namespace HY.ApiService.Services
                         {
                             Storage_Id = mediaStorageEntity.Id,
                             Variant_Type = VariantType.Thumbnail,
-                            File_Path = thumbFilePathWithoutBucket,
+                            File_Path = _thumbFilePathWithoutBucket,
                             File_Size = thumbLength,
                             Mime_Type = file.ContentType,
                             Storage_Bucket = bucket,
@@ -1020,7 +1048,7 @@ namespace HY.ApiService.Services
         {
             return storageType switch
             {
-                StorageType.Local => Path.Combine(bucket, path),
+                StorageType.Local => Path.Combine([bucket, .. path.Split('/')]),
                 StorageType.OSS => $"https://{bucket}.oss-cn-shanghai.aliyuncs.com/{path}",
                 StorageType.COS => $"https://{bucket}.cos.ap-guangzhou.myqcloud.com/{path}",
                 StorageType.S3 => $"https://{bucket}.blob.core.windows.net/{path}",
