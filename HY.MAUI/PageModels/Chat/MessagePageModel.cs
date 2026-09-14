@@ -254,17 +254,11 @@ namespace HY.MAUI.PageModels.Chat
             _collectionView = collectionView;
         }
 
-        double _lastOffset;
-        DateTime _lastTime;
         int _lastVisibleItemIndex;
         [RelayCommand]
         async Task CollectionViewScrolled(ItemsViewScrolledEventArgs args)
         {
-            //            InputText = $"{args.VerticalDelta.ToString("0.00")} | {args.VerticalOffset.ToString("0.00")}" +
-            //$"-----{args.FirstVisibleItemIndex} - {args.LastVisibleItemIndex}";
-            //            _lastVisibleItemIndex = args.LastVisibleItemIndex;
-
-            InputText = $"{args.FirstVisibleItemIndex}";
+            //InputText = $"{args.FirstVisibleItemIndex}";
             _lastVisibleItemIndex = args.LastVisibleItemIndex;
 
             if (args.VerticalDelta == 0) return;
@@ -277,34 +271,38 @@ namespace HY.MAUI.PageModels.Chat
 
             if (args.VerticalDelta < 0 && args.FirstVisibleItemIndex <= 5 && !RefreshCommand.IsRunning && !_currentChat.IsMsgEnd)
             {
+                var first = MessageCollection.FirstOrDefault();
+
                 _collectionView.IsEnabled = false;
                 await RefreshCommand.ExecuteAsync(null);
                 _collectionView.IsEnabled = true;
-                //_collectionView.ScrollTo(args.FirstVisibleItemIndex, position: ScrollToPosition.MakeVisible, animate: false);
+
+                _collectionView.ScrollTo(first, position: ScrollToPosition.Center, animate: false);
             }
 
             await Task.Delay(100);
+        }
 
-            //var now = DateTime.UtcNow;
+        double _lastOffset;
+        DateTime _lastTime;
+        async Task GetScrollSpeed(double verticalDelta, double verticalOffset)
+        {
+            var now = DateTime.UtcNow;
 
-            //if (_lastTime != default)
-            //{
-            //    var dt = (now - _lastTime).TotalSeconds;
+            if (_lastTime != default)
+            {
+                var dt = (now - _lastTime).TotalSeconds;
 
-            //    if (dt > 0)
-            //    {
-            //        var velocity = Math.Abs(args.VerticalDelta) / dt;
+                if (dt > 0)
+                {
+                    var velocity = Math.Abs(verticalDelta) / dt;
 
-            //        InputText = velocity.ToString();
+                    // velocity 就是近似的滚动速度
+                }
+            }
 
-            //        // velocity 就是近似的滚动速度
-            //    }
-            //}
-
-            //_lastOffset = args.VerticalOffset;
-            //_lastTime = now;
-
-            //await Task.Delay(10);
+            _lastOffset = verticalOffset;
+            _lastTime = now;
         }
 
         [RelayCommand]
