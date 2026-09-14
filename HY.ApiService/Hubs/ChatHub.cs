@@ -102,6 +102,7 @@ namespace HY.ApiService.Hubs
         // InvokeAsync  等待客户端响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
+        [Authorize]
         public async Task<Response> CreateCall(CreateCallRequest request)
         {
             var callerId = _userId;
@@ -158,6 +159,7 @@ namespace HY.ApiService.Hubs
             };
         }
 
+        [Authorize]
         public async Task<Response> CancelCall(string callId)
         {
             var callerId = _userId;
@@ -175,6 +177,7 @@ namespace HY.ApiService.Hubs
             return new Response(true);
         }
 
+        [Authorize]
         public async Task<Response> AcceptCall(string callId)
         {
             var calleeId = _userId;
@@ -198,6 +201,7 @@ namespace HY.ApiService.Hubs
             };
         }
 
+        [Authorize]
         public async Task<Response> RejectCall(string callId)
         {
             var calleeId = _userId;
@@ -215,6 +219,7 @@ namespace HY.ApiService.Hubs
             return new Response(true);
         }
 
+        [Authorize]
         public async Task<Response> HangUpCall(string callId)
         {
             var userId = _userId;
