@@ -55,9 +55,9 @@ namespace HY.ApiService
                 // 添加请求响应日志中间件
                 app.Use(async (context, next) =>
                 {
-                    Console.WriteLine($"收到请求: {context.Request.Path}");
+                    //Console.WriteLine($"收到请求: {context.Request.Path}");
                     await next();
-                    Console.WriteLine($"响应状态码: {context.Response.StatusCode}");
+                    //Console.WriteLine($"响应状态码: {context.Response.StatusCode}");
                 });
 
                 app.MapOpenApi();

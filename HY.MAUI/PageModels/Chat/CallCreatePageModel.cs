@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication;
+using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Enums;
@@ -15,7 +16,7 @@ namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallCreatePageModel : ObservableObject, IQueryAttributable
     {
-        private readonly ChatHubSignalR _chatHub;
+        readonly ChatHubSignalR _chatHub;
 
 
         private string calleeAvatar;
@@ -54,8 +55,13 @@ namespace HY.MAUI.PageModels.Chat
         {
             if (callId == _callId)
             {
+                var _webRTC = new WebRTCService();
+                await _webRTC.Initialize(_callId!);
+
                 var parameters = new Dictionary<string, object>
                 {
+                    { "WebRTC", _webRTC },
+                    { "IsCaller", true },
                     { "CallId", callId },
                     { "TargetAvatar", CalleeAvatar },
                     { "TargetName", CalleeName },

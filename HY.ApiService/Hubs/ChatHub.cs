@@ -14,6 +14,7 @@ using SqlSugar;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 
@@ -235,6 +236,84 @@ namespace HY.ApiService.Hubs
 
             return new Response(true);
         }
+
+        [Authorize]
+        public async Task CallStateChanged(string callId, string state)
+        {
+            var userId = _userId;
+
+            await _redisCallService.CallStateChanged(callId, userId, state);
+        }
+
+
+
+
+        [Authorize]
+        public async Task SendIce(string callId, string ice)
+        {
+            var userId = _userId;
+
+            Console.WriteLine($"SendIce : {userId}");
+
+            var callInfo = await _redisCallService.GetCallInfo(callId);
+            if (callInfo == null)
+            {
+                return;
+            }
+
+            var targetId = userId == callInfo.CalleeId ? callInfo.CallerId : callInfo.CalleeId;
+            var targetPlatform = userId == callInfo.CalleeId ? callInfo.CallerPlatform : callInfo.CalleePlatform;
+
+            var connectionId = await _redisConnectionService.GetConnectionIdAsync(targetId, targetPlatform);
+            if (!string.IsNullOrEmpty(connectionId)) await Clients.Client(connectionId).SendAsync("ReceiveIce", ice);
+
+            return;
+        }
+
+        [Authorize]
+        public async Task SendOffer(string callId, string offer)
+        {
+            var userId = _userId;
+
+            Debug.WriteLine($"SendOffer : {userId}");
+
+            var callInfo = await _redisCallService.GetCallInfo(callId);
+            if (callInfo == null)
+            {
+                return;
+            }
+
+            var targetId = userId == callInfo.CalleeId ? callInfo.CallerId : callInfo.CalleeId;
+            var targetPlatform = userId == callInfo.CalleeId ? callInfo.CallerPlatform : callInfo.CalleePlatform;
+
+            var connectionId = await _redisConnectionService.GetConnectionIdAsync(targetId, targetPlatform);
+            if (!string.IsNullOrEmpty(connectionId)) await Clients.Client(connectionId).SendAsync("ReceiveOffer", offer);
+
+            return;
+        }
+
+        [Authorize]
+        public async Task SendAnswer(string callId, string answer)
+        {
+            var userId = _userId;
+
+            Debug.WriteLine($"SendAnswer : {userId}");
+
+            var callInfo = await _redisCallService.GetCallInfo(callId);
+            if (callInfo == null)
+            {
+                return;
+            }
+
+            var targetId = userId == callInfo.CalleeId ? callInfo.CallerId : callInfo.CalleeId;
+            var targetPlatform = userId == callInfo.CalleeId ? callInfo.CallerPlatform : callInfo.CalleePlatform;
+
+            var connectionId = await _redisConnectionService.GetConnectionIdAsync(targetId, targetPlatform);
+            if (!string.IsNullOrEmpty(connectionId)) await Clients.Client(connectionId).SendAsync("ReceiveAnswer", answer);
+
+            return;
+        }
+
 
     }
 }

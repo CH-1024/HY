@@ -665,7 +665,7 @@ namespace HY.ApiService.Services
                 var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
 
                 var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
-                await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
+                if (!string.IsNullOrEmpty(userConnectionId)) await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
                 #endregion
 
                 #endregion
