@@ -172,6 +172,57 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
+        public async Task<Response> CallStateChanged(string callId, string state, CancellationToken cancel = default)
+        {
+            try
+            {
+                await _connection!.SendAsync("CallStateChanged", callId, state, cancel);
+                return new Response(true);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
+        public async Task<Response> SendIce(string callId, string ice)
+        {
+            try
+            {
+                await _connection!.SendAsync("SendIce", callId, ice);
+                return new Response(true);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
+        public async Task<Response> SendOffer(string callId, string offer)
+        {
+            try
+            {
+                await _connection!.SendAsync("SendOffer", callId, offer);
+                return new Response(true);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
+
+        public async Task<Response> SendAnswer(string callId, string answer)
+        {
+            try
+            {
+                await _connection!.SendAsync("SendAnswer", callId, answer);
+                return new Response(true);
+            }
+            catch (Exception e)
+            {
+                return new Response(false, e.Message);
+            }
+        }
 
 
 
@@ -226,6 +277,10 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<string>("CallHandled", OnCallHandled);
             _connection?.On<string>("CallExpiry", OnCallExpiry);
 
+            _connection?.On<string>("ReceiveIce", OnReceiveIce);
+            _connection?.On<string>("ReceiveOffer", OnReceiveOffer);
+            _connection?.On<string>("ReceiveAnswer", OnReceiveAnswer);
+
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
 
@@ -253,6 +308,10 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.Remove("CallHangUp");
             _connection?.Remove("CallHandled");
             _connection?.Remove("CallExpiry");
+
+            _connection?.Remove("ReceiveIce");
+            _connection?.Remove("ReceiveOffer");
+            _connection?.Remove("ReceiveAnswer");
 
             _connection?.Remove("RequestContact");
             _connection?.Remove("RespondContact");
@@ -463,5 +522,28 @@ namespace HY.MAUI.Communication.SignalR
         #endregion
 
 
+
+        #region WebRTC
+
+        public event Action<string> OnReceiveIce_ChatHub;
+        public event Action<string> OnReceiveOffer_ChatHub;
+        public event Action<string> OnReceiveAnswer_ChatHub;
+
+        private void OnReceiveIce(string ice)
+        {
+            OnReceiveIce_ChatHub?.Invoke(ice);
+        }
+
+        private void OnReceiveOffer(string offer)
+        {
+            OnReceiveOffer_ChatHub?.Invoke(offer);
+        }
+
+        private void OnReceiveAnswer(string answer)
+        {
+            OnReceiveAnswer_ChatHub?.Invoke(answer);
+        }
+
+        #endregion
     }
 }

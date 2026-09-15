@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication;
+using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Enums;
@@ -30,7 +31,9 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref callerName, value); }
         }
 
-        private ReceiveCallRequest _receiveCallRequest;
+        ReceiveCallRequest _receiveCallRequest;
+
+
 
         public CallSelectPageModel(ChatHubSignalR chatHub)
         {
@@ -43,7 +46,6 @@ namespace HY.MAUI.PageModels.Chat
             CallerAvatar = query["CallerAvatar"]?.ToString();
             CallerName = query["CallerName"]?.ToString();
         }
-
 
         private async void OnCallCanceled_ChatHub(string callId)
         {
@@ -76,7 +78,7 @@ namespace HY.MAUI.PageModels.Chat
 
 
         [RelayCommand]
-        async Task Appearing()
+        void Appearing()
         {
             _chatHub.OnCallCanceled_ChatHub += OnCallCanceled_ChatHub;
             _chatHub.OnCallHandled_ChatHub += OnCallHandled_ChatHub;
@@ -94,6 +96,9 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Accept()
         {
+            var _webRTC = new WebRTCService();
+            await _webRTC.Initialize(_receiveCallRequest.CallId);
+
             var resp = await _chatHub.AcceptCall(_receiveCallRequest.CallId);
             if (resp.IsSucc)
             {
@@ -101,6 +106,8 @@ namespace HY.MAUI.PageModels.Chat
 
                 var parameters = new Dictionary<string, object>
                 {
+                    { "WebRTC", _webRTC },
+                    { "IsCaller", false },
                     { "CallId", _receiveCallRequest.CallId },
                     { "TargetAvatar", CallerAvatar },
                     { "TargetName", CallerName },
