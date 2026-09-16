@@ -8,7 +8,6 @@ namespace HY.ApiService.Models
         public string CallId { get; set; }
 
         public CallType CallType { get; set; }
-        public ChatType ChatType { get; set; }
 
         public long CallerId { get; set; }
         public int CallerPlatform { get; set; }

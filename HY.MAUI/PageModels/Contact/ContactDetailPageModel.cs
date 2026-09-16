@@ -85,7 +85,6 @@ namespace HY.MAUI.PageModels.Contact
             var request = new CreateCallRequest
             {
                 CallType = CallType.Voice,
-                ChatType = chat.Type,
                 CalleeId = chat.Target_Id
             };
 
@@ -114,7 +113,6 @@ namespace HY.MAUI.PageModels.Contact
             var request = new CreateCallRequest
             {
                 CallType = CallType.Video,
-                ChatType = chat.Type,
                 CalleeId = chat.Target_Id
             };
 

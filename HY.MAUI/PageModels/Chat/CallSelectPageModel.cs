@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication;
+using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Communication.SignalR.Requests;
@@ -15,6 +16,7 @@ namespace HY.MAUI.PageModels.Chat
     public partial class CallSelectPageModel : ObservableObject, IQueryAttributable
     {
         readonly ChatHubSignalR _chatHub;
+        readonly CallApi _callApi;
 
 
         private string callerAvatar;
@@ -35,9 +37,10 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        public CallSelectPageModel(ChatHubSignalR chatHub)
+        public CallSelectPageModel(ChatHubSignalR chatHub, CallApi callApi)
         {
             _chatHub = chatHub;
+            _callApi = callApi;
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -45,6 +48,34 @@ namespace HY.MAUI.PageModels.Chat
             _receiveCallRequest = (ReceiveCallRequest)query["ReceiveCallRequest"];
             CallerAvatar = query["CallerAvatar"]?.ToString();
             CallerName = query["CallerName"]?.ToString();
+        }
+
+        private async void OnCallAccepted_ChatHub(string callId, DateTime start)
+        {
+            if (callId == _receiveCallRequest.CallId)
+            {
+                var _webRTC = new WebRTCService();
+                await _webRTC.Initialize(_receiveCallRequest.CallId);
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "WebRTC", _webRTC },
+                    { "IsCaller", false },
+                    { "CallId", _receiveCallRequest.CallId },
+                    { "TargetAvatar", CallerAvatar },
+                    { "TargetName", CallerName },
+                    { "StartAt", start},
+                };
+
+                if (_receiveCallRequest.CallType == CallType.Video)
+                {
+                    await Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
+                }
+                else if (_receiveCallRequest.CallType == CallType.Voice)
+                {
+                    await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
+                }
+            }
         }
 
         private async void OnCallCanceled_ChatHub(string callId)
@@ -75,11 +106,12 @@ namespace HY.MAUI.PageModels.Chat
         }
 
 
-
+        
 
         [RelayCommand]
         void Appearing()
         {
+            _chatHub.OnCallAccepted_ChatHub += OnCallAccepted_ChatHub;
             _chatHub.OnCallCanceled_ChatHub += OnCallCanceled_ChatHub;
             _chatHub.OnCallHandled_ChatHub += OnCallHandled_ChatHub;
             _chatHub.OnCallExpiry_ChatHub += OnCallExpiry_ChatHub;
@@ -88,6 +120,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         void Disappearing()
         {
+            _chatHub.OnCallAccepted_ChatHub -= OnCallAccepted_ChatHub;
             _chatHub.OnCallCanceled_ChatHub -= OnCallCanceled_ChatHub;
             _chatHub.OnCallHandled_ChatHub -= OnCallHandled_ChatHub;
             _chatHub.OnCallExpiry_ChatHub -= OnCallExpiry_ChatHub;
@@ -96,39 +129,14 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Accept()
         {
-            var _webRTC = new WebRTCService();
-            await _webRTC.Initialize(_receiveCallRequest.CallId);
-
-            var resp = await _chatHub.AcceptCall(_receiveCallRequest.CallId);
-            if (resp.IsSucc)
-            {
-                var startAt = resp.GetValue<DateTime>("StartAt");
-
-                var parameters = new Dictionary<string, object>
-                {
-                    { "WebRTC", _webRTC },
-                    { "IsCaller", false },
-                    { "CallId", _receiveCallRequest.CallId },
-                    { "TargetAvatar", CallerAvatar },
-                    { "TargetName", CallerName },
-                    { "StartAt", startAt},
-                };
-
-                if (_receiveCallRequest.CallType == CallType.Video)
-                {
-                    await Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
-                }
-                else if (_receiveCallRequest.CallType == CallType.Voice)
-                {
-                    await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
-                }
-            }
+            var resp = await _callApi.AcceptCall(_receiveCallRequest.CallId);
+            if (!resp.IsSucc) _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", $"接听异常:{resp.Msg}", "退出");
         }
 
         [RelayCommand]
         async Task Reject()
         {
-            var resp = await _chatHub.RejectCall(_receiveCallRequest.CallId);
+            var resp = await _callApi.RejectCall(_receiveCallRequest.CallId);
             if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
     }

@@ -40,6 +40,7 @@ namespace HY.MAUI.Setups
             AddApiClient<LoginApi>(services, 3600);
             AddApiClient<ChatApi>(services, 3600);
             AddApiClient<MessageApi>(services, 3600);
+            AddApiClient<CallApi>(services, 3600);
             AddApiClient<ContactApi>(services, 3600);
             AddApiClient<UserApi>(services, 3600);
             AddApiClient<FileApi>(services, 3600);

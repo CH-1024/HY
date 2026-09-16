@@ -117,10 +117,10 @@ namespace HY.MAUI.PageModels.Chat
         }
 
 
-        private async Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
+        private Task<bool> OnReceiveMessage_ChatHub(MessageDto msgDto)
         {
             // 1. 聊天类型不匹配
-            if (msgDto.Chat_Type != _currentChat.Type) return false;
+            if (msgDto.Chat_Type != _currentChat.Type) return Task.FromResult(false);
 
             // 2. 判断消息是否属于当前聊天
             bool isCurrentChat = msgDto.Chat_Type switch
@@ -130,7 +130,7 @@ namespace HY.MAUI.PageModels.Chat
                 _ => false
             };
 
-            if (!isCurrentChat) return false;
+            if (!isCurrentChat) return Task.FromResult(false);
 
             // 3. 当前聊天处理消息
             _currentChat.Unread_Count = 0;
@@ -140,8 +140,10 @@ namespace HY.MAUI.PageModels.Chat
                 UnreadCount = 0;
                 ShowUnread = false;
 
-                await Task.Delay(50);
-                _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
+                _dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(50),() =>
+                {
+                    _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
+                });
             }
             else
             {
@@ -149,7 +151,7 @@ namespace HY.MAUI.PageModels.Chat
                 ShowUnread = true;
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -503,7 +505,6 @@ namespace HY.MAUI.PageModels.Chat
             var request = new CreateCallRequest
             {
                 CallType = CallType.Voice,
-                ChatType = _currentChat!.Type,
                 CalleeId = _currentChat!.Target_Id
             };
 
@@ -529,7 +530,6 @@ namespace HY.MAUI.PageModels.Chat
             var request = new CreateCallRequest
             {
                 CallType = CallType.Video,
-                ChatType = _currentChat!.Type,
                 CalleeId = _currentChat!.Target_Id
             };
 
@@ -553,15 +553,19 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        async Task HandleMessage(MessageVM msgVM)
+        Task HandleMessage(MessageVM msgVM)
         {
             MessageCollection.Add(msgVM);
 
             _currentChat.Last_Msg = msgVM;
             _currentChat.Is_Deleted = false;
 
-            await Task.Delay(50);
-            _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
+            _dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(50), () =>
+            {
+                _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
+            });
+
+            return Task.CompletedTask;
         }
 
 

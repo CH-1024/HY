@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HY.MAUI.Communication.Http;
+using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
@@ -10,16 +12,17 @@ using HY.MAUI.Stores;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace HY.MAUI.PageModels.Chat
 {
     public partial class CallStartVoicePageModel : ObservableObject, IQueryAttributable
     {
-        private readonly IGlobalCache _globalCache;
+        readonly IGlobalCache _globalCache;
+        readonly ChatHubSignalR _chatHub;
+        readonly ChatStore _chatStore;
+        readonly CallApi _callApi;
 
-        private readonly ChatHubSignalR _chatHub;
-
-        private readonly ChatStore _chatStore;
 
         private string targetAvatar;
         public string TargetAvatar
@@ -42,22 +45,33 @@ namespace HY.MAUI.PageModels.Chat
             set { SetProperty(ref startTime, value); }
         }
 
+        private Brush statusColor = Colors.Gray;
+        public Brush StatusColor
+        {
+            get { return statusColor; }
+            set { SetProperty(ref statusColor, value); }
+        }
 
-
+        bool _isCaller;
+        WebRTCService _webRTC;
         string _callId;
         DateTime _startAt;
 
 
-        public CallStartVoicePageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore)
+
+
+        public CallStartVoicePageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore, CallApi callApi)
         {
             _globalCache = globalCache;
             _chatHub = chatHub;
             _chatStore = chatStore;
+            _callApi = callApi;
         }
-
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            _webRTC = (WebRTCService)query["WebRTC"];
+            _isCaller = (bool)query["IsCaller"];
             _callId = query["CallId"]?.ToString();
             _startAt = (DateTime)query["StartAt"];
             TargetAvatar = query["TargetAvatar"]?.ToString();
@@ -78,6 +92,15 @@ namespace HY.MAUI.PageModels.Chat
             if (callId == _callId)
             {
                 //_ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "通话已在其他设备处理", "退出");
+                await Shell.Current.GoToAsync("..", false);
+            }
+        }
+
+        private async void OnCallExpiry_ChatHub(string callId)
+        {
+            if (callId == _callId)
+            {
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求超时", "退出");
                 await Shell.Current.GoToAsync("..", false);
             }
         }
@@ -110,6 +133,33 @@ namespace HY.MAUI.PageModels.Chat
             StartTime = DateTime.UtcNow - _startAt;
         }
 
+        bool _hasConnected;
+        private async void OnConnectionStateChanged_WebRTC(SIPSorcery.Net.RTCPeerConnectionState state)
+        {
+            if (state == SIPSorcery.Net.RTCPeerConnectionState.connected)
+            {
+                if (_isCaller && !_hasConnected)
+                {
+                    _hasConnected = true;
+                    _ = _callApi.CallConnected(_callId);
+                }
+                StatusColor = Colors.LightGreen;
+            }
+            else if (state == SIPSorcery.Net.RTCPeerConnectionState.connecting)
+            {
+                StatusColor = Colors.Orange;
+            }
+            else if (state == SIPSorcery.Net.RTCPeerConnectionState.disconnected)
+            {
+                StatusColor = Colors.Red;
+            }
+            else if (state == SIPSorcery.Net.RTCPeerConnectionState.closed)
+            {
+                StatusColor = Colors.Gray;
+            }
+        }
+
+
 
         IDispatcherTimer _timer;
 
@@ -125,7 +175,16 @@ namespace HY.MAUI.PageModels.Chat
 
             _chatHub.OnCallAbnormal_ChatHub += OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub += OnCallHangUp_ChatHub;
+            _chatHub.OnCallExpiry_ChatHub += OnCallExpiry_ChatHub;
             _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
+
+            _webRTC.OnConnectionStateChanged += OnConnectionStateChanged_WebRTC;
+            _webRTC.OnReceivedMessage += OnReceivedMessage_WebRTC;
+
+            if (_isCaller)
+            {
+                await _webRTC.SendOffer();
+            }
         }
 
 
@@ -137,15 +196,54 @@ namespace HY.MAUI.PageModels.Chat
 
             _chatHub.OnCallAbnormal_ChatHub -= OnCallAbnormal_ChatHub;
             _chatHub.OnCallHangUp_ChatHub -= OnCallHangUp_ChatHub;
+            _chatHub.OnCallExpiry_ChatHub += OnCallExpiry_ChatHub;
             _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
+
+            _webRTC.OnConnectionStateChanged -= OnConnectionStateChanged_WebRTC;
+            _webRTC.OnReceivedMessage -= OnReceivedMessage_WebRTC;
+            _webRTC.Dispose();
+            _webRTC = null;
         }
 
         [RelayCommand]
         async Task HangUp()
         {
-            var resp = await _chatHub.HangUpCall(_callId);
+            var resp = await _callApi.HangUpCall(_callId);
             if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
 
+
+
+
+        private void OnReceivedMessage_WebRTC(byte[] obj)
+        {
+            try
+            {
+                Message = Encoding.UTF8.GetString(obj);
+            }
+            catch (Exception)
+            {
+                Message = "无法解析消息内容";
+            }
+        }
+
+        private string text;
+        public string Text
+        {
+            get { return text; }
+            set { SetProperty(ref text, value); }
+        }
+        private string message;
+        public string Message
+        {
+            get { return message; }
+            set { SetProperty(ref message, value); }
+        }
+
+        [RelayCommand]
+        void Send()
+        {
+            _webRTC.SendMessage(Text);
+        }
     }
 }

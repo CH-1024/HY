@@ -41,7 +41,7 @@ namespace HY.ApiService.Controllers
 
 
         [Authorize]
-        [HttpGet("get/messages")]
+        [HttpGet("gets")]
         public async Task<IActionResult> GetMessages(long chatId, long skipMessageId, int take)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -65,7 +65,7 @@ namespace HY.ApiService.Controllers
 
 
         [Authorize]
-        [HttpPost("send/message")]
+        [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] MessageDto messageDto)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -126,7 +126,7 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
-        [HttpPost("recall/message")]
+        [HttpPost("recall")]
         public async Task<IActionResult> RecallMessage(long messageId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -155,7 +155,7 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
-        [HttpPost("delete/message")]
+        [HttpPost("delete")]
         public async Task<IActionResult> DeleteMessage(long messageId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
