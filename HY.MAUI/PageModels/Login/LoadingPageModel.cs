@@ -229,23 +229,16 @@ namespace HY.MAUI.PageModels.Login
 
         private async void OnReceiveCall_ChatHub(ReceiveCallRequest request)
         {
-            if (request.ChatType == ChatType.Private)
-            {
-                var contact = _contactStore.GetContact(request.CallerId);
-                if (contact == null) return;
+            var contact = _contactStore.GetContact(request.CallerId);
+            if (contact == null) return;
 
-                var parameters = new Dictionary<string, object>
-                {
-                    { "ReceiveCallRequest", request },
-                    { "CallerAvatar", contact.Avatar },
-                    { "CallerName", contact.Nickname },
-                };
-                await Shell.Current.GoToAsync(nameof(CallSelectPage), false, parameters);
-            }
-            else if (request.ChatType == ChatType.Group)
+            var parameters = new Dictionary<string, object>
             {
-
-            }
+                { "ReceiveCallRequest", request },
+                { "CallerAvatar", contact.Avatar },
+                { "CallerName", contact.Nickname },
+            };
+            await Shell.Current.GoToAsync(nameof(CallSelectPage), false, parameters);
         }
 
     }

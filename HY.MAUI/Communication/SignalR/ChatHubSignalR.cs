@@ -112,79 +112,6 @@ namespace HY.MAUI.Communication.SignalR
         // InvokeAsync  等待服务器响应  有返回值  同步模式
         // SendAsync    不等待响应      无返回值  异步模式
 
-        public async Task<Response> CreateCall(CreateCallRequest request, CancellationToken cancel = default)
-        {
-            try
-            {
-                return await _connection!.InvokeAsync<Response>("CreateCall", request, cancel);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
-        public async Task<Response> CancelCall(string callId, CancellationToken cancel = default)
-        {
-            try
-            {
-                return await _connection!.InvokeAsync<Response>("CancelCall", callId, cancel);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
-        public async Task<Response> AcceptCall(string callId, CancellationToken cancel = default)
-        {
-            try
-            {
-                return await _connection!.InvokeAsync<Response>("AcceptCall", callId, cancel);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
-        public async Task<Response> RejectCall(string callId, CancellationToken cancel = default)
-        {
-            try
-            {
-                return await _connection!.InvokeAsync<Response>("RejectCall", callId, cancel);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
-        public async Task<Response> HangUpCall(string callId, CancellationToken cancel = default)
-        {
-            try
-            {
-                return await _connection!.InvokeAsync<Response>("HangUpCall", callId, cancel);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
-        public async Task<Response> CallStateChanged(string callId, string state, CancellationToken cancel = default)
-        {
-            try
-            {
-                await _connection!.SendAsync("CallStateChanged", callId, state, cancel);
-                return new Response(true);
-            }
-            catch (Exception e)
-            {
-                return new Response(false, e.Message);
-            }
-        }
-
         public async Task<Response> SendIce(string callId, string ice)
         {
             try
@@ -236,11 +163,11 @@ namespace HY.MAUI.Communication.SignalR
                 //options.CloseTimeout = TimeSpan.FromSeconds(3600);
 
                 // 跳过 HTTPS 证书验证
-                options.HttpMessageHandlerFactory = _ =>
-                new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
+                //options.HttpMessageHandlerFactory = _ =>
+                //new HttpClientHandler
+                //{
+                //    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                //};
 
                 // 使用 TokenProvider 获取访问令牌
                 options.AccessTokenProvider = async () => await _tokenProvider.GetAccessTokenAsync();
@@ -270,7 +197,7 @@ namespace HY.MAUI.Communication.SignalR
 
             _connection?.On<ReceiveCallRequest>("ReceiveCall", OnReceiveCall);
             _connection?.On<string>("CallCanceled", OnCallCanceled);
-            _connection?.On<string, DateTime, bool>("CallAccepted", OnCallAccepted);
+            _connection?.On<string, DateTime>("CallAccepted", OnCallAccepted);
             _connection?.On<string>("CallRejected", OnCallRejected);
             _connection?.On<string>("CallAbnormal", OnCallAbnormal);
             _connection?.On<string>("CallHangUp", OnCallHangUp);
@@ -370,7 +297,7 @@ namespace HY.MAUI.Communication.SignalR
         public event Func<MessageDto, Task<bool>> OnReceiveMessage_ChatHub;
         public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
         public event Action<string> OnCallCanceled_ChatHub;
-        public event Func<string, DateTime, Task<bool>> OnCallAccepted_ChatHub;
+        public event Action<string, DateTime> OnCallAccepted_ChatHub;
         public event Action<string> OnCallRejected_ChatHub;
         public event Action<string> OnCallAbnormal_ChatHub;
         public event Action<string> OnCallHangUp_ChatHub;
@@ -487,11 +414,9 @@ namespace HY.MAUI.Communication.SignalR
             UI.Run(() => OnCallCanceled_ChatHub?.Invoke(callId));
         }
 
-        private async Task<bool> OnCallAccepted(string callId, DateTime start)
+        private void OnCallAccepted(string callId, DateTime start)
         {
-            if (OnCallAccepted_ChatHub == null) return false;
-
-            return await UI.Run(async () => await OnCallAccepted_ChatHub.Invoke(callId, start));
+            UI.Run(() => OnCallAccepted_ChatHub?.Invoke(callId, start));
         }
 
         private void OnCallRejected(string callId)

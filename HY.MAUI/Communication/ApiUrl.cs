@@ -48,11 +48,22 @@ namespace HY.MAUI.Communication
         public static string ReadAll => $"{HttpUrl}/chat/read/all/";
 
 
-        //Message
-        public static string GetMessages => $"{HttpUrl}/message/get/messages/";
-        public static string SendMessage => $"{HttpUrl}/message/send/message/";
-        public static string RecallMessage => $"{HttpUrl}/message/recall/message/";
-        public static string DeleteMessage => $"{HttpUrl}/message/delete/message/";
+        // Message
+        public static string GetMessages => $"{HttpUrl}/message/gets/";
+        public static string SendMessage => $"{HttpUrl}/message/send/";
+        public static string RecallMessage => $"{HttpUrl}/message/recall/";
+        public static string DeleteMessage => $"{HttpUrl}/message/delete/";
+
+
+        // Call
+        public static string CreateCall => $"{HttpUrl}/call/create/";
+        public static string AcceptCall => $"{HttpUrl}/call/accept/";
+        public static string CancelCall => $"{HttpUrl}/call/cancel/";
+        public static string RejectCall => $"{HttpUrl}/call/reject/";
+        public static string HangUpCall => $"{HttpUrl}/call/hangup/";
+        public static string CallConnected => $"{HttpUrl}/call/connected/";
+
+
 
         // File
         public static string UploadImage => $"{HttpUrl}/file/upload/image/";

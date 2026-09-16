@@ -32,7 +32,7 @@ namespace HY.ApiService.Services
             await _subscriber.SubscribeAsync(RedisChannel.Literal("__keyevent@0__:expired"), async (channel, value) =>
             {
                 // 当有 Key 过期时，调用处理方法
-                await OnCallExpiry(value);
+                await OnKeyExpiry(value);
             });
 
             _logger.LogInformation("Redis timeout listener started.");
@@ -56,29 +56,28 @@ namespace HY.ApiService.Services
 
 
 
-        private async Task OnCallExpiry(RedisValue value)
-         {
+        private async Task OnKeyExpiry(RedisValue value)
+        {
             var key = value.ToString();
 
             _logger.LogInformation("Redis key expired: {Key}", key);
 
-            // 只处理 Expire:{CallId}
-            if (!key.StartsWith("Call:Expire:", StringComparison.Ordinal))
-                return;
+            // 处理 Call:Expire:{CallId}
+            if (key.StartsWith("Call:Expire:", StringComparison.Ordinal))
+            {
+                var callId = key["Call:Expire:".Length..];
 
-            var callId = key["Call:Expire:".Length..];
+                if (string.IsNullOrWhiteSpace(callId)) return;
 
-            if (string.IsNullOrWhiteSpace(callId))
-                return;
+                using var scope = _scopeFactory.CreateScope();
 
-            using var scope = _scopeFactory.CreateScope();
+                var _chatNotificationService = scope.ServiceProvider.GetRequiredService<IChatNotificationService>();
 
-            var _chatNotificationService = scope.ServiceProvider.GetRequiredService<IChatNotificationService>();
+                // 使用 Scoped 的 _redisCallService
+                var callDto = await _redisCallService.ExpiryCall(callId);
 
-            // 使用 Scoped 的 _redisCallService
-            var callDto = await _redisCallService.ExpiryCall(callId);
-
-            await _chatNotificationService.ExpiryCallNotify(callDto!);
+                await _chatNotificationService.ExpiryCallNotify(callDto!);
+            }
         }
     }
 }

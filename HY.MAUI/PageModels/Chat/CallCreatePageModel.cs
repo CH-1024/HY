@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication;
+using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
 using HY.MAUI.Communication.SignalR.Requests;
@@ -17,7 +18,7 @@ namespace HY.MAUI.PageModels.Chat
     public partial class CallCreatePageModel : ObservableObject, IQueryAttributable
     {
         readonly ChatHubSignalR _chatHub;
-
+        readonly CallApi _callApi;
 
         private string calleeAvatar;
         public string CalleeAvatar
@@ -39,9 +40,10 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        public CallCreatePageModel(ChatHubSignalR chatHub)
+        public CallCreatePageModel(ChatHubSignalR chatHub, CallApi callApi)
         {
             _chatHub = chatHub;
+            _callApi = callApi;
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -51,7 +53,7 @@ namespace HY.MAUI.PageModels.Chat
             CalleeName = query["CalleeName"]?.ToString();
         }
 
-        private async Task<bool> OnCallAccepted_ChatHub(string callId, DateTime start)
+        private async void OnCallAccepted_ChatHub(string callId, DateTime start)
         {
             if (callId == _callId)
             {
@@ -76,10 +78,7 @@ namespace HY.MAUI.PageModels.Chat
                 {
                     await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
                 }
-
-                return true;
             }
-            return false;
         }
 
         private async void OnCallRejected_ChatHub(string callId)
@@ -104,7 +103,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Appearing()
         {
-            var resp = await _chatHub.CreateCall(_createCallRequest);
+            var resp = await _callApi.CreateCall(_createCallRequest);
             if (resp.IsSucc)
             {
                 _callId = resp.GetValue<string>("CallId");
@@ -131,7 +130,7 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task Cancel()
         {
-            var resp = await _chatHub.CancelCall(_callId);
+            var resp = await _callApi.CancelCall(_callId);
             if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
 
