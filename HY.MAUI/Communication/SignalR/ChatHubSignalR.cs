@@ -1,6 +1,7 @@
 ﻿using HY.MAUI.Communication.Auth;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR.Requests;
+using HY.MAUI.Configurations;
 using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
 using HY.MAUI.Mapping;
@@ -157,10 +158,11 @@ namespace HY.MAUI.Communication.SignalR
         private HubConnection BuildConnection()
         {
             var connection = new HubConnectionBuilder()
-            .WithServerTimeout(TimeSpan.FromSeconds(3600))
+            .WithKeepAliveInterval(TimeSpan.FromSeconds(ApiOptions.KeepAlive))
+            .WithServerTimeout(TimeSpan.FromSeconds(ApiOptions.ServerTimeout))
             .WithUrl(ApiUrl.ChatHub, options =>
             {
-                //options.CloseTimeout = TimeSpan.FromSeconds(3600);
+                //options.CloseTimeout = TimeSpan.FromSeconds(ApiOptions.Timeout);
 
                 // 跳过 HTTPS 证书验证
                 //options.HttpMessageHandlerFactory = _ =>

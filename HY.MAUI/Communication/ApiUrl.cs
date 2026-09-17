@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HY.MAUI.Configurations;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,131 +7,99 @@ namespace HY.MAUI.Communication
 {
     public static class ApiUrl
     {
-        // 开发环境
-#if WINDOWS || MACCATALYST || IOS
-        public static string Address => "localhost";
-        public static string Port => "8003";
-#elif ANDROID
-        public static string Address => "10.0.2.2";
-        public static string Port => "8003";
-#endif
+        public static string Address => ApiOptions.Address;
+        public static string Port => ApiOptions.Port;
 
-        // 生产环境
-        //public static string Address => "hoyi.net.cn";
-        //public static string Port => "8003";
+        private static string SignalRBase => $"https://{Address}:{Port}";
+        private static string HttpBase => $"https://{Address}:{Port}";
+
 
 
 
         #region SignalR
-        public static string SignalRUrl => $"https://{Address}:{Port}";
 
-        public static string ChatHub => $"{SignalRUrl}/chatHub/";
+        public static string ChatHub => $"{SignalRBase}/chatHub/";
+
         #endregion
 
 
 
         #region Http
-        public static string HttpUrl => $"https://{Address}:{Port}";
 
         // Test
-        public static string Ping1 => $"{HttpUrl}/auth/ping1/";
-        public static string Ping2 => $"{HttpUrl}/auth/ping2/";
+        public static string Ping1 => $"{HttpBase}/auth/ping1/";
+        public static string Ping2 => $"{HttpBase}/auth/ping2/";
 
 
         // Login & Auth
-        public static string Refresh => $"{HttpUrl}/auth/refresh/";
-        public static string Login => $"{HttpUrl}/auth/login/";
-        public static string Logout => $"{HttpUrl}/auth/logout/";
+        public static string Refresh => $"{HttpBase}/auth/refresh/";
+        public static string Login => $"{HttpBase}/auth/login/";
+        public static string Logout => $"{HttpBase}/auth/logout/";
 
 
         // Chat
-        public static string GetChats => $"{HttpUrl}/chat/get/chats/";
-        public static string ReadAll => $"{HttpUrl}/chat/read/all/";
+        public static string GetChats => $"{HttpBase}/chat/get/chats/";
+        public static string ReadAll => $"{HttpBase}/chat/read/all/";
 
 
         // Message
-        public static string GetMessages => $"{HttpUrl}/message/gets/";
-        public static string SendMessage => $"{HttpUrl}/message/send/";
-        public static string RecallMessage => $"{HttpUrl}/message/recall/";
-        public static string DeleteMessage => $"{HttpUrl}/message/delete/";
+        public static string GetMessages => $"{HttpBase}/message/gets/";
+        public static string SendMessage => $"{HttpBase}/message/send/";
+        public static string RecallMessage => $"{HttpBase}/message/recall/";
+        public static string DeleteMessage => $"{HttpBase}/message/delete/";
 
 
         // Call
-        public static string CreateCall => $"{HttpUrl}/call/create/";
-        public static string AcceptCall => $"{HttpUrl}/call/accept/";
-        public static string CancelCall => $"{HttpUrl}/call/cancel/";
-        public static string RejectCall => $"{HttpUrl}/call/reject/";
-        public static string HangUpCall => $"{HttpUrl}/call/hangup/";
-        public static string CallConnected => $"{HttpUrl}/call/connected/";
+        public static string CreateCall => $"{HttpBase}/call/create/";
+        public static string AcceptCall => $"{HttpBase}/call/accept/";
+        public static string CancelCall => $"{HttpBase}/call/cancel/";
+        public static string RejectCall => $"{HttpBase}/call/reject/";
+        public static string HangUpCall => $"{HttpBase}/call/hangup/";
+        public static string CallConnected => $"{HttpBase}/call/connected/";
 
 
 
         // File
-        public static string UploadImage => $"{HttpUrl}/file/upload/image/";
-        public static string UploadVideo => $"{HttpUrl}/file/upload/video/";
-        public static string UploadHead => $"{HttpUrl}/file/upload/head/";
+        public static string UploadImage => $"{HttpBase}/file/upload/image/";
+        public static string UploadVideo => $"{HttpBase}/file/upload/video/";
+        public static string UploadHead => $"{HttpBase}/file/upload/head/";
 
 
         // Contact
-        public static string GetContactRequests => $"{HttpUrl}/contact/get/contactrequests/";
-        public static string GetContacts => $"{HttpUrl}/contact/get/contacts/";
-        public static string GetContact => $"{HttpUrl}/contact/get/contact/";
-        public static string SearchContact => $"{HttpUrl}/contact/search/contact/";
-        public static string RequestContact => $"{HttpUrl}/contact/request/contact/";
-        public static string RespondContact => $"{HttpUrl}/contact/respond/contact/";
-        public static string DeleteContact => $"{HttpUrl}/contact/delete/contact/";
+        public static string GetContactRequests => $"{HttpBase}/contact/get/contactrequests/";
+        public static string GetContacts => $"{HttpBase}/contact/get/contacts/";
+        public static string GetContact => $"{HttpBase}/contact/get/contact/";
+        public static string SearchContact => $"{HttpBase}/contact/search/contact/";
+        public static string RequestContact => $"{HttpBase}/contact/request/contact/";
+        public static string RespondContact => $"{HttpBase}/contact/respond/contact/";
+        public static string DeleteContact => $"{HttpBase}/contact/delete/contact/";
 
 
         // User
-        public static string Register => $"{HttpUrl}/user/register/";
-        public static string UpdateHead => $"{HttpUrl}/user/update/head/";
+        public static string Register => $"{HttpBase}/user/register/";
+        public static string UpdateHead => $"{HttpBase}/user/update/head/";
         #endregion
 
 
 
         // ImageVM
-        public static string? Get_Origin_Image(string? file_Id)
-        {
-            return file_Id == null ? null :$"{HttpUrl}/file/image/origin/{file_Id}";
-        }
-
-        public static string? Get_Compress_Image(string? file_Id)
-        {
-            return file_Id == null ? null :$"{HttpUrl}/file/image/compress/{file_Id}";
-        }
-
-        public static string? Get_Thumb_Image(string? file_Id)
-        {
-            return file_Id == null ? null :$"{HttpUrl}/file/image/thumb/{file_Id}";
-        }
+        public static string? Get_Origin_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/origin/{file_Id}";
+        public static string? Get_Compress_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/compress/{file_Id}";
+        public static string? Get_Thumb_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/thumb/{file_Id}";
 
 
 
 
         // VideoVM
-        public static string? Get_Origin_Video(string? file_Id)
-        {
-            return file_Id == null ? null : $"{HttpUrl}/file/video/origin/{file_Id}";
-        }
-
-        public static string? Get_Compress_Video(string? file_Id)
-        {
-            return file_Id == null ? null : $"{HttpUrl}/file/video/compress/{file_Id}";
-        }
-
-        public static string? Get_Cover_Video(string? file_Id)
-        {
-            return file_Id == null ? null : $"{HttpUrl}/file/video/cover/{file_Id}";
-        }
+        public static string? Get_Origin_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/origin/{file_Id}";
+        public static string? Get_Compress_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/compress/{file_Id}";
+        public static string? Get_Cover_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/cover/{file_Id}";
 
 
 
 
         // Head
-        public static string? Get_Head_Image(string? file_Id)
-        {
-            return file_Id == null ? null :$"{HttpUrl}/file/head/{file_Id}";
-        }
+        public static string? Get_Head_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/head/{file_Id}";
 
     }
 }

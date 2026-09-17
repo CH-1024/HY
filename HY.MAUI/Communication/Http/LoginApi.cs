@@ -1,4 +1,5 @@
 ﻿using HY.MAUI.Communication.Http.Requests;
+using HY.MAUI.Configurations;
 using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
 using System;
@@ -25,7 +26,7 @@ namespace HY.MAUI.Communication.Http
             {
                 using (Ping ping = new Ping())
                 {
-                    PingReply reply = await ping.SendPingAsync(ApiUrl.Address, 3000);
+                    PingReply reply = await ping.SendPingAsync(ApiUrl.Address, TimeSpan.FromSeconds(ApiOptions.Timeout));
                     if (reply.Status == IPStatus.Success)
                     {
                         return true;
