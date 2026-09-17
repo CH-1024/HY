@@ -16,12 +16,6 @@ namespace HY.MAUI.Communication.RTC
     {
         readonly ChatHubSignalR _chatHub;
 
-        //IVideoRecorder _videoRecorder = Application.Current?.Handler?.MauiContext?.Services.GetService<IVideoRecorder>();
-        //ApiService _apiService = Application.Current?.Handler?.MauiContext?.Services.GetService<ApiService>();
-        //IDispatcher _dispatcher = Application.Current?.Handler?.MauiContext?.Services.GetService<IDispatcher>();
-
-        string CallId;
-
         private RTCConfiguration _configuration;
         private RTCPeerConnection _peerConnection;
         private RTCDataChannel _videoChannel;
@@ -33,9 +27,11 @@ namespace HY.MAUI.Communication.RTC
         public event Action<byte[]> OnReceivedAudioFrame;
         public event Action<byte[]> OnReceivedMessage;
 
+        string CallId;
+
         public WebRTCService()
         {
-            _chatHub = Application.Current?.Handler?.MauiContext?.Services.GetService<ChatHubSignalR>()!;
+            _chatHub = MauiProgram.Services.GetService<ChatHubSignalR>()!;
 
             var useTurnServer = false;
             var gatherTime = 2000;
@@ -417,12 +413,17 @@ namespace HY.MAUI.Communication.RTC
         //    }
         //}
 
-        public void SendMessage(string text)
+        public bool SendMessage(string text)
         {
-            if (_dataChannel?.readyState == RTCDataChannelState.open)
+            try
             {
                 _dataChannel.send(text);
             }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
         }
 
         public void Dispose()

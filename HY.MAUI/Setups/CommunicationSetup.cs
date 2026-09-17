@@ -1,6 +1,7 @@
 ﻿using HY.MAUI.Communication.Auth;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Configurations;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,7 +29,7 @@ namespace HY.MAUI.Setups
 
             services.AddHttpClient(nameof(AuthService), c =>
             {
-                c.Timeout = TimeSpan.FromSeconds(3600);
+                c.Timeout = TimeSpan.FromSeconds(ApiOptions.Timeout);
             })
             .ConfigurePrimaryHttpMessageHandler<UnsafeHttpClientHandler>();
 
@@ -37,13 +38,13 @@ namespace HY.MAUI.Setups
             // APIs (自动带 Token)
             // ==============================
 
-            AddApiClient<LoginApi>(services, 3600);
-            AddApiClient<ChatApi>(services, 3600);
-            AddApiClient<MessageApi>(services, 3600);
-            AddApiClient<CallApi>(services, 3600);
-            AddApiClient<ContactApi>(services, 3600);
-            AddApiClient<UserApi>(services, 3600);
-            AddApiClient<FileApi>(services, 3600);
+            AddApiClient<LoginApi>(services, ApiOptions.Timeout);
+            AddApiClient<ChatApi>(services, ApiOptions.Timeout);
+            AddApiClient<MessageApi>(services, ApiOptions.Timeout);
+            AddApiClient<CallApi>(services, ApiOptions.Timeout);
+            AddApiClient<ContactApi>(services, ApiOptions.Timeout);
+            AddApiClient<UserApi>(services, ApiOptions.Timeout);
+            AddApiClient<FileApi>(services, ApiOptions.Timeout);
 
 
             // ==============================
@@ -57,7 +58,7 @@ namespace HY.MAUI.Setups
         /// <summary>
         /// 统一注册 API HttpClient
         /// </summary>
-        private static void AddApiClient<T>(IServiceCollection services, int timeout) where T : class
+        private static void AddApiClient<T>(IServiceCollection services, double timeout) where T : class
         {
             services.AddHttpClient<T>(c =>
             {

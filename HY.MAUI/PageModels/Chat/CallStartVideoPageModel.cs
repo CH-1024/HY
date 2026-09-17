@@ -243,7 +243,8 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         void Send()
         {
-            _webRTC.SendMessage(Text);
+            var isSucc = _webRTC.SendMessage(Text);
+            if (isSucc) Message = Text;
         }
     }
 }
