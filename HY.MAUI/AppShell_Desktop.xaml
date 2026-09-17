@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Name="shell"
+    xmlns:sys="clr-namespace:System;assembly=netstandard"
     xmlns:local="clr-namespace:HY.MAUI"
     xmlns:chat="clr-namespace:HY.MAUI.Pages.Chat"
     xmlns:contact="clr-namespace:HY.MAUI.Pages.Contact"
@@ -12,13 +13,17 @@
     Shell.FlyoutWidth="100"
     Title="HY.MAUI">
 
+
+
+
+
     <Shell.ItemTemplate>
         <DataTemplate>
             <!--<Image Source="{Binding FlyoutIcon}" Margin="0" Aspect="AspectFit" HeightRequest="35" WidthRequest="35" HorizontalOptions="Fill" VerticalOptions="Fill"/>-->
 
-            <Grid ColumnDefinitions="35,60">
-                <Image Source="{Binding FlyoutIcon}" Margin="5" HeightRequest="35" WidthRequest="35" VerticalOptions="Center"/>
-                <Label Grid.Column="1" Text="{Binding Title}" HeightRequest="45" WidthRequest="80" VerticalTextAlignment="Center" />
+            <Grid ColumnDefinitions="40,60">
+                <Image Source="{Binding FlyoutIcon}" HeightRequest="40" WidthRequest="40" VerticalOptions="Center"/>
+                <Label Grid.Column="1" Text="{Binding Title}" HeightRequest="40" WidthRequest="80" VerticalTextAlignment="Center" />
             </Grid>
             
         </DataTemplate>
@@ -30,4 +35,42 @@
 
     <ShellContent Title="我的" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}" />
 
+
+    <!--<Shell.FlyoutHeaderTemplate>
+        <DataTemplate>
+            <Grid HeightRequest="300">
+                <Image Aspect="AspectFill" Source="dotnet_bot.png" Opacity="0.6"/>
+                <Label Text="Animals" TextColor="White" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+    </Shell.FlyoutHeaderTemplate>-->
+
+
+    <!--<TabBar>
+        <Tab Title="Cats" Icon="dotnet_bot.png">
+            <ShellContent Title="Chat" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}" />
+        </Tab>
+        <Tab Title="Dogs" Icon="dotnet_bot.png">
+        </Tab>
+        <Tab Title="Dogs" Icon="dotnet_bot.png">
+            <ShellContent Title="Mine" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}" />
+        </Tab>
+    </TabBar>-->
+
+
+    <!--<Shell.FlyoutFooterTemplate>
+        <DataTemplate>
+            <StackLayout>
+                <Label Text="Xaminals"
+                       TextColor="GhostWhite"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label x:DataType="sys:DateTime"
+                       Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{0:MMMM dd, yyyy}'}"
+                       TextColor="GhostWhite"
+                       HorizontalOptions="Center" />
+            </StackLayout>
+        </DataTemplate>
+    </Shell.FlyoutFooterTemplate>-->
+    
 </Shell>
