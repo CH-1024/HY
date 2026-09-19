@@ -7,6 +7,7 @@
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
              xmlns:m="clr-namespace:HY.MAUI.Models"
@@ -18,6 +19,8 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            
+            <Shadow x:Key="CardShadow" Brush="Black" Offset="0,1" Radius="5" Opacity="1" />
 
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -53,26 +56,34 @@
 
     <Grid RowDefinitions="auto,*,*,50,*">
 
-        <Ellipse Grid.Row="0" Fill="{Binding StatusColor}" WidthRequest="20" HeightRequest="20" HorizontalOptions="End" VerticalOptions="Start" Margin="10"/>
+        <skia:SKCanvasView x:Name="bigCanvas" Grid.RowSpan="10" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+        <skia:SKCanvasView x:Name="smallCanvas" Grid.RowSpan="10" ZIndex="1" WidthRequest="150" HeightRequest="150" HorizontalOptions="Start" VerticalOptions="Start">
+            <skia:SKCanvasView.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnContentPanUpdated"/>
+                <TapGestureRecognizer Command="{Binding TapCommand}"/>
+            </skia:SKCanvasView.GestureRecognizers>
+        </skia:SKCanvasView>
 
-        <Grid Grid.Row="1" RowDefinitions="auto,*" ColumnDefinitions="*,auto" Margin="5">
+        <Ellipse Grid.Row="0" Fill="{Binding StatusColor}" ZIndex="100" WidthRequest="20" HeightRequest="20" HorizontalOptions="End" VerticalOptions="Start" Margin="10"/>
+
+        <!--<Grid Grid.Row="1" RowDefinitions="auto,*" ColumnDefinitions="*,auto" Margin="5">
             <Entry Grid.Column="0" Text="{Binding Text}"/>
             <Button Grid.Column="1" Text="Send" Command="{Binding SendCommand}" WidthRequest="100" Margin="5,0"/>
 
             <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Message}"/>
-        </Grid>
+        </Grid>-->
 
-        <Grid Grid.Row="2" RowDefinitions="auto,auto,*">
+        <!--<Grid Grid.Row="2" RowDefinitions="auto,auto,*">
             <toolkit:AvatarView Grid.Row="0" ImageSource="{Binding TargetAvatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="100" HeightRequest="100" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
             <Label Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding TargetName}" FontSize="Medium"/>
-        </Grid>
+        </Grid>-->
 
-        <Label Grid.Row="3" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding StartTime, StringFormat='{0:hh\\:mm\\:ss}'}" FontSize="Medium"/>
+        <Label Grid.Row="3" HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding StartTime, StringFormat='{0:hh\\:mm\\:ss}'}" FontSize="Medium" Shadow="{StaticResource CardShadow}"/>
 
         <Grid Grid.Row="4" ColumnDefinitions="*,*,*">
-            <Button Grid.Column="0" Text="静音" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Background="White"/>
-            <Button Grid.Column="1" Text="挂断" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding HangUpCommand}" Background="Red"/>
-            <Button Grid.Column="2" Text="免提" FontSize="Medium" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding SoundCommand}" Background="White"/>
+            <Button Grid.Column="0" Text="静音" FontSize="Medium" Shadow="{StaticResource CardShadow}" WidthRequest="80" HeightRequest="80" CornerRadius="40" Background="White"/>
+            <Button Grid.Column="1" Text="挂断" FontSize="Medium" Shadow="{StaticResource CardShadow}" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding HangUpCommand}" Background="Red"/>
+            <Button Grid.Column="2" Text="免提" FontSize="Medium" Shadow="{StaticResource CardShadow}" WidthRequest="80" HeightRequest="80" CornerRadius="40" Command="{Binding SoundCommand}" Background="White"/>
         </Grid>
 
     </Grid>

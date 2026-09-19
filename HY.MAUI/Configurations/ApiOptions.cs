@@ -6,6 +6,11 @@ namespace HY.MAUI.Configurations
 {
     public class ApiOptions
     {
+        //准备工作：
+        //  1、Platforms > Windows > ffmpeg：放入 ffmpeg8.1 静态库
+
+
+
         // 开发环境
 #if WINDOWS || MACCATALYST || IOS
         public const string Address = "localhost";
@@ -21,12 +26,12 @@ namespace HY.MAUI.Configurations
 
 
         // SignalR
-        public const double KeepAlive = 15;
-        public const double ServerTimeout = 30;
+        public const double KeepAlive = 150;
+        public const double ServerTimeout = 3000;
 
 
         // Http
-        public const double Timeout = 30;
+        public const double Timeout = 3000;
 
     }
 }
