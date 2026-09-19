@@ -320,6 +320,8 @@ namespace HY.ApiService.Services
 
         public async Task CreateCallNotify(CallInfo callDto)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -358,6 +360,8 @@ namespace HY.ApiService.Services
 
         public async Task AcceptCallNotify(CallInfo callDto)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -405,6 +409,8 @@ namespace HY.ApiService.Services
 
         public async Task CancelCallNotify(CallInfo callDto)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -439,6 +445,8 @@ namespace HY.ApiService.Services
 
         public async Task RejectCallNotify(CallInfo callDto)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -479,6 +487,8 @@ namespace HY.ApiService.Services
 
         public async Task HangUpCallNotify(CallInfo callDto, long currentUserId)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -501,6 +511,8 @@ namespace HY.ApiService.Services
 
         public async Task AbnormalCallNotify(CallInfo callDto, long currentUserId)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -552,6 +564,8 @@ namespace HY.ApiService.Services
 
         public async Task ExpiryCallNotify(CallInfo callDto)
         {
+            if (callDto == null) return;
+
             var callId = callDto.CallId;
             var callType = callDto.CallType;
             var callerId = callDto.CallerId;
@@ -621,10 +635,7 @@ namespace HY.ApiService.Services
 
         public async Task SendCallMessageNotify(MessageDto messageDto)
         {
-            if (messageDto == null)
-            {
-                return;
-            }
+            if (messageDto == null) return;
 
             // 单人
 

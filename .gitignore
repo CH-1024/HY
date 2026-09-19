@@ -362,5 +362,11 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /HY.ApiService/wwwroot/images
-/HY.ApiService/appsettings.json
-/HY.ApiService/appsettings.json
+/HY.MAUI/Platforms/Windows/ffmpeg/avcodec-62.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/avdevice-62.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/avfilter-11.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/avformat-62.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/avutil-60.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/swresample-6.dll
+/HY.MAUI/Platforms/Windows/ffmpeg/swscale-9.dll
+/HY.MAUI/Platforms/MacCatalyst/ffmpeg/ffmpeg

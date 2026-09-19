@@ -23,6 +23,7 @@ namespace HY.MAUI.PageModels.Chat
         readonly ChatStore _chatStore;
         readonly CallApi _callApi;
 
+        IDispatcherTimer _timer;
 
         private string targetAvatar;
         public string TargetAvatar
@@ -161,7 +162,6 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        IDispatcherTimer _timer;
 
         [RelayCommand]
         async Task Appearing()
@@ -179,7 +179,7 @@ namespace HY.MAUI.PageModels.Chat
             _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
 
             _webRTC.OnConnectionStateChanged += OnConnectionStateChanged_WebRTC;
-            _webRTC.OnReceivedMessage += OnReceivedMessage_WebRTC;
+            //_webRTC.OnReceivedMessage += OnReceivedMessage_WebRTC;
 
             if (_isCaller)
             {
@@ -200,7 +200,7 @@ namespace HY.MAUI.PageModels.Chat
             _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
 
             _webRTC.OnConnectionStateChanged -= OnConnectionStateChanged_WebRTC;
-            _webRTC.OnReceivedMessage -= OnReceivedMessage_WebRTC;
+            //_webRTC.OnReceivedMessage -= OnReceivedMessage_WebRTC;
             _webRTC.Dispose();
             _webRTC = null;
         }

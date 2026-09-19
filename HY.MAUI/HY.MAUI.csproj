@@ -37,6 +37,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
@@ -71,6 +72,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Platforms\MacCatalyst\ffmpeg\ffmpeg" />
+	  <None Remove="Platforms\Windows\ffmpeg\avcodec-62.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\avdevice-62.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\avfilter-11.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\avformat-62.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\avutil-60.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\swresample-6.dll" />
+	  <None Remove="Platforms\Windows\ffmpeg\swscale-9.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
@@ -79,6 +91,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 		<PackageReference Include="SIPSorcery" Version="10.0.16" />
 		<PackageReference Include="SIPSorceryMedia.Abstractions" Version="10.0.16" />
+		<PackageReference Include="SIPSorceryMedia.FFmpeg" Version="10.0.16" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.152.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -209,6 +223,20 @@
 	  <Folder Include="Handlers\" />
 	  <Folder Include="Pages\Login\Popups\" />
 	  <Folder Include="Pages\Mine\Popups\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiAsset Include="Platforms\MacCatalyst\ffmpeg\ffmpeg" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\avcodec-62.dll" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\avdevice-62.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\avfilter-11.dll" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\avformat-62.dll" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\avutil-60.dll" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\swresample-6.dll" />
+	  <MauiAsset Include="Platforms\Windows\ffmpeg\swscale-9.dll" />
 	</ItemGroup>
 
 </Project>
