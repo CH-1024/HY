@@ -459,7 +459,6 @@ namespace HY.MAUI.PageModels.Chat
             _webRTC.OnLocalVideoFrameFasterReceived += OnLocalVideoFrameFasterReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameReceived += OnRemoteVideoFrameReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameFasterReceived += OnRemoteVideoFrameFasterReceived_WebRTC;
-            //_webRTC.OnReceivedMessage += OnReceivedMessage_WebRTC;
 
             if (_isCaller)
             {
@@ -488,7 +487,7 @@ namespace HY.MAUI.PageModels.Chat
             _webRTC.OnLocalVideoFrameFasterReceived -= OnLocalVideoFrameFasterReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameReceived -= OnRemoteVideoFrameReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameFasterReceived -= OnRemoteVideoFrameFasterReceived_WebRTC;
-            //_webRTC.OnReceivedMessage -= OnReceivedMessage_WebRTC;
+
             _webRTC.Dispose();
             _webRTC = null;
         }
@@ -524,38 +523,5 @@ namespace HY.MAUI.PageModels.Chat
             isLocalInBig = !isLocalInBig;
         }
 
-
-
-        private void OnReceivedMessage_WebRTC(byte[] obj)
-        {
-            try
-            {
-                Message = Encoding.UTF8.GetString(obj);
-            }
-            catch (Exception)
-            {
-                Message = "无法解析消息内容";
-            }
-        }
-
-        private string text;
-        public string Text
-        {
-            get { return text; }
-            set { SetProperty(ref text, value); }
-        }
-        private string message;
-        public string Message
-        {
-            get { return message; }
-            set { SetProperty(ref message, value); }
-        }
-
-        [RelayCommand]
-        void Send()
-        {
-            var isSucc = _webRTC.SendMessage(Text);
-            if (isSucc) Message = Text;
-        }
     }
 }
