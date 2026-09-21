@@ -4,7 +4,7 @@
              x:Class="HY.MAUI.Pages.Mine.MinePage"
              x:Name="_MinePage"
              Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
-             Shell.TabBarIsVisible="{OnIdiom Phone=True, Desktop=False}"
+             Shell.TabBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Mine"
              xmlns:m="clr-namespace:HY.MAUI.Models"

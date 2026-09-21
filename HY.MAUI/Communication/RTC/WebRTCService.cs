@@ -27,16 +27,12 @@ namespace HY.MAUI.Communication.RTC
 
         private RTCConfiguration _configuration;
         private RTCPeerConnection _peerConnection;
-        private RTCDataChannel _videoChannel;
-        private RTCDataChannel _audioChannel;
-        private RTCDataChannel _dataChannel;
 
         public event Action<RTCPeerConnectionState> OnConnectionStateChanged;
         public event Action<uint, int, int, byte[], VideoPixelFormatsEnum> OnLocalVideoFrameReceived;
         public event Action<uint, RawImage> OnLocalVideoFrameFasterReceived;
         public event Action<byte[], uint, uint, int, VideoPixelFormatsEnum> OnRemoteVideoFrameReceived;
         public event Action<RawImage> OnRemoteVideoFrameFasterReceived;
-        public event Action<byte[]> OnReceivedMessage;
 
 
         public WebRTCService()
@@ -55,8 +51,8 @@ namespace HY.MAUI.Communication.RTC
                 [
                     //new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
 
-                    //new() { urls = "turn:43.142.234.223:3478", username = "cheng", credential = "12345678" },
-                    //new() { urls = "stun:43.142.234.223:3478", username = "cheng", credential = "12345678" },
+                    new() { urls = "turn:hoyi.net.cn:3478", username = "cheng", credential = "12345678" },
+                    new() { urls = "stun:hoyi.net.cn:3478", username = "cheng", credential = "12345678" },
 
                     //new() { urls = "stun:stun.xten.com:3478" },
                     //new() { urls = "stun:stun.voipbuster.com:3478" },
@@ -328,15 +324,15 @@ namespace HY.MAUI.Communication.RTC
             switch (state)
             {
                 case RTCPeerConnectionState.connected:
-                    await videoSource.StartVideo();
-                    await videoSink.StartVideoSink();
+                    if (videoSource != null) await videoSource.StartVideo();
+                    if (videoSink != null) await videoSink.StartVideoSink();
                     break;
                 case RTCPeerConnectionState.failed:
                     _peerConnection.Close("ice disconnection");
                     break;
                 case RTCPeerConnectionState.closed:
-                    await videoSource.CloseVideo();
-                    await videoSink.CloseVideoSink();
+                    if (videoSource != null) await videoSource.CloseVideo();
+                    if (videoSink != null) await videoSink.CloseVideoSink();
                     break;
             }
         }
@@ -425,19 +421,6 @@ namespace HY.MAUI.Communication.RTC
             await _chatHub.SendOffer(_callId, JsonSerializer.Serialize(offer));
         }
 
-        public bool SendMessage(string text)
-        {
-            try
-            {
-                _dataChannel.send(text);
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-            return true;
-        }
-
         public void Dispose()
         {
             _chatHub.OnReceiveIce_ChatHub -= HandleIce;
@@ -465,24 +448,6 @@ namespace HY.MAUI.Communication.RTC
                 _peerConnection.close();
                 _peerConnection.Dispose();
                 _peerConnection = null;
-            }
-            if (_dataChannel != null)
-            {
-                _dataChannel.close();
-                //_dataChannel.Dispose();
-                _dataChannel = null;
-            }
-            if (_videoChannel != null)
-            {
-                _videoChannel.close();
-                //_videoChannel.Dispose();
-                _videoChannel = null;
-            }
-            if (_audioChannel != null)
-            {
-                _audioChannel.close();
-                //_audioChannel.Dispose();
-                _audioChannel = null;
             }
         }
 

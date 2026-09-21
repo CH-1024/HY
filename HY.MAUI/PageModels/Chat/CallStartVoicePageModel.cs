@@ -179,7 +179,6 @@ namespace HY.MAUI.PageModels.Chat
             _chatHub.OnReceiveMessage_ChatHub += OnReceiveMessage_ChatHub;
 
             _webRTC.OnConnectionStateChanged += OnConnectionStateChanged_WebRTC;
-            //_webRTC.OnReceivedMessage += OnReceivedMessage_WebRTC;
 
             if (_isCaller)
             {
@@ -200,7 +199,6 @@ namespace HY.MAUI.PageModels.Chat
             _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
 
             _webRTC.OnConnectionStateChanged -= OnConnectionStateChanged_WebRTC;
-            //_webRTC.OnReceivedMessage -= OnReceivedMessage_WebRTC;
             _webRTC.Dispose();
             _webRTC = null;
         }
@@ -212,38 +210,5 @@ namespace HY.MAUI.PageModels.Chat
             if (resp.IsSucc) await Shell.Current.GoToAsync("..", false);
         }
 
-
-
-
-        private void OnReceivedMessage_WebRTC(byte[] obj)
-        {
-            try
-            {
-                Message = Encoding.UTF8.GetString(obj);
-            }
-            catch (Exception)
-            {
-                Message = "无法解析消息内容";
-            }
-        }
-
-        private string text;
-        public string Text
-        {
-            get { return text; }
-            set { SetProperty(ref text, value); }
-        }
-        private string message;
-        public string Message
-        {
-            get { return message; }
-            set { SetProperty(ref message, value); }
-        }
-
-        [RelayCommand]
-        void Send()
-        {
-            _webRTC.SendMessage(Text);
-        }
     }
 }

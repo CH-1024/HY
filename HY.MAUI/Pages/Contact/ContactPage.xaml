@@ -4,15 +4,15 @@
              x:Class="HY.MAUI.Pages.Contact.ContactPage"
              x:Name="_ContactPage"
              Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
-             Shell.TabBarIsVisible="{OnIdiom Phone=True, Desktop=False}"
+             Shell.TabBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Contact"
              xmlns:m="clr-namespace:HY.MAUI.Models"
              Padding="{OnIdiom Phone=0, Desktop=5}"
              x:DataType="pm:ContactPageModel">
 
-
-
+    
+    
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
         <toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
