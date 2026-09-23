@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Shells.NewPage2"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             Title="NewPage3">
+    <VerticalStackLayout>
+        <Label Text="Welcome to Page2" VerticalOptions="Center" HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -106,19 +106,45 @@ namespace HY.MAUI
             if (mauiWindow.Handler?.PlatformView is not Microsoft.UI.Xaml.Window nativeWindow)
                 return;
 
+            int width = 650;
+            int height = 1000;
+
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
 
             // 真正设置为无边框窗口
-            SetBorderlessWindow(hwnd);
+            //SetBorderlessWindow(hwnd);
 
             // 固定窗口大小
-            SetWindowSize(hwnd, 1200, 800);
+            SetWindowSize(hwnd, width, height);
 
             // 居中
-            CenterWindow(hwnd, 1200, 800);
+            CenterWindow(hwnd, width, height);
+
+            // 拦截标题栏双击
+            _oldWndProc = SetWindowLongPtr(hwnd, GWL_WNDPROC, Marshal.GetFunctionPointerForDelegate(_wndProcDelegate));
+
+            // 设置标题栏按钮
+            SetToolBar(hwnd);
         }
 
+        private static void SetToolBar(nint hwnd)
+        {
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
 
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+
+            if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                // 禁止调整窗口大小
+                presenter.IsResizable = false;
+
+                // 隐藏最大化按钮
+                presenter.IsMaximizable = false;
+
+                // 隐藏最小化按钮
+                presenter.IsMinimizable = true;
+            }
+        }
 
         private static void SetBorderlessWindow(nint hwnd)
         {
@@ -182,6 +208,29 @@ namespace HY.MAUI
         private const uint SWP_FRAMECHANGED = 0x0020;
 
         private const uint MONITOR_DEFAULTTOPRIMARY = 0x00000001;
+
+        private const int GWL_WNDPROC = -4;
+        private const uint WM_NCLBUTTONDBLCLK = 0x00A3;
+        private const int HTCAPTION = 2;
+
+        private static nint _oldWndProc;
+
+        private delegate nint WndProcDelegate(nint hWnd, uint msg, nint wParam, nint lParam);
+
+        private static readonly WndProcDelegate _wndProcDelegate = WndProc;
+
+        private static nint WndProc(nint hWnd, uint msg, nint wParam, nint lParam)
+        {
+            if (msg == WM_NCLBUTTONDBLCLK && wParam == HTCAPTION)
+            {
+                return 0;
+            }
+
+            return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern nint CallWindowProc(nint lpPrevWndFunc, nint hWnd, uint msg, nint wParam, nint lParam);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
         private static extern nint GetWindowLongPtr(nint hWnd, int nIndex);

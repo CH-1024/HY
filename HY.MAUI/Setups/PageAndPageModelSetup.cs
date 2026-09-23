@@ -7,6 +7,7 @@ using HY.MAUI.Pages.Chat;
 using HY.MAUI.Pages.Contact;
 using HY.MAUI.Pages.Login;
 using HY.MAUI.Pages.Mine;
+using HY.MAUI.Pages.Shells;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,8 +23,13 @@ namespace HY.MAUI.Setups
             //AddScopedWithShellRoute	    每次导航	在单次导航作用域中需要共享状态的页面，例如表单编辑页面
             //AddSingletonWithShellRoute	全局唯一	需要全局共享状态的页面，例如设置页面、始终显示相同数据的仪表板页面
 
-            services.AddTransient<AppShell_Phone>();
-            services.AddTransient<AppShell_Desktop>();
+            services.AddTransient<AppShell_Phone, AppShellModel>();
+            services.AddTransient<AppShell_Desktop, AppShellModel>();
+
+            // shell flyout
+            services.AddTransientWithShellRoute<NewPage1, NewPage1>(nameof(NewPage1));
+            services.AddTransientWithShellRoute<NewPage2, NewPage2>(nameof(NewPage2));
+            services.AddTransientWithShellRoute<NewPage3, NewPage3>(nameof(NewPage3));
 
 
             //shell 外 注册PM和P
