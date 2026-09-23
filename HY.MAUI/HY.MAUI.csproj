@@ -132,6 +132,12 @@
 	  <Compile Update="Pages\Mine\MinePage.xaml.cs">
 	    <DependentUpon>MinePage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Pages\Shells\NewPage3.xaml.cs">
+	    <DependentUpon>NewPage3.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Pages\Shells\NewPage2.xaml.cs">
+	    <DependentUpon>NewPage2.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -214,6 +220,15 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Mine\SettingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Shells\NewPage2.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Shells\NewPage3.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Shells\NewPage1.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

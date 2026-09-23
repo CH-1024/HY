@@ -1,10 +1,14 @@
-﻿namespace HY.MAUI
+﻿using HY.MAUI.PageModels.Contact;
+
+namespace HY.MAUI
 {
     public partial class AppShell_Desktop : Shell
     {
-        public AppShell_Desktop()
+        public AppShell_Desktop(AppShellModel appShell)
         {
             InitializeComponent();
+
+            BindingContext = appShell;
         }
     }
 }

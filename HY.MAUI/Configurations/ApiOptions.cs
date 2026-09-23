@@ -13,8 +13,8 @@ namespace HY.MAUI.Configurations
 
         // 开发环境
 #if WINDOWS || MACCATALYST || IOS
-                public const string Address = "localhost";
-                public const string Port = "8003";
+                        public const string Address = "localhost";
+                        public const string Port = "8003";
 #elif ANDROID
         public const string Address = "10.0.2.2";
         public const string Port = "8003";
