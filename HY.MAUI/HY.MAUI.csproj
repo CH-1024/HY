@@ -88,7 +88,7 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
 		<PackageReference Include="SIPSorcery" Version="10.0.16" />
 		<PackageReference Include="SIPSorceryMedia.Abstractions" Version="10.0.16" />
 		<PackageReference Include="SIPSorceryMedia.FFmpeg" Version="10.0.16" />
