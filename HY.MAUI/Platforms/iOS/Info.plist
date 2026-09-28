@@ -33,7 +33,13 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
-	</array>	
+	</array>
+
+	<!--允许录像-->
+	<key>NSCameraUsageDescription</key>
+	<string>PROVIDE YOUR REASON HERE</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PROVIDE YOUR REASON HERE</string>
 	
 </dict>
 </plist>
