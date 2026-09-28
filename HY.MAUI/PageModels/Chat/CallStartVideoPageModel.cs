@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FFmpeg.AutoGen;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.RTC;
 using HY.MAUI.Communication.SignalR;
@@ -12,7 +11,6 @@ using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
-using SIPSorceryMedia.FFmpeg;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
@@ -68,14 +66,13 @@ namespace HY.MAUI.PageModels.Chat
 
 
         public SKCanvasView _bigCanvas;
+        public SKCanvasView _smallCanvas;
+
         SKBitmap? _localFrame;
         readonly object _localLock = new object();
-        VideoFrameConverter? _localFrameConverter = null;
 
-        public SKCanvasView _smallCanvas;
         SKBitmap? _remoteFrame;
         readonly object _remoteLock = new object();
-        VideoFrameConverter? _remoteFrameConverter = null;
 
 
         public CallStartVideoPageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore, CallApi callApi)
@@ -186,66 +183,13 @@ namespace HY.MAUI.PageModels.Chat
             }
         }
 
-        private void OnLocalVideoFrameFasterReceived_WebRTC(uint durationMilliseconds, RawImage rawImage)
-        {
-            int w = rawImage.Width;
-            int h = rawImage.Height;
-
-            // RGB24 -> BGRA32
-            if (_localFrameConverter == null || _localFrameConverter.SourceWidth != w || _localFrameConverter.SourceHeight != h)
-            {
-                _localFrameConverter?.Dispose();
-                _localFrameConverter = new VideoFrameConverter(w, h, AVPixelFormat.AV_PIX_FMT_RGB24, w, h, AVPixelFormat.AV_PIX_FMT_BGRA);
-            }
-
-            // 转换
-            AVFrame frame = _localFrameConverter.Convert(rawImage.Sample);
-
-            // 创建或重用 SKBitmap
-            if (_localFrame == null || _localFrame.Width != w || _localFrame.Height != h)
-            {
-                _localFrame?.Dispose();
-                _localFrame = new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque);
-            }
-
-            lock (_localLock)
-            {
-                unsafe
-                {
-                    byte* srcPtr = (byte*)frame.data[0];
-                    byte* dstPtr = (byte*)_localFrame.GetPixels();
-
-                    int srcStride = frame.linesize[0];
-                    int dstStride = _localFrame.RowBytes;
-
-                    int copyBytes = w * 4;
-
-                    for (int y = 0; y < h; y++)
-                    {
-                        Buffer.MemoryCopy(srcPtr + y * srcStride, dstPtr + y * dstStride, dstStride, copyBytes);
-                    }
-                }
-                _bigCanvas?.InvalidateSurface();
-                // 请求重绘（确保在主线程调用）
-                //MainThread.BeginInvokeOnMainThread(() => _bigCanvas?.InvalidateSurface());
-            }
-        }
-
         private void OnLocalVideoFrameReceived_WebRTC(uint durationMilliseconds, int width, int height, byte[] sample, VideoPixelFormatsEnum pixelFormat)
         {
+            var bgr = PixelConverter.I420toBGR(sample, width, height, out _);
+
             int w = width;
             int h = height;
 
-            // RGB24 -> BGRA32
-            if (_localFrameConverter == null || _localFrameConverter.SourceWidth != w || _localFrameConverter.SourceHeight != h)
-            {
-                _localFrameConverter?.Dispose();
-                _localFrameConverter = new VideoFrameConverter(w, h, AVPixelFormat.AV_PIX_FMT_RGB24, w, h, AVPixelFormat.AV_PIX_FMT_BGRA);
-            }
-
-            // 转换
-            AVFrame frame = _localFrameConverter.Convert(sample);
-
             // 创建或重用 SKBitmap
             if (_localFrame == null || _localFrame.Width != w || _localFrame.Height != h)
             {
@@ -257,85 +201,41 @@ namespace HY.MAUI.PageModels.Chat
             {
                 unsafe
                 {
-                    byte* srcPtr = (byte*)frame.data[0];
-                    byte* dstPtr = (byte*)_localFrame.GetPixels();
+                    byte* src = (byte*)System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(bgr, 0);
 
-                    int srcStride = frame.linesize[0];
+                    byte* dst = (byte*)_localFrame.GetPixels();
+
+                    int srcStride = w * 3;
                     int dstStride = _localFrame.RowBytes;
-
-                    int copyBytes = w * 4;
 
                     for (int y = 0; y < h; y++)
                     {
-                        Buffer.MemoryCopy(srcPtr + y * srcStride, dstPtr + y * dstStride, dstStride, copyBytes);
+                        byte* srcRow = src + y * srcStride;
+                        byte* dstRow = dst + y * dstStride;
+
+                        for (int x = 0; x < w; x++)
+                        {
+                            dstRow[x * 4 + 0] = srcRow[x * 3 + 0]; // B
+                            dstRow[x * 4 + 1] = srcRow[x * 3 + 1]; // G
+                            dstRow[x * 4 + 2] = srcRow[x * 3 + 2]; // R
+                            dstRow[x * 4 + 3] = 255;               // A
+                        }
                     }
                 }
+
                 _bigCanvas?.InvalidateSurface();
                 // 请求重绘（确保在主线程调用）
                 //MainThread.BeginInvokeOnMainThread(() => _bigCanvas?.InvalidateSurface());
             }
         }
 
-        private void OnRemoteVideoFrameFasterReceived_WebRTC(RawImage rawImage)
+        private void OnRemoteVideoFrameReceived_WebRTC(byte[] sample, uint width, uint height, VideoPixelFormatsEnum pixelFormat)
         {
-            int w = rawImage.Width;
-            int h = rawImage.Height;
+            var bgr = sample;
 
-            // RGB24 -> BGRA32
-            if (_remoteFrameConverter == null || _remoteFrameConverter.SourceWidth != w || _remoteFrameConverter.SourceHeight != h)
-            {
-                _remoteFrameConverter?.Dispose();
-                _remoteFrameConverter = new VideoFrameConverter(w, h, AVPixelFormat.AV_PIX_FMT_RGB24, w, h, AVPixelFormat.AV_PIX_FMT_BGRA);
-            }
-
-            // 转换
-            AVFrame frame = _remoteFrameConverter.Convert(rawImage.Sample);
-
-            // 创建或重用 SKBitmap
-            if (_remoteFrame == null || _remoteFrame.Width != w || _remoteFrame.Height != h)
-            {
-                _remoteFrame?.Dispose();
-                _remoteFrame = new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque);
-            }
-
-            lock (_remoteLock)
-            {
-                unsafe
-                {
-                    byte* srcPtr = (byte*)frame.data[0];
-                    byte* dstPtr = (byte*)_remoteFrame.GetPixels();
-
-                    int srcStride = frame.linesize[0];
-                    int dstStride = _remoteFrame.RowBytes;
-
-                    int copyBytes = w * 4;
-
-                    for (int y = 0; y < h; y++)
-                    {
-                        Buffer.MemoryCopy(srcPtr + y * srcStride, dstPtr + y * dstStride, dstStride, copyBytes);
-                    }
-                }
-                _smallCanvas?.InvalidateSurface();
-                // 请求重绘（确保在主线程调用）
-                //MainThread.BeginInvokeOnMainThread(() => _smallCanvas?.InvalidateSurface());
-            }
-        }
-
-        private void OnRemoteVideoFrameReceived_WebRTC(byte[] sample, uint width, uint height, int stride, VideoPixelFormatsEnum pixelFormat)
-        {
             int w = (int)width;
             int h = (int)height;
 
-            // RGB24 -> BGRA32
-            if (_remoteFrameConverter == null || _remoteFrameConverter.SourceWidth != w || _remoteFrameConverter.SourceHeight != h)
-            {
-                _remoteFrameConverter?.Dispose();
-                _remoteFrameConverter = new VideoFrameConverter(w, h, AVPixelFormat.AV_PIX_FMT_RGB24, w, h, AVPixelFormat.AV_PIX_FMT_BGRA);
-            }
-
-            // 转换
-            AVFrame frame = _remoteFrameConverter.Convert(sample);
-
             // 创建或重用 SKBitmap
             if (_remoteFrame == null || _remoteFrame.Width != w || _remoteFrame.Height != h)
             {
@@ -347,19 +247,28 @@ namespace HY.MAUI.PageModels.Chat
             {
                 unsafe
                 {
-                    byte* srcPtr = (byte*)frame.data[0];
-                    byte* dstPtr = (byte*)_remoteFrame.GetPixels();
+                    byte* src = (byte*)System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(bgr, 0);
 
-                    int srcStride = frame.linesize[0];
+                    byte* dst = (byte*)_remoteFrame.GetPixels();
+
+                    int srcStride = w * 3;
                     int dstStride = _remoteFrame.RowBytes;
-
-                    int copyBytes = w * 4;
 
                     for (int y = 0; y < h; y++)
                     {
-                        Buffer.MemoryCopy(srcPtr + y * srcStride, dstPtr + y * dstStride, dstStride, copyBytes);
+                        byte* srcRow = src + y * srcStride;
+                        byte* dstRow = dst + y * dstStride;
+
+                        for (int x = 0; x < w; x++)
+                        {
+                            dstRow[x * 4 + 0] = srcRow[x * 3 + 0]; // B
+                            dstRow[x * 4 + 1] = srcRow[x * 3 + 1]; // G
+                            dstRow[x * 4 + 2] = srcRow[x * 3 + 2]; // R
+                            dstRow[x * 4 + 3] = 255;               // A
+                        }
                     }
                 }
+
                 _smallCanvas?.InvalidateSurface();
                 // 请求重绘（确保在主线程调用）
                 //MainThread.BeginInvokeOnMainThread(() => _smallCanvas?.InvalidateSurface());
@@ -456,9 +365,7 @@ namespace HY.MAUI.PageModels.Chat
 
             _webRTC.OnConnectionStateChanged += OnConnectionStateChanged_WebRTC;
             _webRTC.OnLocalVideoFrameReceived += OnLocalVideoFrameReceived_WebRTC;
-            _webRTC.OnLocalVideoFrameFasterReceived += OnLocalVideoFrameFasterReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameReceived += OnRemoteVideoFrameReceived_WebRTC;
-            _webRTC.OnRemoteVideoFrameFasterReceived += OnRemoteVideoFrameFasterReceived_WebRTC;
 
             if (_isCaller)
             {
@@ -484,9 +391,7 @@ namespace HY.MAUI.PageModels.Chat
 
             _webRTC.OnConnectionStateChanged -= OnConnectionStateChanged_WebRTC;
             _webRTC.OnLocalVideoFrameReceived -= OnLocalVideoFrameReceived_WebRTC;
-            _webRTC.OnLocalVideoFrameFasterReceived -= OnLocalVideoFrameFasterReceived_WebRTC;
             _webRTC.OnRemoteVideoFrameReceived -= OnRemoteVideoFrameReceived_WebRTC;
-            _webRTC.OnRemoteVideoFrameFasterReceived -= OnRemoteVideoFrameFasterReceived_WebRTC;
 
             _webRTC.Dispose();
             _webRTC = null;

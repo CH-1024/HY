@@ -1,9 +1,9 @@
 ﻿using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Services.Interfaces;
 using SIPSorcery.Media;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
-using SIPSorceryMedia.FFmpeg;
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
@@ -11,33 +11,31 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using Camera = SIPSorceryMedia.FFmpeg.Camera;
+using Vpx.Net;
 
 namespace HY.MAUI.Communication.RTC
 {
     public class WebRTCService : IDisposable
     {
         string _callId;
-        string _ffmpegPath; //  /!\ A valid path to FFmpeg library
+        bool _isTest;
 
         ChatHubSignalR _chatHub;
 
-        private IVideoSource videoSource = null;
-        private IVideoSink videoSink = null;
+        private IVideoRecorderService _videoService;
 
         private RTCConfiguration _configuration;
         private RTCPeerConnection _peerConnection;
 
         public event Action<RTCPeerConnectionState> OnConnectionStateChanged;
         public event Action<uint, int, int, byte[], VideoPixelFormatsEnum> OnLocalVideoFrameReceived;
-        public event Action<uint, RawImage> OnLocalVideoFrameFasterReceived;
-        public event Action<byte[], uint, uint, int, VideoPixelFormatsEnum> OnRemoteVideoFrameReceived;
-        public event Action<RawImage> OnRemoteVideoFrameFasterReceived;
+        public event Action<byte[], uint, uint, VideoPixelFormatsEnum> OnRemoteVideoFrameReceived;
 
 
         public WebRTCService()
         {
             _chatHub = MauiProgram.Services.GetService<ChatHubSignalR>()!;
+            _videoService = MauiProgram.Services.GetService<IVideoRecorderService>()!;
 
             var useTurnServer = false;
             var gatherTime = 2000;
@@ -248,23 +246,6 @@ namespace HY.MAUI.Communication.RTC
 
                 ]
             };
-
-
-#if WINDOWS
-            // 假设库文件放在 Platforms\Windows\ffmpeg\ 目录下
-            _ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Platforms", "Windows", "ffmpeg");
-#elif MACCATALYST
-            // 假设库文件放在 Platforms\MacCatalyst\ffmpeg\ 目录下
-            _ffmpegPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "ffmpeg");
-#elif ANDROID
-            // Android的库文件会自动从lib目录加载，通常无需显式设置RootPath。
-            // 如果需要指向自定义目录，可以在这里设置。
-            _ffmpegPath = "/data/data/您的应用包名/files/"; // 示例路径
-#elif IOS
-            // iOS情况特殊，通常不直接加载动态库，此路径可能不适用。
-            // 如果使用静态库，则无需设置此路径。
-            return;
-#endif
         }
 
         private void HandleIce(string signal)
@@ -317,30 +298,23 @@ namespace HY.MAUI.Communication.RTC
             await Task.CompletedTask;
         }
 
-        private async void OnConnectionStateChange(RTCPeerConnectionState state)
+        private void OnConnectionStateChange(RTCPeerConnectionState state)
         {
             OnConnectionStateChanged?.Invoke(state);
 
             switch (state)
             {
                 case RTCPeerConnectionState.connected:
-                    if (videoSource != null) await videoSource.StartVideo();
-                    if (videoSink != null) await videoSink.StartVideoSink();
+                    if (_isTest) _videoService?.StartTesting();
+                    else _videoService?.StartRecording();
                     break;
                 case RTCPeerConnectionState.failed:
-                    _peerConnection.Close("ice disconnection");
+                    _peerConnection?.Close("ice disconnection");
                     break;
                 case RTCPeerConnectionState.closed:
-                    if (videoSource != null) await videoSource.CloseVideo();
-                    if (videoSink != null) await videoSink.CloseVideoSink();
+                    _videoService?.StopRecording();
                     break;
             }
-        }
-
-        private async void OnVideoFormatsNegotiated(List<VideoFormat> formats)
-        {
-            videoSink.SetVideoSinkFormat(formats.First());
-            videoSource.SetVideoSourceFormat(formats.First());
         }
 
         private async void OnSendIce(RTCIceCandidate candidate)
@@ -362,6 +336,7 @@ namespace HY.MAUI.Communication.RTC
         public Task Initialize(string callId, bool isTest = false)
         {
             _callId = callId;
+            _isTest = isTest;
 
             _chatHub.OnReceiveIce_ChatHub += HandleIce;
             _chatHub.OnReceiveOffer_ChatHub += HandleOffer;
@@ -371,43 +346,23 @@ namespace HY.MAUI.Communication.RTC
 
             _peerConnection.onicecandidate += OnSendIce;
             _peerConnection.onconnectionstatechange += OnConnectionStateChange;
-            _peerConnection.OnVideoFormatsNegotiated += OnVideoFormatsNegotiated;
-
-            // 1. 初始化 FFmpeg
-            FFmpegInit.Initialise(FfmpegLogLevelEnum.AV_LOG_FATAL, _ffmpegPath);
 
             #region 本地
-            // 2. 获取可用的摄像头设备列表
-            var cameras = FFmpegCameraManager.GetCameraDevices();
+            _videoService.SetVideoEncoder(new VP8Codec());
 
-            if (cameras == null || cameras.Count == 0 || isTest) 
-                videoSource = new VideoTestPatternSource(new FFmpegVideoEncoder());
-            else 
-                videoSource = new FFmpegCameraSource(cameras.Last().Path);
+            // 本地
+            _videoService.OnVideoSourceEncodedSample += _peerConnection.SendVideo;
+            _videoService.OnVideoSourceRawSample += (dur, width, height, sample, format) => OnLocalVideoFrameReceived?.Invoke(dur, width, height, sample, format);
 
-            videoSource.RestrictFormats(x => x.Codec == VideoCodecsEnum.H264);
-            videoSource.SetVideoSourceFormat(videoSource.GetVideoSourceFormats().Find(x => x.Codec == VideoCodecsEnum.H264));
-
-            videoSource.OnVideoSourceRawSampleFaster += (dur, img) => OnLocalVideoFrameFasterReceived?.Invoke(dur, img);
-            videoSource.OnVideoSourceRawSample += (dur, width, height, sample, format) => OnLocalVideoFrameReceived?.Invoke(dur, width, height, sample, format);
-            videoSource.OnVideoSourceEncodedSample += _peerConnection.SendVideo;
+            // 远程
+            _peerConnection.OnVideoFrameReceived += _videoService.GotVideoFrame;
+            _videoService.OnVideoSinkDecodedSample += (sample, width, height, format) => OnRemoteVideoFrameReceived?.Invoke(sample, width, height, format);
             #endregion
 
-            #region 远程
-            videoSink = new FFmpegVideoEndPoint();
-
-            videoSink.RestrictFormats(format => format.Codec == VideoCodecsEnum.H264);
-            videoSink.SetVideoSinkFormat(videoSink.GetVideoSinkFormats().Find(x => x.Codec == VideoCodecsEnum.H264));
-
-            videoSink.OnVideoSinkDecodedSampleFaster += (img) => OnRemoteVideoFrameFasterReceived?.Invoke(img);
-            videoSink.OnVideoSinkDecodedSample += (sample, width, height, stride, pixelFormat) => OnRemoteVideoFrameReceived?.Invoke(sample, width, height, stride, pixelFormat);
-            _peerConnection.OnVideoFrameReceived += videoSink.GotVideoFrame;
-            #endregion
-
-            var videoSourceTrack = new MediaStreamTrack(videoSource.GetVideoSourceFormats(), MediaStreamStatusEnum.SendOnly);
+            var videoSourceTrack = new MediaStreamTrack(_videoService.GetSelectedFormat(), MediaStreamStatusEnum.SendOnly);
             _peerConnection.addTrack(videoSourceTrack);
 
-            var videoSinkTrack = new MediaStreamTrack(videoSink.GetVideoSinkFormats(), MediaStreamStatusEnum.RecvOnly);
+            var videoSinkTrack = new MediaStreamTrack(_videoService.GetSelectedFormat(), MediaStreamStatusEnum.RecvOnly);
             _peerConnection.addTrack(videoSinkTrack);
 
             return Task.CompletedTask;
@@ -427,15 +382,10 @@ namespace HY.MAUI.Communication.RTC
             _chatHub.OnReceiveOffer_ChatHub -= HandleOffer;
             _chatHub.OnReceiveAnswer_ChatHub -= HandleAnswer;
 
-            if (videoSource != null)
+            if (_videoService != null)
             {
-                videoSource.CloseVideo();
-                videoSource = null;
-            }
-            if (videoSink != null)
-            {
-                videoSink.CloseVideoSink();
-                videoSink = null;
+                _videoService.StopRecording();
+                _videoService = null;
             }
 
             if (_configuration != null)

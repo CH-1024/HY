@@ -6,11 +6,6 @@ namespace HY.MAUI.Configurations
 {
     public class ApiOptions
     {
-        //准备工作：
-        //  1、Platforms > Windows > ffmpeg：放入 ffmpeg 8.1 静态库
-
-
-
         // 开发环境
 #if WINDOWS || MACCATALYST || IOS
                         public const string Address = "localhost";

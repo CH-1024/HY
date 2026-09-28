@@ -33,6 +33,7 @@ namespace HY.MAUI
                 .UseMauiApp<App>()
                 .UseSkiaSharp()
                 .UseMauiCommunityToolkit()
+                .UseMauiCommunityToolkitCamera()
                 .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
                 .ConfigureMauiHandlers(handlers =>
                 {

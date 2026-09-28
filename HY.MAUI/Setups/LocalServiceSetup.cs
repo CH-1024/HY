@@ -23,6 +23,17 @@ namespace HY.MAUI.Setups
             services.AddSingleton<ContactStore>();
             services.AddSingleton<ContactRequestStore>();
             services.AddSingleton<MessageStore>();
+
+#if WINDOWS
+            services.AddSingleton<IVideoRecorderService, Platforms.Windows.VideoRecorderService>();
+#elif ANDROID
+            services.AddSingleton<IVideoRecorderService, Platforms.Android.VideoRecorderService>();
+#elif MACCATALYST
+            services.AddSingleton<IVideoRecorderService, Platforms.MacCatalyst.VideoRecorderService>();
+#elif IOS
+            services.AddSingleton<IVideoRecorderService, Platforms.iOS.VideoRecorderService>();
+#endif
+
         }
     }
 }
