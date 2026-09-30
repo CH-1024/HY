@@ -15,8 +15,35 @@
 		<true/>
 		<key>com.apple.security.device.audio-input</key>
 		<true/>
-		
-		
+
+        <key>keychain-access-groups</key>
+        <array>
+            <string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
+        </array>
+        
+        <!-- 允许用户选择文件 -->
+        <key>com.apple.security.files.user-selected.read-only</key>
+        <true/>
+
+        <!-- 允许用户 修改/写入 文件-->
+        <!--        <key>com.apple.security.files.user-selected.read-write</key>-->
+        <!--        <true/>-->
+
+<!--        <key>com.apple.security.assets.movies.read-only</key>-->
+<!--        <true/>-->
+        
+<!--        <key>com.apple.security.assets.music.read-only</key>-->
+<!--        <true/>-->
+        
+<!--        <key>com.apple.security.assets.pictures.read-only</key>-->
+<!--        <true/>-->
+        
+<!--        <key>com.apple.security.files.downloads.read-only</key>-->
+<!--        <true/>-->
+        
+<!--        <key>com.apple.security.personal-information.photos-library</key>-->
+<!--        <true/>-->
+        
     </dict>
 </plist>
 

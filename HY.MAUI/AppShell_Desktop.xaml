@@ -30,7 +30,7 @@
         <DataTemplate>
             <VerticalStackLayout HeightRequest="200">
                 <Label Text="{Binding Path=BindingContext.CurrentUser.Nickname, Source={x:Reference _Shell}, StringFormat='Hi ~ {0}'}" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Margin="0,10"/>
-                <toolkit:AvatarView WidthRequest="120" HeightRequest="120" ImageSource="{Binding Path=BindingContext.CurrentUser.Avatar, Source={x:Reference _Shell}}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0" Opacity="1"/>
+                <Image Source="{Binding Path=BindingContext.CurrentUser.Avatar, Source={x:Reference _Shell} }" Aspect="AspectFill" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Center"/>
                 <BoxView WidthRequest="280" HeightRequest="1" BackgroundColor="Gray" Margin="0,30"/>
             </VerticalStackLayout>
         </DataTemplate>
@@ -84,9 +84,9 @@
     
     <!--选项卡-->
     <TabBar Route="main">
-        <ShellContent Route="chat" Title="聊天" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}"/>
-        <ShellContent Route="contact" Title="好友" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate contact:ContactPage}"/>
-        <ShellContent Route="mine" Title="我的" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}"/>
+        <ShellContent Route="chat" Title="聊天" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}"/>
+        <ShellContent Route="contact" Title="好友" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate contact:ContactPage}"/>
+        <ShellContent Route="mine" Title="我的" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}"/>
     </TabBar>
 
     

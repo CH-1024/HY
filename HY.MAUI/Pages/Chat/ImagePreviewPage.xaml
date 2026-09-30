@@ -4,7 +4,7 @@
              x:Class="HY.MAUI.Pages.Chat.ImagePreviewPage"
              xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
              x:Name="_ImagePreviewPage"
-             Shell.NavBarIsVisible="False"
+             Shell.NavBarIsVisible="True"
              Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -23,12 +23,12 @@
 
 
     <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/>
-        <toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/>
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/>
-        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" />
-        <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" />
-        <toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" />
+        <!-- <toolkit:EventToCommandBehavior EventName="NavigatedTo" x:TypeArguments="NavigatedToEventArgs" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="NavigatedFrom" x:TypeArguments="NavigatedFromEventArgs" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}"/> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" /> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" /> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="Unloaded" Command="{Binding UnloadedCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ImagePreviewPage}, x:DataType=ContentPage}" /> -->
     </ContentPage.Behaviors>
 
     <!--<Shell.BackButtonBehavior>
@@ -51,11 +51,7 @@
     </Shell.TitleView>-->
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="查找聊天内容" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="消息免打扰" Order="Secondary" Priority="1" />
-        <ToolbarItem Text="提醒" Order="Secondary" Priority="2" />
-        <ToolbarItem Text="清空聊天记录" Order="Secondary" Priority="3" />
-        <!--<ToolbarItem Text="弹出测试" Order="Secondary" Priority="4" Clicked="Button_Clicked"/>-->
+        <ToolbarItem Text="下载" Order="Secondary" Priority="0" />
     </ContentPage.ToolbarItems>
 
 

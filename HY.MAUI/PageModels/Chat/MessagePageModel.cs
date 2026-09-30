@@ -342,6 +342,10 @@ namespace HY.MAUI.PageModels.Chat
             {
                 await TapVideoCallMessageCommand.ExecuteAsync(cmd.Message);
             }
+            else if (cmd?.Command == CommandNames.DownloadFile)
+            {
+                
+            }
         }
 
         [RelayCommand]

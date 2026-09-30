@@ -33,6 +33,8 @@ namespace HY.MAUI
 
 #if WINDOWS
             window.Created += OnWindowCreated;
+#elif MACCATALYST
+            window.Created += OnWindowCreated;
 #endif
 
             if (_loginService.IsLoggedIn)
@@ -271,7 +273,51 @@ namespace HY.MAUI
         #endregion
 
 #endif
+#if MACCATALYST
 
+        private void OnWindowCreated(object? sender, EventArgs e)
+        {
+            if (sender is not Microsoft.Maui.Controls.Window mauiWindow)
+                return;
+
+            if (mauiWindow.Handler?.PlatformView is not UIKit.UIWindow uiWindow)
+                return;
+
+            if (uiWindow.WindowScene is not UIKit.UIWindowScene windowScene)
+                return;
+
+            const float width = 650;
+            const float height = 1000;
+
+            // ==========================================
+            // 1. 固定窗口尺寸
+            // ==========================================
+
+            var sizeRestrictions = windowScene.SizeRestrictions;
+
+            if (sizeRestrictions != null)
+            {
+                var size = new CoreGraphics.CGSize(width, height);
+
+                // 最小尺寸 = 650 x 1000
+                sizeRestrictions.MinimumSize = size;
+
+                // 最大尺寸 = 650 x 1000
+                sizeRestrictions.MaximumSize = size;
+            }
+
+            // ==========================================
+            // 2. 设置当前窗口尺寸
+            // ==========================================
+
+            uiWindow.Frame = new CoreGraphics.CGRect(
+                uiWindow.Frame.X,
+                uiWindow.Frame.Y,
+                width,
+                height);
+        }
+
+#endif
 
 
     }

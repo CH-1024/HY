@@ -13,5 +13,6 @@ namespace HY.MAUI.PageModels.Chat.MessageCommands
         public const string TapVideoMessage = "TapVideoMessage";
         public const string TapVoiceCallMessage = "TapVoiceCallMessage";
         public const string TapVideoCallMessage = "TapVideoCallMessage";
+        public const string DownloadFile = "DownloadFile";
     }
 }
