@@ -1,18 +1,24 @@
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Windows.System;
+
 namespace HY.MAUI.Platforms.Windows;
 
 public class ChatEditorTextView : TextBox
 {
     public Action? SendAction { get; set; }
 
-    public void HandlePreviewKeyDown(KeyRoutedEventArgs e)
+    public void OnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key != VirtualKey.Enter)
             return;
 
-        // Shift + Enter：正常换行
+        // Shift + Enter
+        // 不处理，让 TextBox 正常换行
         if (IsShiftDown())
             return;
 
+        // Enter
         // 阻止 TextBox 默认换行
         e.Handled = true;
 
@@ -27,24 +33,6 @@ public class ChatEditorTextView : TextBox
     {
         return Microsoft.UI.Input.InputKeyboardSource
             .GetKeyStateForCurrentThread(VirtualKey.Shift)
-            .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
-    }
-
-    protected override void OnKeyDown(KeyRoutedEventArgs e)
-    {
-        HandlePreviewKeyDown(e);
-
-        if (!e.Handled)
-            base.OnKeyDown(e);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            SendAction = null;
-        }
-
-        base.Dispose(disposing);
+            .HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
     }
 }
