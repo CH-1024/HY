@@ -57,6 +57,19 @@ namespace HY.MAUI.PageModels.Login
         [RelayCommand]
         async Task Login()
         {
+            if (!await Request_Camera_Async())
+            {
+                _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问相机！", "退出");
+                return;
+            }
+            // if (!await Request_Microphone_Async())
+            // {
+            //     _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问麦克风！", "退出");
+            //     return;
+            // }
+            
+            
+            
             //var p1 = await _loginApi.Ping1();
             //var p2 = await _loginApi.Ping2();
 
@@ -85,5 +98,30 @@ namespace HY.MAUI.PageModels.Login
             await Application.Current!.Windows[0].Page!.Navigation.PushAsync(registerPage, true);
         }
 
+        
+        
+        
+        
+        
+        
+        async Task<bool> Request_Camera_Async()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
+            {
+                return await Permissions.RequestAsync<Permissions.Camera>() == PermissionStatus.Granted;
+            }
+            return true;
+        }
+
+        async Task<bool> Request_Microphone_Async()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
+            if (status != PermissionStatus.Granted)
+            {
+                return await Permissions.RequestAsync<Permissions.Microphone>() == PermissionStatus.Granted;
+            }
+            return true;
+        }
     }
 }

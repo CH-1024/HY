@@ -94,49 +94,7 @@
 
 
     <Grid RowDefinitions="*, auto, auto">
-
-        <!--<CollectionView x:Name="collectionView" ItemsSource="{Binding MessageCollection}" SelectionMode="None" ItemsUpdatingScrollMode="KeepLastItemInView" Margin="5">
-
-            <CollectionView.GestureRecognizers>
-                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
-            </CollectionView.GestureRecognizers>
-
-            <CollectionView.Behaviors>
-                <toolkit:EventToCommandBehavior EventName="Scrolled" Command="{Binding ScrolledCommand}" CommandParameter="{Binding Source={x:Reference collectionView}}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=CollectionView}"/>
-                <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding CollectionViewLoadedCommand}" CommandParameter="{Binding Source={x:Reference collectionView}}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _MessagePage}, x:DataType=CollectionView}"/>
-            </CollectionView.Behaviors>
-
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout ItemSpacing="{OnIdiom Desktop=5, Phone=10}" Orientation="Vertical"/>
-            </CollectionView.ItemsLayout>
-
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="m:MessageVM">
-                    <Grid ColumnDefinitions="50,*,50" >
-
-                        <toolkit:AvatarView Grid.Column="{Binding Avatar_InColumn}" ImageSource="{Binding Sender_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="34" HeightRequest="34" HorizontalOptions="Center" VerticalOptions="Start" Padding="0" Margin="0">
-                            <toolkit:AvatarView.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
-                                <TapGestureRecognizer Command="{Binding Path=BindingContext.ContactDetailCommand, Source={x:Reference _MessagePage}}" CommandParameter="{Binding .}"/>
-                            </toolkit:AvatarView.GestureRecognizers>
-                        </toolkit:AvatarView>
-
-                        <Label Grid.Column="1" Text="{Binding Content}" FontSize="Micro" MinimumHeightRequest="34" MinimumWidthRequest="0" HorizontalOptions="{Binding Content_Horizontal}" BackgroundColor="Black"/>
-
-                        <Grid Grid.Column="1" toolkit:StateContainer.CurrentState="{Binding Type}">
-                            <toolkit:StateContainer.StateViews>
-                                <Label toolkit:StateView.StateKey="Text" Text="{Binding Content}" FontSize="Micro" MinimumHeightRequest="34" BackgroundColor="Black"/>
-                                <controls:TextMessage toolkit:StateView.StateKey="Text" Text="{Binding Content}" FontSize="Micro" MinimumHeight="34" MessageBackground="Black" MessageCornerRadius="5" HorizontalOptions="{Binding Content_Horizontal}"/>
-                            </toolkit:StateContainer.StateViews>
-                        </Grid>
-
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-
-        </CollectionView>-->
-
-
+        
         <ActivityIndicator IsRunning="True" IsVisible="{Binding RefreshCommand.IsRunning}" ZIndex="2" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,0,0,0"/>
 
         <CollectionView x:Name="collectionView" ItemsSource="{Binding MessageCollection}" SelectionMode="None" ItemsUpdatingScrollMode="KeepScrollOffset">

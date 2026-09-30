@@ -49,7 +49,7 @@ namespace HY.MAUI.Controls
 
             if (Handler.PlatformView is UIKit.UITextView iosView)
             {
-                iosView.Editable = false;
+                iosView.Editable = true;
                 iosView.Selectable = true;
                 iosView.UserInteractionEnabled = true;
             }
@@ -65,6 +65,7 @@ namespace HY.MAUI.Controls
             if (Handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox windowsView)
             {
                 _windowsView = windowsView;
+
                 _windowsView.PreviewKeyDown += OnPreviewKeyDown;
 
                 // 移除 WinUI 的底部强调线
@@ -74,28 +75,13 @@ namespace HY.MAUI.Controls
             }
 
 #endif
-
         }
 
-#if WINDOWS
-
-        private void OnPreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        /// <summary>
+        /// 执行发送命令
+        /// </summary>
+        public void ExecuteSendCommand()
         {
-            if (e.Key != Windows.System.VirtualKey.Enter)
-                return;
-
-            // Shift + Enter => 换行
-            if (IsShiftDown())
-                return;
-
-            // 阻止 TextBox 处理 Enter（否则一定换行）
-            e.Handled = true;
-
-            // 长按忽略
-            if (e.KeyStatus.WasKeyDown)
-                return;
-
-            // 空内容忽略
             if (string.IsNullOrWhiteSpace(Text))
                 return;
 
@@ -107,12 +93,35 @@ namespace HY.MAUI.Controls
             }
         }
 
+        
+#if WINDOWS
+
+        private void OnPreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key != Windows.System.VirtualKey.Enter)
+                return;
+
+            // Shift + Enter：正常换行
+            if (IsShiftDown())
+                return;
+
+            // 阻止 TextBox 默认换行
+            e.Handled = true;
+
+            // 长按忽略
+            if (e.KeyStatus.WasKeyDown)
+                return;
+
+            ExecuteSendCommand();
+        }
+
         private static bool IsShiftDown()
         {
             return Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
         }
 
 #endif
-
+        
+        
     }
 }

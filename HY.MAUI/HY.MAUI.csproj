@@ -23,7 +23,7 @@
 		<ApplicationTitle>HY.MAUI</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.hy.maui</ApplicationId>
+		<ApplicationId>net.hoyi.hy</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -43,7 +43,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
-
+	
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-maccatalyst'">
+		<CodesignKey>Apple Development: Hao Cheng (5NYD84UWU7)</CodesignKey>
+		<CodesignProvision>HY-MacCatalyst-Dev</CodesignProvision>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -65,6 +70,7 @@
 	<ItemGroup>
 	  <Compile Remove="Controls\ChatBubble.xaml.cs" />
 	  <Compile Remove="Controls\TextMessage.cs" />
+	  <Compile Remove="Platforms\MacCatalyst\ChatEditorTextView.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

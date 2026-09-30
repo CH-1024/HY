@@ -103,6 +103,20 @@ public partial class VideoBubble : ContentView
         }
     }
 
+    private async Task MenuFlyoutItem_Download_Clicked(VideoMessageVM msg)
+    {
+        var param = new MessageCommandInvocation
+        {
+            Command = CommandNames.DownloadFile,
+            Message = msg,
+        };
+
+        if (Command != null && Command.CanExecute(param))
+        {
+            await Command.ExecuteAsync(param);
+        }
+    }
+    
     private async Task MenuFlyoutItem_Recall_Clicked(VideoMessageVM msg)
     {
         if (msg.IsSelf)
@@ -130,6 +144,16 @@ public partial class VideoBubble : ContentView
     {
         var flyout = new MenuFlyout();
 
+        var canDownload = msg.Message_Status == MessageStatus.Sented;
+        if (canDownload)
+        {
+            flyout.Add(new MenuFlyoutItem
+            {
+                Text = "下载",
+                Command = new Command(async () => await MenuFlyoutItem_Download_Clicked(msg))
+            });
+        }
+        
         flyout.Add(new MenuFlyoutItem
         {
             Text = "复制",
