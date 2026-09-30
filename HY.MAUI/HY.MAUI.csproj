@@ -70,7 +70,6 @@
 	<ItemGroup>
 	  <Compile Remove="Controls\ChatBubble.xaml.cs" />
 	  <Compile Remove="Controls\TextMessage.cs" />
-	  <Compile Remove="Platforms\MacCatalyst\ChatEditorTextView.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -233,6 +232,11 @@
 	  <Folder Include="Handlers\" />
 	  <Folder Include="Pages\Login\Popups\" />
 	  <Folder Include="Pages\Mine\Popups\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="Platforms\Windows\ChatEditorHandler.cs" />
+	  <None Include="Platforms\Windows\ChatEditorTextView.cs" />
 	</ItemGroup>
 
 </Project>

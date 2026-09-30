@@ -347,7 +347,7 @@ namespace HY.MAUI.Communication.RTC
             _peerConnection.onicecandidate += OnSendIce;
             _peerConnection.onconnectionstatechange += OnConnectionStateChange;
 
-            #region 本地
+            #region VP8
             _videoService.SetVideoEncoder(new VP8Codec());
 
             // 本地

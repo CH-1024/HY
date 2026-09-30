@@ -3,6 +3,7 @@ using HY.MAUI.Communication;
 using HY.MAUI.Communication.Auth;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Controls;
 using HY.MAUI.PageModels.Chat;
 using HY.MAUI.PageModels.Contact;
 using HY.MAUI.PageModels.Login;
@@ -63,6 +64,18 @@ namespace HY.MAUI
             builder.Services.AddCommunicationSetup();
             builder.Services.AddPageAndPageModelSetup();
 
+#if MACCATALYST
+            builder.ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<ChatEditor, Platforms.MacCatalyst.ChatEditorHandler>();
+            });
+#endif
+#if WINDOWS
+            builder.ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<ChatEditor, Platforms.Windows.ChatEditorHandler>();
+            });
+#endif
             #region MyRegion
 
             //            EditorHandler.Mapper.AppendToMapping("RemoveFocusLine", (handler, view) =>
@@ -124,6 +137,7 @@ namespace HY.MAUI
             //            });
 
             #endregion
+
 
             var app = builder.Build();
 

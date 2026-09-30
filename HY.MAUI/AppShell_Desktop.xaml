@@ -44,7 +44,7 @@
             </Grid>
         </DataTemplate>
     </Shell.ItemTemplate>
-    
+
     <Shell.FlyoutFooterTemplate>
         <DataTemplate>
             <Grid HeightRequest="50">
@@ -54,19 +54,19 @@
         </DataTemplate>
     </Shell.FlyoutFooterTemplate>
 
-    <!--<Shell.MenuItemTemplate>
+    <Shell.MenuItemTemplate>
         <DataTemplate x:DataType="MenuItem">
             <Grid ColumnDefinitions="40,*">
-                <Image Source="{Binding IconImageSource}" HeightRequest="40" WidthRequest="40"/>
-                <Label Grid.Column="1" Text="{Binding Text}" FontAttributes="Italic" VerticalTextAlignment="Center" />
+                <Image Source="{Binding Icon}" HeightRequest="40" WidthRequest="40"/>
+                <Label Grid.Column="1" Text="{Binding Title}" FontAttributes="Italic" VerticalTextAlignment="Center" />
             </Grid>
         </DataTemplate>
-    </Shell.MenuItemTemplate>-->
+    </Shell.MenuItemTemplate>
 
 
-    
-    
-    
+
+
+
     <!--FlyoutItems背景-->
     <Shell.FlyoutBackgroundImageAspect>AspectFill</Shell.FlyoutBackgroundImageAspect>
     <Shell.FlyoutBackgroundImage>
@@ -75,25 +75,23 @@
 
 
     <!--浮出控件-->
+    <!--<FlyoutItem Route="shell" FlyoutItemIsVisible="True" FlyoutDisplayOptions="AsMultipleItems">
+        <ShellContent Route="page1" Title="相册" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage1}"/>
+        <ShellContent Route="page2" Title="收藏" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage2}"/>
+        <ShellContent Route="page3" Title="设置" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage3}"/>
+    </FlyoutItem>-->
     <MenuItem Text="相册" IconImageSource="dotnet_bot.png" Command="{Binding ShowPageCommand}" CommandParameter="NewPage1"/>
     <MenuItem Text="收藏" IconImageSource="dotnet_bot.png" Command="{Binding ShowPageCommand}" CommandParameter="NewPage2"/>
     <MenuItem Text="设置" IconImageSource="dotnet_bot.png" Command="{Binding ShowPageCommand}" CommandParameter="SettingPage"/>
     <MenuItem Text="About" IconImageSource="dotnet_bot.png"/>
     <MenuItem Text="Help" IconImageSource="dotnet_bot.png"/>
 
-    
+
     <!--选项卡-->
     <TabBar Route="main">
         <ShellContent Route="chat" Title="聊天" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate chat:ChatPage}"/>
         <ShellContent Route="contact" Title="好友" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate contact:ContactPage}"/>
         <ShellContent Route="mine" Title="我的" FlyoutIcon="dotnet_bot.png" Icon="dotnet_bot.png" ContentTemplate="{DataTemplate mine:MinePage}"/>
     </TabBar>
-
-    
-    <!--<FlyoutItem Route="shell" FlyoutItemIsVisible="False">
-        <ShellContent Route="page1" Title="相册" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage1}"/>
-        <ShellContent Route="page2" Title="收藏" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage2}"/>
-        <ShellContent Route="page3" Title="设置" FlyoutIcon="dotnet_bot.png" ContentTemplate="{DataTemplate shell:NewPage3}"/>
-    </FlyoutItem>-->
 
 </Shell>
