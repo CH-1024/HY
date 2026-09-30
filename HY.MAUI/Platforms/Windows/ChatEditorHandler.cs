@@ -1,3 +1,6 @@
+using Microsoft.Maui.Handlers;
+using Microsoft.UI.Xaml.Controls;
+
 namespace HY.MAUI.Platforms.Windows;
 
 public class ChatEditorHandler : EditorHandler
@@ -13,10 +16,14 @@ public class ChatEditorHandler : EditorHandler
 
         if (platformView is ChatEditorTextView chatView && VirtualView is Controls.ChatEditor chatEditor)
         {
+            chatView.AcceptsReturn = true;
+
             chatView.SendAction = chatEditor.ExecuteSendCommand;
+
+            chatView.PreviewKeyDown += chatView.OnPreviewKeyDown;
         }
 
-        // 移除 WinUI 的底部强调线
+        // 移除 WinUI 底部强调线
         platformView.Resources["TextControlBorderBrushFocused"] = null;
         platformView.Resources["TextControlBorderBrushPointerOver"] = null;
         platformView.Resources["TextControlBorderBrush"] = null;
@@ -26,6 +33,7 @@ public class ChatEditorHandler : EditorHandler
     {
         if (platformView is ChatEditorTextView chatView)
         {
+            chatView.PreviewKeyDown -= chatView.OnPreviewKeyDown;
             chatView.SendAction = null;
         }
 

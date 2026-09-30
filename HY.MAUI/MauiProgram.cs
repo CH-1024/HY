@@ -59,84 +59,10 @@ namespace HY.MAUI
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-
+            builder.AddConfigureMauiHandlers();
             builder.Services.AddLocalServiceSetup();
             builder.Services.AddCommunicationSetup();
             builder.Services.AddPageAndPageModelSetup();
-
-#if MACCATALYST
-            builder.ConfigureMauiHandlers(handlers =>
-            {
-                handlers.AddHandler<ChatEditor, Platforms.MacCatalyst.ChatEditorHandler>();
-            });
-#endif
-#if WINDOWS
-            builder.ConfigureMauiHandlers(handlers =>
-            {
-                handlers.AddHandler<ChatEditor, Platforms.Windows.ChatEditorHandler>();
-            });
-#endif
-            #region MyRegion
-
-            //            EditorHandler.Mapper.AppendToMapping("RemoveFocusLine", (handler, view) =>
-            //            {
-            //#if ANDROID
-            //                var editText = handler.PlatformView;
-
-            //                // 1️⃣ 去掉背景（包含 Focused 状态）
-            //                editText.Background = null;
-
-            //                // 2️⃣ 禁用焦点高亮色
-            //                editText.BackgroundTintList = ColorStateList.ValueOf(Android.Graphics.Color.Transparent);
-
-            //                // 3️⃣ 防止某些机型恢复下划线
-            //                editText.SetPadding(
-            //                    editText.PaddingLeft,
-            //                    editText.PaddingTop,
-            //                    editText.PaddingRight,
-            //                    editText.PaddingBottom);
-            //#endif
-            //            });
-
-
-            //            EditorHandler.Mapper.AppendToMapping("NoFocusLine", (handler, view) =>
-            //            {
-            //#if ANDROID
-            //                handler.PlatformView.Background = null;
-            //                handler.PlatformView.BackgroundTintList =
-            //                    ColorStateList.ValueOf(Android.Graphics.Color.Transparent);
-            //#endif
-            //            });
-
-
-
-            //            EditorHandler.Mapper.AppendToMapping("RemoveFocusLine", (handler, view) =>
-            //            {
-            //#if WINDOWS
-            //                var editor = handler.PlatformView;
-
-            //                // 1️⃣ 去掉焦点可视化（重点）
-            //                editor.UseSystemFocusVisuals = false;
-
-            //                // 2️⃣ 去掉边框（防止部分主题显示底线）
-            //                editor.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-
-            //                // 3️⃣ 可选：背景透明
-            //                editor.Background = null;
-            //#endif
-            //            });
-
-
-
-
-            //            EditorHandler.Mapper.AppendToMapping("RemoveFocusLineOnly", (handler, view) =>
-            //            {
-            //#if WINDOWS
-            //                handler.PlatformView.UseSystemFocusVisuals = false;
-            //#endif
-            //            });
-
-            #endregion
 
 
             var app = builder.Build();
