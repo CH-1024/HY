@@ -225,6 +225,9 @@
 	  <MauiXaml Update="Pages\Shells\NewPage1.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Resources\Styles\FontSizes.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -232,11 +235,6 @@
 	  <Folder Include="Handlers\" />
 	  <Folder Include="Pages\Login\Popups\" />
 	  <Folder Include="Pages\Mine\Popups\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="Platforms\Windows\ChatEditorHandler.cs" />
-	  <None Include="Platforms\Windows\ChatEditorTextView.cs" />
 	</ItemGroup>
 
 </Project>

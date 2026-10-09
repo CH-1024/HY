@@ -13,6 +13,7 @@ namespace HY.MAUI.Setups
 #if MACCATALYST
             builder.ConfigureMauiHandlers(handlers =>
             {
+                handlers.AddHandler<SelectableLabel, Platforms.MacCatalyst.SelectableLabelHandler>();
                 handlers.AddHandler<ChatEditor, Platforms.MacCatalyst.ChatEditorHandler>();
             });
 #endif
@@ -20,10 +21,10 @@ namespace HY.MAUI.Setups
 #if WINDOWS
             builder.ConfigureMauiHandlers(handlers =>
             {
+                handlers.AddHandler<SelectableLabel, Platforms.Windows.SelectableLabelHandler>();
                 handlers.AddHandler<ChatEditor, Platforms.Windows.ChatEditorHandler>();
             });
 #endif
-
 
         }
     }

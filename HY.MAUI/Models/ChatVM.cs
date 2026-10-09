@@ -70,7 +70,7 @@ namespace HY.MAUI.Models
 
         public string? Last_Msg_Brief => Last_Msg switch
         {
-            TextMessageVM textVM => textVM.Content?.Length > 20 ? textVM.Content.Substring(0, 20) + "..." : textVM.Content,
+            TextMessageVM textVM => textVM.Content?.Length > 20 ? textVM.Content.Replace("\r", "").Replace("\n", "").Substring(0, 20) + "..." : textVM.Content?.Replace("\r", "").Replace("\n", ""),
             ImageMessageVM => "[图片]",
             FileMessageVM => "[文件]",
             VoiceMessageVM => "[语音]",
