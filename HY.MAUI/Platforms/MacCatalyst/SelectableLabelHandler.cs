@@ -28,7 +28,7 @@ public class SelectableLabelHandler : ViewHandler<SelectableLabel, UITextView>
 
     protected override UITextView CreatePlatformView()
     {
-        return new UITextView
+        return new SelectableTextView
         {
             Editable = false,
 

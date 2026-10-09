@@ -9,6 +9,7 @@ using HY.MAUI.Mapping;
 using HY.MAUI.Models.MsgVM;
 using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
+using HY.MAUI.Tools;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
 using SkiaSharp;
@@ -223,9 +224,7 @@ namespace HY.MAUI.PageModels.Chat
                     }
                 }
 
-                _bigCanvas?.InvalidateSurface();
-                // 请求重绘（确保在主线程调用）
-                //MainThread.BeginInvokeOnMainThread(() => _bigCanvas?.InvalidateSurface());
+                UI.Run(() => _bigCanvas?.InvalidateSurface());
             }
         }
 
@@ -269,9 +268,7 @@ namespace HY.MAUI.PageModels.Chat
                     }
                 }
 
-                _smallCanvas?.InvalidateSurface();
-                // 请求重绘（确保在主线程调用）
-                //MainThread.BeginInvokeOnMainThread(() => _smallCanvas?.InvalidateSurface());
+                UI.Run(() => _smallCanvas?.InvalidateSurface());
             }
         }
 
