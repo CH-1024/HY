@@ -58,7 +58,7 @@
         <DataTemplate x:DataType="MenuItem">
             <Grid ColumnDefinitions="40,*">
                 <Image Source="{Binding Icon}" HeightRequest="40" WidthRequest="40"/>
-                <Label Grid.Column="1" Text="{Binding Title}" FontAttributes="Italic" VerticalTextAlignment="Center" />
+                <Label Grid.Column="1" Text="{Binding Title}" FontSize="Body" VerticalTextAlignment="Center" />
             </Grid>
         </DataTemplate>
     </Shell.MenuItemTemplate>

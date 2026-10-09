@@ -68,9 +68,9 @@
                                             <Label Text="{Binding Unread_Count_Show}" FontSize="Micro" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                                         </Border>
 
-                                        <Label Grid.Column="1" Text="{Binding Target_Name}" FontAttributes="Bold" FontSize="16" Padding="0" VerticalOptions="Start"/>
+                                        <Label Grid.Column="1" Text="{Binding Target_Name}" FontSize="Subtitle" Padding="0" VerticalOptions="Start"/>
 
-                                        <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" FontSize="14" TextColor="Gray" Padding="0" VerticalOptions="End">
+                                        <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" FontSize="Body" TextColor="Gray" LineBreakMode="NoWrap" Padding="0" VerticalOptions="End">
                                             <Label.Triggers>
 
                                                 <DataTrigger TargetType="Label" Binding="{Binding Last_Msg.Message_Status}" Value="{x:Static enum:MessageStatus.Sending}">
@@ -96,7 +96,7 @@
                                             </Label.Triggers>
                                         </Label>
 
-                                        <Label Grid.Column="2" Text="{Binding Last_Msg_Time_Show}" FontSize="12" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
+                                        <Label Grid.Column="2" Text="{Binding Last_Msg_Time}" FontSize="Body" TextColor="LightGray" Padding="0" HorizontalOptions="End"/>
 
                                     </Grid>
                                 </Border>

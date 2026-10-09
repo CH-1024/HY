@@ -13,7 +13,7 @@
         <PathGeometry x:Key="VioceIcon" Figures="M360 548.032c0.192 4.16 1.92 7.424 2.112 11.584 1.92 7.424 1.92 7.424 2.112 11.52 8.32 46.272-17.536 77.568-99.84 108.416-118.08 44.16-204.544 28.544-224.448-34.624-10.304-30.336-12.224-37.76-13.696-56-5.376-56.384 24-108.736 101.184-164.224 160.96-95.552 334.4-121.728 507.2-94.592 121.088 19.84 237.248 65.664 287.552 105.6 48.448 36.8 74.24 75.52 74.752 115.52-2.624 69.248-20.416 115.2-56.576 139.52-51.136 32.512-235.264-7.424-270.72-55.68-16.768-22.464-19.136-42.368-10.688-66.112l2.24-7.68 1.536-5.056a92.992 92.992 0 0 0-6.272-9.728c-21.376-29.312-63.488-51.328-135.68-51.456-89.216 2.752-160.576 33.856-160.768 52.992z" />
 
     </ContentView.Resources>
-    
+
     <ContentView.Triggers>
 
         <DataTrigger TargetType="ContentView" Binding="{Binding Message_Status}" Value="Deleted">
@@ -26,7 +26,7 @@
     <Grid ColumnDefinitions="50,*,50" Margin="0,6">
 
         <!-- ================== 头像 ================== -->
-        <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="37" HeightRequest="37" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
+        <toolkit:AvatarView BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" Padding="0" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="False">
 
             <!-- 绑定头像 -->
             <toolkit:AvatarView.ImageSource>
@@ -66,11 +66,16 @@
             </Grid.Triggers>
 
             <!-- 气泡 -->
-            <Border Grid.Column="1" BackgroundColor="Black" StrokeThickness="0" Padding="0">
+            <Border Grid.Column="1" BackgroundColor="{StaticResource Gray800}" StrokeThickness="0" Padding="8">
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="Bubble_Primary_Tapped" Buttons="Primary"/>
                     <TapGestureRecognizer Tapped="Bubble_Secondary_Tapped" Buttons="Secondary"/>
                 </Border.GestureRecognizers>
+
+                <!-- 阴影 -->
+                <Border.Shadow>
+                    <Shadow Brush="Gray" Offset="0,1" Radius="1" Opacity="1" />
+                </Border.Shadow>
 
                 <!-- 圆角 -->
                 <Border.StrokeShape>
@@ -106,7 +111,7 @@
                     </Path>
 
                     <!-- 文字提示 -->
-                    <Label Grid.Column="1" TextColor="White" FontSize="Micro" MinimumHeightRequest="0" VerticalTextAlignment="Center" LineBreakMode="WordWrap">
+                    <Label Grid.Column="1" TextColor="White" FontSize="Body" MinimumHeightRequest="0" Padding="0" LineBreakMode="WordWrap">
                         <Label.Triggers>
 
                             <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
