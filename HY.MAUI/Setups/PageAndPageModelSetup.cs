@@ -23,6 +23,7 @@ namespace HY.MAUI.Setups
             //AddScopedWithShellRoute	    每次导航	在单次导航作用域中需要共享状态的页面，例如表单编辑页面
             //AddSingletonWithShellRoute	全局唯一	需要全局共享状态的页面，例如设置页面、始终显示相同数据的仪表板页面
 
+            services.AddTransient<AppShell, AppShellModel>();
             services.AddTransient<AppShell_Phone, AppShellModel>();
             services.AddTransient<AppShell_Desktop, AppShellModel>();
 

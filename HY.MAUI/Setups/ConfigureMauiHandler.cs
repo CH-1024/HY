@@ -10,6 +10,20 @@ namespace HY.MAUI.Setups
         public static void AddConfigureMauiHandlers(this MauiAppBuilder builder)
         {
 
+#if ANDROID
+            builder.ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<ChatEditor, Platforms.Android.ChatEditorHandler>();
+            });
+#endif
+
+#if IOS
+            builder.ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<ChatEditor, Platforms.iOS.ChatEditorHandler>();
+            });
+#endif
+
 #if MACCATALYST
             builder.ConfigureMauiHandlers(handlers =>
             {

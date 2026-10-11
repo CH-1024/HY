@@ -48,6 +48,10 @@
 		<CodesignKey>Apple Development: Hao Cheng (5NYD84UWU7)</CodesignKey>
 		<CodesignProvision>HY-MacCatalyst-Dev</CodesignProvision>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+		<CodesignKey>Apple Development: Hao Cheng (5NYD84UWU7)</CodesignKey>
+		<!--<CodesignProvision>你的 iOS 开发描述文件名称</CodesignProvision>-->
+	</PropertyGroup>
 	
 	<ItemGroup>
 		<!-- App Icon -->
@@ -90,6 +94,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="AppShell.xaml.cs">
+	    <DependentUpon>AppShell.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="AppShell_Desktop.xaml.cs">
 	    <DependentUpon>AppShell_Desktop.xaml</DependentUpon>
 	  </Compile>
@@ -135,6 +142,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="AppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="AppShell_Desktop.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

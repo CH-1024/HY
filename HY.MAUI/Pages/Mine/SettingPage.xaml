@@ -33,7 +33,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    
+
     <ContentPage.Behaviors>
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}"/>-->
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _SettingPage}, x:DataType=ContentPage}"/>-->
@@ -55,7 +55,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="设置" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Margin="-30,0,0,0" Text="设置" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <!--<ContentPage.ToolbarItems>

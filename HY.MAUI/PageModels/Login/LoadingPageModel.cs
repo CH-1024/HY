@@ -53,7 +53,7 @@ namespace HY.MAUI.PageModels.Login
 
 
 
-        public LoadingPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider, 
+        public LoadingPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider,
                                 IAuthService authService, ChatHubSignalR chatHub, ChatApi chatApi, ContactApi contactApi, MessageApi messageApi,
                                 ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
         {
@@ -205,11 +205,13 @@ namespace HY.MAUI.PageModels.Login
 
         private void GoToAppShell()
         {
-#if WINDOWS || MACCATALYST
-            Application.Current!.Windows[0].Page = _serviceProvider.GetRequiredService<AppShell_Desktop>();
-#else
-            Application.Current!.Windows[0].Page = _serviceProvider.GetRequiredService<AppShell_Phone>();
-#endif
+            Application.Current!.Windows[0].Page = _serviceProvider.GetRequiredService<AppShell>();
+
+            // #if WINDOWS || MACCATALYST
+            //             Application.Current!.Windows[0].Page = _serviceProvider.GetRequiredService<AppShell_Desktop>();
+            // #else
+            //             Application.Current!.Windows[0].Page = _serviceProvider.GetRequiredService<AppShell_Phone>();
+            // #endif
         }
 
         private void ChatHub_OnClosed_ChatHub(Exception? e)
