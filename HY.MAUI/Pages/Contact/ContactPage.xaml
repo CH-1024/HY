@@ -11,8 +11,8 @@
              Padding="{OnIdiom Phone=0, Desktop=5}"
              x:DataType="pm:ContactPageModel">
 
-    
-    
+
+
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
         <toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactPage}, x:DataType=ContentPage}"/>
@@ -21,7 +21,7 @@
     </ContentPage.Behaviors>
 
     <Shell.TitleView>
-        <Label Text="联系人" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="联系人" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -50,11 +50,16 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="m:ContactVM">
-                            <Border Padding="5" StrokeThickness="0.5">
-                                <HorizontalStackLayout Spacing="5" HeightRequest="50">
+                            <Border Padding="5" StrokeThickness="0">
+
+                                <Grid ColumnDefinitions="50,*" ColumnSpacing="5">
                                     <toolkit:AvatarView ImageSource="{Binding Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
-                                    <Label Text="{Binding Nickname}" FontAttributes="Bold" FontSize="16" Padding="0" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"/>
-                                </HorizontalStackLayout>
+
+                                    <Label Grid.Column="1" Text="{Binding Nickname}" FontAttributes="Bold" FontSize="16" Padding="0" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"/>
+
+                                    <BoxView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Color="{StaticResource Gray800}" HeightRequest="1" HorizontalOptions="Fill" VerticalOptions="End" />
+                                </Grid>
+
                             </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>

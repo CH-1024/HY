@@ -34,14 +34,14 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    
+
     <ContentPage.Behaviors>
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>-->
         <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}"/>
         <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactDetailPage}, x:DataType=ContentPage}" />-->
     </ContentPage.Behaviors>
-    
+
     <!--<Shell.BackButtonBehavior>
         <BackButtonBehavior IsEnabled="False" IsVisible="False" />
     </Shell.BackButtonBehavior>
@@ -56,7 +56,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="联系人资料" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="联系人资料" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -116,8 +116,8 @@
 
         </VerticalStackLayout>
     </ScrollView>
-    
-    
+
+
     <!--<VerticalStackLayout>
 
         <toolkit:AvatarView Grid.RowSpan="2" Text="{Binding Avatar}" BackgroundColor="Black" CornerRadius="5" WidthRequest="40" HeightRequest="40" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>

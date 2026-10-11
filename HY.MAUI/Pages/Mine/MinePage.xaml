@@ -41,7 +41,7 @@
     </ContentPage.Behaviors>
 
     <Shell.TitleView>
-        <Label Text="我的" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="我的" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -91,5 +91,5 @@
         </VerticalStackLayout>
 
     </Grid>
-    
+
 </ContentPage>

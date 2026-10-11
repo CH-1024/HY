@@ -18,14 +18,19 @@ public partial class MessagePage : ContentPage
     bool _isAnimating;
 
     public MessagePage(MessagePageModel message)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
 
         BindingContext = message;
     }
 
     private async void Button_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         var option = new PopupOptions
         {
             // 背景色
@@ -56,17 +61,32 @@ public partial class MessagePage : ContentPage
 
     private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
     }
 
     private async void Record_Btn_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
     }
 
 
     private async void Switch_Expander_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         // 第一次计算真实高度
         if (_expandHeight < 0)
         {
@@ -95,6 +115,11 @@ public partial class MessagePage : ContentPage
 
     private async void Send_Image_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
 
         if (BindingContext is MessagePageModel vm)
@@ -105,6 +130,11 @@ public partial class MessagePage : ContentPage
 
     private async void Send_Video_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
 
         if (BindingContext is MessagePageModel vm)
@@ -115,6 +145,11 @@ public partial class MessagePage : ContentPage
 
     private async void Send_VideoCall_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
 
         if (BindingContext is MessagePageModel vm)
@@ -125,6 +160,11 @@ public partial class MessagePage : ContentPage
 
     private async void Send_VoiceCall_Clicked(object sender, EventArgs e)
     {
+        if (editor.IsSoftInputShowing())
+        {
+            await editor.HideSoftInputAsync(CancellationToken.None);
+        }
+
         await CollapseWithStatus();
 
         if (BindingContext is MessagePageModel vm)

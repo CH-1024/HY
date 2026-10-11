@@ -7,7 +7,7 @@ using UIKit;
 
 namespace HY.MAUI.Platforms.iOS
 {
-    public class ChatEditorTextView: MauiTextView
+    public class ChatEditorTextView : MauiTextView
     {
         public Action? SendAction { get; set; }
 

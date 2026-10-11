@@ -11,7 +11,7 @@
              xmlns:m="clr-namespace:HY.MAUI.Models"
              x:DataType="pm:ProfilePageModel">
 
-    
+
     <ContentPage.Resources>
         <ResourceDictionary>
 
@@ -32,7 +32,7 @@
 
         </ResourceDictionary>
     </ContentPage.Resources>
-    
+
 
     <ContentPage.Behaviors>
         <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ProfilePage}, x:DataType=ContentPage}"/>-->
@@ -55,7 +55,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Text="个人资料" TextColor="{StaticResource White}" FontAttributes="Bold" HorizontalTextAlignment="Center" FontSize="Title"/>
+        <Label Text="个人资料" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>
@@ -74,7 +74,7 @@
                 </FlyoutBase.ContextFlyout>
             </toolkit:AvatarView>
 
-             <!--头像 
+            <!--头像 
             <Grid HorizontalOptions="Center">
 
                 <toolkit:AvatarView ImageSource="{Binding CurrentUser.Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="18" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
