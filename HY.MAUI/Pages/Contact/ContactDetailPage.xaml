@@ -90,20 +90,24 @@
                     </Grid>-->
 
                     <Grid ColumnDefinitions="50,*">
-                        <Label Text="状态：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding ContactInfo.Relation_Status}"/>
+                        <Label Text="状态：" TextColor="Gray" FontSize="Caption"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Relation_Status}" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" LineBreakMode="NoWrap"/>
                     </Grid>
 
                     <Grid ColumnDefinitions="50,*">
-                        <Label Text="地区：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding ContactInfo.Region}"/>
+                        <Label Text="地区：" TextColor="Gray" FontSize="Caption"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Region}" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" LineBreakMode="NoWrap"/>
                     </Grid>
 
                     <Grid ColumnDefinitions="50,*">
-                        <Label Text="备注：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding ContactInfo.Remark}" LineBreakMode="WordWrap"/>
+                        <Label Text="备注：" TextColor="Gray" FontSize="Caption"/>
+                        <Label Grid.Column="1" Text="{Binding ContactInfo.Remark}" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" LineBreakMode="NoWrap"/>
                     </Grid>
 
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="HYID：" TextColor="Gray" FontSize="Caption"/>
+                        <controls:SelectableLabel Grid.Column="1" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" Text="{Binding ContactInfo.Contact_HYid}"/>
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
 

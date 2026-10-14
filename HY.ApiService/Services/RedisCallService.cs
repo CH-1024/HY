@@ -39,7 +39,7 @@ namespace HY.ApiService.Services
 
         private static string CallKey(string callId)
         {
-            return $"Call:{callId}";
+            return $"Call:Info:{callId}";
         }
 
         private static string UserKey(long userId)

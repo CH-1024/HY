@@ -21,8 +21,8 @@ namespace HY.ApiService.Services
         Task<ContactResult> GetContactByUserId(long currentUserId, long targetId);
         Task<ContactResult> GetContactByHYidOrPhone(long currentUserId, string identity);
 
-        Task<RequestContactReturn?> RequestContact(long userId, long contactId, int source, string message);
-        Task<RespondContactReturn?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle, string messag);
+        Task<RequestContactReturn?> RequestContact(long userId, long contactId, int source, string? message);
+        Task<RespondContactReturn?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle);
         
         Task<ContactResult> DeleteContact(long userId, long targetId);
     }
@@ -99,6 +99,7 @@ namespace HY.ApiService.Services
             {
                 if (contactMap.TryGetValue(contactDto.Contact_Id, out var contact))
                 {
+                    contactDto.Contact_HYid = contact.HYid;
                     contactDto.Nickname = contact.Nickname;
                     contactDto.Avatar = contact.Avatar;
                     contactDto.Region = contact.Region;
@@ -129,6 +130,7 @@ namespace HY.ApiService.Services
             else
             {
                 contactDto = contactEntity.Adapt<ContactDto>();
+                //contactDto.Contact_HYid = target.HYid;    // 通过targetId查到的联系人不显示其HYid
                 contactDto.Nickname = target.Nickname;
                 contactDto.Avatar = target.Avatar;
                 contactDto.Region = target.Region;
@@ -167,6 +169,7 @@ namespace HY.ApiService.Services
             else
             {
                 contactDto = contactEntity.Adapt<ContactDto>();
+                //contactDto.Contact_HYid = target.HYid;    // 通过identity查到的联系人不显示其HYid
                 contactDto.Nickname = target.Nickname;
                 contactDto.Avatar = target.Avatar;
                 contactDto.Region = target.Region;
@@ -180,7 +183,7 @@ namespace HY.ApiService.Services
         }
 
 
-        public async Task<RequestContactReturn?> RequestContact(long senderId, long contactId, int source, string message)
+        public async Task<RequestContactReturn?> RequestContact(long senderId, long contactId, int source, string? message)
         {
             if (senderId == contactId)
             {
@@ -264,6 +267,7 @@ namespace HY.ApiService.Services
                     if (!bol1) throw new Exception("更新发送方联系人记录失败");
 
                     senderContactDto = senderContact.Adapt<ContactDto>();
+                    senderContactDto.Contact_HYid = receiver.HYid;
                     senderContactDto.Nickname = receiver.Nickname;
                     senderContactDto.Avatar = receiver.Avatar;
                     senderContactDto.Region = receiver.Region;
@@ -278,6 +282,7 @@ namespace HY.ApiService.Services
                     if (!bol2) throw new Exception("更新接收方联系人记录失败");
 
                     receiverContactDto = receiverContact.Adapt<ContactDto>();
+                    receiverContactDto.Contact_HYid = sender.HYid;
                     receiverContactDto.Nickname = sender.Nickname;
                     receiverContactDto.Avatar = sender.Avatar;
                     receiverContactDto.Region = sender.Region;
@@ -369,7 +374,7 @@ namespace HY.ApiService.Services
             return new(contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto, senderMessageDto, receiverMessageDto);
         }
 
-        public async Task<RespondContactReturn?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle, string message)
+        public async Task<RespondContactReturn?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle)
         {
             var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactRequestId);
             if (contactRequestEntity?.Relation_Request_Status != RelationRequestStatus.Pending)
@@ -473,6 +478,7 @@ namespace HY.ApiService.Services
                     }
 
                     senderContactDto = senderContact.Adapt<ContactDto>();
+                    senderContactDto.Contact_HYid = receiver.HYid;
                     senderContactDto.Nickname = receiver.Nickname;
                     senderContactDto.Avatar = receiver.Avatar;
                     senderContactDto.Region = receiver.Region;
@@ -504,6 +510,7 @@ namespace HY.ApiService.Services
                     }
 
                     receiverContactDto = receiverContact.Adapt<ContactDto>();
+                    receiverContactDto.Contact_HYid = sender.HYid;
                     receiverContactDto.Nickname = sender.Nickname;
                     receiverContactDto.Avatar = sender.Avatar;
                     receiverContactDto.Region = sender.Region;
@@ -655,19 +662,29 @@ namespace HY.ApiService.Services
                 return new ContactResult(false, "联系人关系不存在");
             }
 
-            contactEntity.Relation_Status = RelationStatus.Deleted;
-            var bol1 = await _contactRepository.UpdateContact(contactEntity);
-            if (!bol1)
+            // 开启事务
+            var result = await _db.Ado.UseTranAsync(async () =>
             {
-                return new ContactResult(false, "删除联系人关系失败");
-            }
+                contactEntity.Relation_Status = RelationStatus.Deleted;
+                var bol1 = await _contactRepository.UpdateContact(contactEntity);
+                if (!bol1)
+                {
+                    throw new Exception("删除联系人关系失败");
+                }
 
-            var chatEntity = await _chatRepository.GetChatByUserIdAndType(userId, targetId, ChatType.Private);
-            chatEntity.Is_Deleted = true;
-            var bol2 = await _chatRepository.UpdateChat(chatEntity);
-            if (!bol2)
+                var chatEntity = await _chatRepository.GetChatByUserIdAndType(userId, targetId, ChatType.Private);
+                chatEntity.Is_Deleted = true;
+                var bol2 = await _chatRepository.UpdateChat(chatEntity);
+                if (!bol2)
+                {
+                    throw new Exception("删除聊天记录失败");
+                }
+            });
+
+            // ---------- 事务结束 ----------
+            if (!result.IsSuccess)
             {
-                return new ContactResult(false, "删除聊天记录失败");
+                return new ContactResult(false, result.ErrorMessage);
             }
 
             return new ContactResult(true);
@@ -682,6 +699,7 @@ namespace HY.ApiService.Services
             return new ContactDto
             {
                 Contact_Id = userId,
+                Contact_HYid = null,
                 Nickname = nickname,
                 Avatar = avatar,
                 Region = region,

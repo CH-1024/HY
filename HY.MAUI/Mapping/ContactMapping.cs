@@ -13,6 +13,7 @@ namespace HY.MAUI.Mapping
             return new ContactVM
             {
                 Contact_Id = dto.Contact_Id,
+                Contact_HYid = dto.Contact_HYid,
                 Nickname = dto.Nickname,
                 Avatar = dto.Avatar,
                 Region = dto.Region,
