@@ -32,7 +32,7 @@ namespace HY.MAUI.Models
         }
 
         private MessageVM? last_Msg;
-        public MessageVM? Last_Msg
+        public MessageVM? Last_Msg      // 注意 ：从 ChatVM 拿到的 Last_Msg 会丢失 IsSelf、Sender_Avatar、Sender_Nickname 属性
         {
             get { return last_Msg; }
             set

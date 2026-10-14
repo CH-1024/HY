@@ -247,10 +247,18 @@ namespace HY.MAUI.PageModels.Chat
 
                 if (messageDtos.Count < takeCount) _currentChat.IsMsgEnd = true;
 
-                foreach (var messageDto in messageDtos)
+                if (_currentChat.Type == ChatType.Private)
                 {
-                    var messageVM = messageDto.ToVM(_currentUser.Id);
-                    MessageCollection.Insert(0, messageVM);
+                    foreach (var messageDto in messageDtos)
+                    {
+                        var contact = _contactStore.GetContact(messageDto.Sender_Id);
+                        var messageVM = messageDto.ToVM(_currentUser.Id, contact?.Avatar, contact?.Nickname);
+                        _messageStore.Insert(_currentChat.Id, messageVM);
+                    }
+                }
+                else if (_currentChat.Type == ChatType.Group)
+                {
+                    throw new NotImplementedException("群聊消息加载未实现");
                 }
             }
         }
@@ -368,24 +376,35 @@ namespace HY.MAUI.PageModels.Chat
             }
             else
             {
-                var resp = await _contactApi.GetContact(message.Sender_Id);
-                if (resp?.IsSucc == true)
+                var contact = _contactStore.GetContact(message.Sender_Id);
+                if (contact != null)
                 {
-                    var contactDto = resp.GetValue<ContactDto>("Contact");
+                    // 是联系人
+                    parameters.Add("ContactInfo", contact);
+                    await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
+                }
+                else
+                {
+                    var resp = await _contactApi.GetContact(message.Sender_Id);
+                    if (resp?.IsSucc == true)
+                    {
+                        var contactDto = resp.GetValue<ContactDto>("Contact");
 
-                    if (contactDto.Relation_Status == RelationStatus.Friend)
-                    {
-                        // 是联系人
-                        parameters.Add("ContactInfo", contactDto.ToVM());
-                        await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
+                        if (contactDto.Relation_Status == RelationStatus.Friend)
+                        {
+                            // 是联系人
+                            parameters.Add("ContactInfo", contactDto.ToVM());
+                            await Shell.Current.GoToAsync(nameof(ContactDetailPage), true, parameters);
+                        }
+                        else
+                        {
+                            // 是陌生人
+                            parameters.Add("Source", 1);
+                            parameters.Add("ContactInfo", contactDto.ToVM());
+                            await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
+                        }
                     }
-                    else
-                    {
-                        // 是陌生人
-                        parameters.Add("Source", 1);
-                        parameters.Add("ContactInfo", contactDto.ToVM());
-                        await Shell.Current.GoToAsync(nameof(StrangerDetailPage), true, parameters);
-                    }
+
                 }
             }
         }

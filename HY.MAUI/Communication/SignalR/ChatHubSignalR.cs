@@ -339,15 +339,24 @@ namespace HY.MAUI.Communication.SignalR
         private async Task<bool> OnReceiveMessage(MessageDto messageDto)
         {
             var currentUser = _globalCache.GetCurrentUser();
+
             var chat = _chatStore.GetChat(currentUser.Id, messageDto);
-            if (chat != null)
+            if (chat != null && chat.Type == ChatType.Private)
             {
-                var messageVM = messageDto.ToVM(currentUser.Id);
+                // 私聊 从联系人列表获取发送者信息
+
+                var contact = _contactStore.GetContact(messageDto.Sender_Id);
+                var messageVM = messageDto.ToVM(currentUser.Id, contact?.Avatar, contact?.Nickname);
                 _messageStore.Add(chat.Id, messageVM);
 
                 chat.Last_Msg = messageVM;
                 chat.Unread_Count += messageVM.IsSelf ? 0 : 1;
                 chat.Is_Deleted = false;
+            }
+            else if (chat != null && chat.Type == ChatType.Group)
+            {
+                // 群聊 从群成员列表获取发送者信息
+
             }
             else
             {
@@ -402,9 +411,9 @@ namespace HY.MAUI.Communication.SignalR
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
 
-                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
+                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id, contactDto?.Avatar, contactDto?.Nickname));
 
                 if (OnReceiveMessage_ChatHub == null) return false;
 
@@ -424,9 +433,9 @@ namespace HY.MAUI.Communication.SignalR
             {
                 _contactStore.Upsert(contactDto!.ToVM());
 
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM(currentUser.Id));
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
 
-                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id));
+                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id, contactDto?.Avatar, contactDto?.Nickname));
             }
         }
 

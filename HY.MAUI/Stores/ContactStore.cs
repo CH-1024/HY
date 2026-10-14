@@ -1,4 +1,5 @@
 ﻿using HY.MAUI.Models;
+using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,10 +9,33 @@ namespace HY.MAUI.Stores
 {
     public class ContactStore
     {
+        readonly IGlobalCache _globalCache;
+
+        public ContactStore(IGlobalCache globalCache)
+        {
+            _globalCache = globalCache;
+        }
+
         public ObservableCollection<ContactVM> Contacts { get; } = new();
 
         public ContactVM? GetContact(long contactId)
         {
+            var currentUser = _globalCache.GetCurrentUser();
+            if (contactId == currentUser.Id)
+            {
+                return new ContactVM
+                {
+                    Contact_Id = contactId,
+                    Nickname = currentUser.Nickname,
+                    Avatar = currentUser.Avatar,
+                    Region = currentUser.Region,
+                    //Remark = _globalCache.GetCurrentUser().Remark,
+                    //Contact_Status = 1,
+                    //Relation_Request_Status = 1,
+                    //Relation_Status = 1
+                };
+            }
+
             return Contacts.FirstOrDefault(x => x.Contact_Id == contactId);
         }
 
