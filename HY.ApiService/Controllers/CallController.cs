@@ -16,6 +16,7 @@ namespace HY.ApiService.Controllers
     public class CallController : ControllerBase
     {
         readonly IRedisCallService _redisCallService;
+        readonly IRedisConnectionService _redisConnectionService;
         readonly IChatNotificationService _chatNotificationService;
 
         readonly IUserService _userService;
@@ -25,9 +26,10 @@ namespace HY.ApiService.Controllers
         readonly IGroupMemberService _groupMemberService;
 
 
-        public CallController(IRedisCallService redisCallService, IChatNotificationService chatNotificationService, IUserService userService, IMessageService messageService, IChatService chatService, IContactService contactService, IGroupMemberService groupMemberService)
+        public CallController(IRedisCallService redisCallService, IRedisConnectionService redisConnectionService, IChatNotificationService chatNotificationService, IUserService userService, IMessageService messageService, IChatService chatService, IContactService contactService, IGroupMemberService groupMemberService)
         {
             _redisCallService = redisCallService;
+            _redisConnectionService = redisConnectionService;
             _chatNotificationService = chatNotificationService;
 
             _userService = userService;
@@ -59,6 +61,13 @@ namespace HY.ApiService.Controllers
             if (contactResult.IsSucc && contactResult.Contact!.Relation_Status != RelationStatus.Friend)
             {
                 return Ok(new Response(false, "不是好友关系"));
+            }
+
+            // 联系人不在线
+            var isOnline = await _redisConnectionService.IsUserOnlineAsync(calleeId);
+            if (!isOnline)
+            {
+                return Ok(new Response(false, "对方不在线"));
             }
 
             var callDto = await _redisCallService.CreateCall(callType, callerId, callerPlatform, calleeId);
