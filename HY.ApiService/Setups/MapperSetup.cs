@@ -39,9 +39,7 @@ namespace HY.ApiService.Setups
                 .Map(dest => dest.Content, src => src.Content)
                 .Map(dest => dest.Extra, src => src.Extra)
                 .Map(dest => dest.Message_Status, src => src.Message_Status)
-                .Map(dest => dest.Created_At, src => src.Created_At)
-                .Ignore(dest => dest.Sender_Avatar)
-                .Ignore(dest => dest.Sender_Nickname);
+                .Map(dest => dest.Created_At, src => src.Created_At);
 
 
             TypeAdapterConfig<ContactEntity, ContactDto>.NewConfig()

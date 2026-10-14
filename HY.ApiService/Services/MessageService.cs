@@ -166,11 +166,8 @@ namespace HY.ApiService.Services
             {
                 return null;
             }
-            var sender = await _userRepository.GetUserById(messageEntity.Sender_Id);
 
             var messageDto = messageEntity.Adapt<MessageDto>();
-            messageDto.Sender_Avatar = sender?.Avatar;
-            messageDto.Sender_Nickname = sender?.Nickname;
 
             return messageDto;
         }
@@ -197,20 +194,7 @@ namespace HY.ApiService.Services
         {
             var messageEntities = await _messageRepository.GetPrivateChatMessages(currentUserId, targetUserId, skipMessageId, take);
 
-            var senderIds = messageEntities.Select(m => m.Sender_Id).Distinct().ToList();
-
-            var senderMap = (await _userRepository.GetUsersByIds(senderIds)).ToDictionary(x => x.Id);
-
             var messageDtos = messageEntities.Adapt<List<MessageDto>>();
-
-            foreach (var messageDto in messageDtos)
-            {
-                if (senderMap.TryGetValue(messageDto.Sender_Id, out var sender))
-                {
-                    messageDto.Sender_Avatar = sender.Avatar;
-                    messageDto.Sender_Nickname = sender.Nickname;
-                }
-            }
 
             return messageDtos;
         }
@@ -219,20 +203,7 @@ namespace HY.ApiService.Services
         {
             var messageEntities = await _messageRepository.GetGroupChatMessages(currentUserId, groupId, skipMessageId, take);
 
-            var senderIds = messageEntities.Select(m => m.Sender_Id).Distinct().ToList();
-
-            var senderMap = (await _userRepository.GetUsersByIds(senderIds)).ToDictionary(x => x.Id);
-
             var messageDtos = messageEntities.Adapt<List<MessageDto>>();
-
-            foreach (var messageDto in messageDtos)
-            {
-                if (senderMap.TryGetValue(messageDto.Sender_Id, out var sender))
-                {
-                    messageDto.Sender_Avatar = sender.Avatar;
-                    messageDto.Sender_Nickname = sender.Nickname;
-                }
-            }
 
             return messageDtos;
         }

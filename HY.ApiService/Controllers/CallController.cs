@@ -127,9 +127,6 @@ namespace HY.ApiService.Controllers
                 Message_Status = MessageStatus.Sented,
                 Created_At = DateTime.UtcNow
             };
-            var sender = await _userService.GetUserById(messageDto.Sender_Id);
-            messageDto.Sender_Avatar = sender?.Avatar;
-            messageDto.Sender_Nickname = sender?.Nickname;
 
             var result = await _messageService.HandleNewMessage(messageDto);
             if (!result)
@@ -175,9 +172,6 @@ namespace HY.ApiService.Controllers
                 Message_Status = MessageStatus.Sented,
                 Created_At = DateTime.UtcNow
             };
-            var sender = await _userService.GetUserById(messageDto.Sender_Id);
-            messageDto.Sender_Avatar = sender?.Avatar;
-            messageDto.Sender_Nickname = sender?.Nickname;
 
             var result = await _messageService.HandleNewMessage(messageDto);
             if (!result)
@@ -222,9 +216,6 @@ namespace HY.ApiService.Controllers
                 Message_Status = MessageStatus.Sented,
                 Created_At = DateTime.UtcNow
             };
-            var sender = await _userService.GetUserById(messageDto.Sender_Id);
-            messageDto.Sender_Avatar = sender?.Avatar;
-            messageDto.Sender_Nickname = sender?.Nickname;
 
             var result = await _messageService.HandleNewMessage(messageDto);
             if (!result)

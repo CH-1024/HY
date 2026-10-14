@@ -19,16 +19,5 @@ namespace HY.ApiService.Entities
         public string? Extra { get; set; }
         public MessageStatus Message_Status { get; set; }
         public DateTime Created_At { get; set; }
-
-
-        /*
-{
-  "fileId": "uuid-video",
-  "duration": 12,
-  "w": 1280,
-  "h": 720,
-  "coverFileId": "uuid-cover"
-}         */
-
     }
 }

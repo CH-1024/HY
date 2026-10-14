@@ -237,8 +237,8 @@ namespace HY.ApiService.Services
             ContactDto? receiverContactDto = null;
             ChatDto? senderChatDto = null;
             ChatDto? receiverChatDto = null;
-            MessageDto? senderMessageDto = null;
-            MessageDto? receiverMessageDto = null;
+            MessageDto? senderSysMsgDto = null;
+            MessageDto? receiverSysMsgDto = null;
 
             // 开启事务
             var result = await _db.Ado.UseTranAsync(async () =>
@@ -304,12 +304,14 @@ namespace HY.ApiService.Services
                         Sender_Id = contactRequestEntity.Sender_Id,
                         Target_Id = contactRequestEntity.Receiver_Id,
                         Message_Type = MessageType.System,
-                        Content = $"你们已经是好友了，可以开始聊天了！",
+                        Content = $"你们已经是好友，可以开始聊天了！",
                         Message_Status = MessageStatus.Sented,
                         Created_At = DateTime.UtcNow
                     };
                     var sMsgId = await _messageRepository.InsertMessage(senderSysMsg);
                     if (sMsgId <= 0) throw new Exception("创建发送方最后一条消息记录失败");
+
+                    senderSysMsgDto = senderSysMsg.Adapt<MessageDto>();
 
                     var senderChatEntity = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id, ChatType.Private);
                     senderChatEntity.Last_Msg_Id = sMsgId;
@@ -321,14 +323,10 @@ namespace HY.ApiService.Services
                     var bol3 = await _chatRepository.UpdateChat(senderChatEntity);
                     if (!bol3) throw new Exception("更新发送方聊天记录失败");
 
-                    senderMessageDto = senderSysMsg.Adapt<MessageDto>();
-                    senderMessageDto.Sender_Avatar = sender.Avatar;
-                    senderMessageDto.Sender_Nickname = sender.Nickname;
-
                     senderChatDto = senderChatEntity.Adapt<ChatDto>();
                     senderChatDto.Target_Name = receiver.Nickname;
                     senderChatDto.Target_Avatar = receiver.Avatar;
-                    senderChatDto.Last_Msg = senderMessageDto;
+                    senderChatDto.Last_Msg = senderSysMsgDto;
 
                     #endregion
 
@@ -339,12 +337,14 @@ namespace HY.ApiService.Services
                         Sender_Id = contactRequestEntity.Receiver_Id,
                         Target_Id = contactRequestEntity.Sender_Id,
                         Message_Type = MessageType.System,
-                        Content = $"你们已经是好友了，可以开始聊天了！",
+                        Content = $"你们已经是好友，可以开始聊天了！",
                         Message_Status = MessageStatus.Sented,
                         Created_At = DateTime.UtcNow
                     };
                     var rMsgId = await _messageRepository.InsertMessage(receiverSysMsg);
                     if (rMsgId <= 0) throw new Exception("创建接收方最后一条消息记录失败");
+
+                    receiverSysMsgDto = receiverSysMsg.Adapt<MessageDto>();
 
                     var receiverChatEntity = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id, ChatType.Private);
                     receiverChatEntity.Last_Msg_Id = rMsgId;
@@ -356,14 +356,10 @@ namespace HY.ApiService.Services
                     var bol4 = await _chatRepository.UpdateChat(receiverChatEntity);
                     if (!bol4) throw new Exception("更新接收方聊天记录失败");
 
-                    receiverMessageDto = receiverSysMsg.Adapt<MessageDto>();
-                    receiverMessageDto.Sender_Avatar = receiver.Avatar;
-                    receiverMessageDto.Sender_Nickname = receiver.Nickname;
-
                     receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
                     receiverChatDto.Target_Name = sender.Nickname;
                     receiverChatDto.Target_Avatar = sender.Avatar;
-                    receiverChatDto.Last_Msg = receiverMessageDto;
+                    receiverChatDto.Last_Msg = receiverSysMsgDto;
                     #endregion
                 }
             });
@@ -377,8 +373,7 @@ namespace HY.ApiService.Services
             contactRequestDto.Receiver_Avatar = receiver.Avatar;
             contactRequestDto.Receiver_Nickname = receiver.Nickname;
 
-
-            return new(contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto, senderMessageDto, receiverMessageDto);
+            return new(contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto, senderSysMsgDto, receiverSysMsgDto);
         }
 
         public async Task<RespondContactReturn?> RespondContact(long userId, long contactRequestId, RespondContactHandle handle)
@@ -447,8 +442,8 @@ namespace HY.ApiService.Services
                 ContactDto? receiverContactDto = null;
                 ChatDto? senderChatDto = null;
                 ChatDto? receiverChatDto = null;
-                MessageDto? senderMessageDto = null;
-                MessageDto? receiverMessageDto = null;
+                MessageDto? senderSysMsgDto = null;
+                MessageDto? receiverSysMsgDto = null;
 
                 // 开启事务
                 var result = await _db.Ado.UseTranAsync(async () =>
@@ -536,12 +531,14 @@ namespace HY.ApiService.Services
                         Sender_Id = contactRequestEntity.Sender_Id,
                         Target_Id = contactRequestEntity.Receiver_Id,
                         Message_Type = MessageType.System,
-                        Content = $"你们已经是好友了，可以开始聊天了！",
+                        Content = $"你们已经是好友，可以开始聊天了！",
                         Message_Status = MessageStatus.Sented,
                         Created_At = DateTime.UtcNow
                     };
                     var sMsgId = await _messageRepository.InsertMessage(senderSysMsg);
                     if (sMsgId <= 0) throw new Exception("创建发送方最后一条消息记录失败");
+
+                    senderSysMsgDto = senderSysMsg.Adapt<MessageDto>();
 
                     var senderChatEntity = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Sender_Id, contactRequestEntity.Receiver_Id, ChatType.Private);
                     if (senderChatEntity == null)
@@ -573,14 +570,10 @@ namespace HY.ApiService.Services
                         if (!bol) throw new Exception("更新发送方聊天记录失败");
                     }
 
-                    senderMessageDto = senderSysMsg.Adapt<MessageDto>();
-                    senderMessageDto.Sender_Avatar = sender.Avatar;
-                    senderMessageDto.Sender_Nickname = sender.Nickname;
-
                     senderChatDto = senderChatEntity.Adapt<ChatDto>();
                     senderChatDto.Target_Name = receiver.Nickname;
                     senderChatDto.Target_Avatar = receiver.Avatar;
-                    senderChatDto.Last_Msg = senderMessageDto;
+                    senderChatDto.Last_Msg = senderSysMsgDto;
 
                     #endregion
 
@@ -592,12 +585,14 @@ namespace HY.ApiService.Services
                         Sender_Id = contactRequestEntity.Receiver_Id,
                         Target_Id = contactRequestEntity.Sender_Id,
                         Message_Type = MessageType.System,
-                        Content = $"你们已经是好友了，可以开始聊天了！",
+                        Content = $"你们已经是好友，可以开始聊天了！",
                         Message_Status = MessageStatus.Sented,
                         Created_At = DateTime.UtcNow
                     };
                     var rMsgId = await _messageRepository.InsertMessage(receiverSysMsg);
                     if (rMsgId <= 0) throw new Exception("创建接收方最后一条消息记录失败");
+
+                    receiverSysMsgDto = receiverSysMsg.Adapt<MessageDto>();
 
                     var receiverChatEntity = await _chatRepository.GetChatByUserIdAndType(contactRequestEntity.Receiver_Id, contactRequestEntity.Sender_Id, ChatType.Private);
                     if (receiverChatEntity == null)
@@ -629,14 +624,10 @@ namespace HY.ApiService.Services
                         if (!bol) throw new Exception("更新接收方聊天记录失败");
                     }
 
-                    receiverMessageDto = receiverSysMsg.Adapt<MessageDto>();
-                    receiverMessageDto.Sender_Avatar = receiver.Avatar;
-                    receiverMessageDto.Sender_Nickname = receiver.Nickname;
-
                     receiverChatDto = receiverChatEntity.Adapt<ChatDto>();
                     receiverChatDto.Target_Name = sender.Nickname;
                     receiverChatDto.Target_Avatar = sender.Avatar;
-                    receiverChatDto.Last_Msg = receiverMessageDto;
+                    receiverChatDto.Last_Msg = receiverSysMsgDto;
 
                     #endregion
 
@@ -654,7 +645,7 @@ namespace HY.ApiService.Services
                 contactRequestDto.Receiver_Nickname = receiver.Nickname;
                 contactRequestDto.Receiver_Avatar = receiver.Avatar;
 
-                return new(contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto, senderMessageDto, receiverMessageDto);
+                return new(contactRequestDto, senderContactDto, receiverContactDto, senderChatDto, receiverChatDto, senderSysMsgDto, receiverSysMsgDto);
             }
             else
             {

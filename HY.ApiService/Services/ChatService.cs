@@ -89,7 +89,7 @@ namespace HY.ApiService.Services
                 else
                 {
                     // 已删除Last_Msg
-                    var msg = await _messageRepository.GetMessageById(chatEntity.Last_Msg_Id);
+                    var msg = await _messageRepository.GetMessageByIdWithoutFilter(chatEntity.Last_Msg_Id);
                     msg.Content = null;
                     msg.Extra = null;
                     msg.Message_Status = MessageStatus.Deleted;
