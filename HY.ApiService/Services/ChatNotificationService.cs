@@ -14,6 +14,9 @@ namespace HY.ApiService.Services
 {
     public interface IChatNotificationService
     {
+        Task UserOnlineNotify(long currentUserId);
+        Task UserOfflineNotify(long currentUserId);
+
         Task SendMessageNotify(MessageDto messageDto, int platform);
         Task RecallMessageNotify(MessageDto messageDto, int platform);
 
@@ -55,6 +58,71 @@ namespace HY.ApiService.Services
             _groupMemberService = groupMemberService;
         }
 
+
+
+        public async Task UserOnlineNotify(long currentUserId)
+        {
+            var result = await _contactService.GetAllContactsByUserId(currentUserId);
+            if (!result.IsSucc)
+            {
+                return;
+            }
+
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            foreach (var contactId in result.Contacts.Select(c => c.Contact_Id).ToList())
+            {
+                var contactConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(contactId);
+                await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("UserOnline", currentUserId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+            }
+        }
+
+        public async Task UserOfflineNotify(long currentUserId)
+        {
+            var result = await _contactService.GetAllContactsByUserId(currentUserId);
+            if (!result.IsSucc)
+            {
+                return;
+            }
+
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            foreach (var contactId in result.Contacts.Select(c => c.Contact_Id).ToList())
+            {
+                var contactConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(contactId);
+                await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+                {
+                    try
+                    {
+                        await _chatHub.Clients.Client(connectionId).SendAsync("UserOffline", currentUserId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 记录日志
+                        // _logger.LogError(ex, "通知失败，ConnectionId: {ConnectionId}", connectionId);
+                    }
+                });
+            }
+        }
 
 
         public async Task SendMessageNotify(MessageDto messageDto, int platform)

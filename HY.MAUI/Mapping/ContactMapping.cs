@@ -20,7 +20,9 @@ namespace HY.MAUI.Mapping
                 Remark = dto.Remark,
                 Contact_Status = dto.Contact_Status,
                 Relation_Request_Status = dto.Relation_Request_Status,
-                Relation_Status = dto.Relation_Status
+                Created_At = dto.Created_At,
+                Is_Online = dto.Is_Online,
+                Relation_Status = dto.Relation_Status,
             };
         }
     }

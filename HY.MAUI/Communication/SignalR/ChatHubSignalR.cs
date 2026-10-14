@@ -194,6 +194,9 @@ namespace HY.MAUI.Communication.SignalR
 
         private void RegisterHubMethods()
         {
+            _connection?.On<long>("UserOnline", OnUserOnline);
+            _connection?.On<long>("UserOffline", OnUserOffline);
+
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
 
@@ -226,6 +229,9 @@ namespace HY.MAUI.Communication.SignalR
 
         private void UnregisterHubMethods()
         {
+            _connection?.Remove("UserOnline");
+            _connection?.Remove("UserOffline");
+
             _connection?.Remove("ReceiveMessage");
             _connection?.Remove("RecallMessage");
 
@@ -305,6 +311,30 @@ namespace HY.MAUI.Communication.SignalR
         public event Action<string> OnCallHangUp_ChatHub;
         public event Action<string> OnCallHandled_ChatHub;
         public event Action<string> OnCallExpiry_ChatHub;
+
+        private void OnUserOnline(long userId)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            if (currentUser.Id == userId) return;
+
+            var contact = _contactStore.GetContact(userId);
+            if (contact != null)
+            {
+                contact.Is_Online = true;
+            }
+        }
+
+        private void OnUserOffline(long userId)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            if (currentUser.Id == userId) return;
+
+            var contact = _contactStore.GetContact(userId);
+            if (contact != null)
+            {
+                contact.Is_Online = false;
+            }
+        }
 
         private async Task<bool> OnReceiveMessage(MessageDto messageDto)
         {

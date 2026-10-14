@@ -51,6 +51,13 @@ namespace HY.MAUI.PageModels.Chat
         ChatVM _currentChat = null;
         UserVM _currentUser = null;
 
+        private ContactVM? currentContact = null;
+        public ContactVM? CurrentContact
+        {
+            get { return currentContact; }
+            set { SetProperty(ref currentContact, value); }
+        }
+
         private bool isLoading;
         public bool Isloading
         {
@@ -159,7 +166,7 @@ namespace HY.MAUI.PageModels.Chat
             _currentChat = (ChatVM)query["ChatInfo"];
             _currentUser = _globalCache.GetCurrentUser();
             Title = _currentChat?.Target_Name;
-
+            CurrentContact = _currentChat.Type == ChatType.Private ? _contactStore.GetContact(_currentChat.Target_Id) : null;
         }
 
 

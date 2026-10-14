@@ -19,5 +19,6 @@ namespace HY.ApiService.Dtos
         public RelationRequestStatus Relation_Request_Status { get; set; }       // 关系请求状态
         public RelationStatus Relation_Status { get; set; }                      // 关系状态
         public DateTime? Created_At { get; set; }
+        public bool Is_Online { get; set; }
     }
 }

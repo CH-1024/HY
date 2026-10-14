@@ -54,6 +54,7 @@ namespace HY.ApiService.Setups
                 .Ignore(dest => dest.Avatar)
                 .Ignore(dest => dest.Region)
                 .Ignore(dest => dest.Contact_Status)
+                .Ignore(dest => dest.Is_Online)
                 .Ignore(dest => dest.Relation_Request_Status);
 
 

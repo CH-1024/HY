@@ -22,6 +22,7 @@ namespace HY.ApiService.Services
         Task<bool> SetAddAsync(string key, string value);
         Task<bool> SetRemoveAsync(string key, string value);
         Task<string[]> SetMembersAsync(string key);
+        Task<long> SetLengthAsync(string key);
     }
 
 
@@ -121,5 +122,9 @@ namespace HY.ApiService.Services
             return values?.Select(x => x.ToString()).ToArray() ?? [];
         }
 
+        public async Task<long> SetLengthAsync(string key)
+        {
+            return await Db.SetLengthAsync(key);
+        }
     }
 }
