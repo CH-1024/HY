@@ -32,7 +32,7 @@ namespace HY.ApiService.Services
 
         private static string PlatformsKey(long userId)
         {
-            return $"SignalR:Connections:{userId}";
+            return $"SignalR:Platform:{userId}";
         }
 
 

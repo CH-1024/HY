@@ -97,7 +97,7 @@ namespace HY.ApiService.Controllers
 
         [Authorize]
         [HttpPost("request/contact")]
-        public async Task<IActionResult> RequestContact(long contactId, int source, string message)
+        public async Task<IActionResult> RequestContact(long contactId, int source, string? message)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
@@ -121,11 +121,11 @@ namespace HY.ApiService.Controllers
 
         [Authorize]
         [HttpPost("respond/contact")]
-        public async Task<IActionResult> RespondContact(long contactRequestId, RespondContactHandle handle, string message)
+        public async Task<IActionResult> RespondContact(long contactRequestId, RespondContactHandle handle)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            var result = await _contactService.RespondContact(userId, contactRequestId, handle, message);
+            var result = await _contactService.RespondContact(userId, contactRequestId, handle);
             if (result == null) return Ok(new Response(false, "处理联系人请求失败"));
 
             // 通知接收方

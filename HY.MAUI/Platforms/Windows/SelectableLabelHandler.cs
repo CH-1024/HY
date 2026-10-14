@@ -96,7 +96,7 @@ namespace HY.MAUI.Platforms.Windows
             if (PlatformView == null)
                 return;
 
-            PlatformView.Foreground = VirtualView.TextColor.ToPlatform();
+            PlatformView.Foreground = VirtualView.TextColor?.ToPlatform() ?? Colors.Black.ToPlatform();
         }
 
         // ---------------------------------------------------------

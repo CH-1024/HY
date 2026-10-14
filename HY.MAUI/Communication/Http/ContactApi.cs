@@ -52,7 +52,7 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync($"{ApiUrl.SearchContact}?identity={identity}");
         }
 
-        public async Task RequestContact(long contactId, int source, string msg = "")
+        public async Task RequestContact(long contactId, int source, string msg)
         {
             var resp = await PostAsync($"{ApiUrl.RequestContact}?contactId={contactId}&source={source}&message={msg}");
             if (resp?.IsSucc != true) return;
@@ -75,9 +75,9 @@ namespace HY.MAUI.Communication.Http
             }
         }
 
-        public async Task RespondContact(long contactRequestId, RespondContactHandle handle, string msg = "")
+        public async Task RespondContact(long contactRequestId, RespondContactHandle handle)
         {
-            var resp = await PostAsync($"{ApiUrl.RespondContact}?contactRequestId={contactRequestId}&handle={handle}&message={msg}");
+            var resp = await PostAsync($"{ApiUrl.RespondContact}?contactRequestId={contactRequestId}&handle={handle}");
             if (resp?.IsSucc != true) return;
 
             var currentUser = _globalCache.GetCurrentUser();

@@ -9,6 +9,7 @@ namespace HY.MAUI.Dtos
     public class ContactDto
     {
         public long Contact_Id { get; set; }
+        public string? Contact_HYid { get; set; }
         public string? Nickname { get; set; }
         public string? Avatar { get; set; }
         public string? Region { get; set; }
