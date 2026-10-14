@@ -21,6 +21,7 @@ namespace HY.MAUI.PageModels.Chat
         readonly IGlobalCache _globalCache;
         readonly ChatHubSignalR _chatHub;
         readonly ChatStore _chatStore;
+        readonly ContactStore _contactStore;
         readonly CallApi _callApi;
 
         IDispatcherTimer _timer;
@@ -61,11 +62,12 @@ namespace HY.MAUI.PageModels.Chat
 
 
 
-        public CallStartVoicePageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore, CallApi callApi)
+        public CallStartVoicePageModel(IGlobalCache globalCache, ChatHubSignalR chatHub, ChatStore chatStore, ContactStore contactStore, CallApi callApi)
         {
             _globalCache = globalCache;
             _chatHub = chatHub;
             _chatStore = chatStore;
+            _contactStore = contactStore;
             _callApi = callApi;
         }
 
@@ -110,9 +112,12 @@ namespace HY.MAUI.PageModels.Chat
         {
             var currentUser = _globalCache.GetCurrentUser();
             var chat = _chatStore.GetChat(currentUser.Id, msgDto);
-            if (chat != null)
+            if (chat != null && chat.Type == ChatType.Private)
             {
-                var messageVM = msgDto.ToVM(currentUser.Id);
+                // 私聊 从联系人列表获取发送者信息
+
+                var contact = _contactStore.GetContact(msgDto.Sender_Id);
+                var messageVM = msgDto.ToVM(currentUser.Id, contact?.Avatar, contact?.Nickname);
                 if (messageVM is CallVoiceMessageVM voiceCallMsg && voiceCallMsg.CallId == _callId)
                 {
                     if (!messageVM.IsSelf)
@@ -125,6 +130,12 @@ namespace HY.MAUI.PageModels.Chat
 
                     return Task.FromResult(true);
                 }
+            }
+            else if (chat != null && chat.Type == ChatType.Group)
+            {
+                // 群聊 从群成员列表获取发送者信息
+
+                throw new NotImplementedException("群聊语音通话消息处理未实现");
             }
             return Task.FromResult(false);
         }

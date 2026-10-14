@@ -173,7 +173,7 @@ namespace HY.MAUI.PageModels.Login
                 var chatDtos = resp.GetValue<List<ChatDto>>("Chats") ?? [];
                 foreach (var chatDto in chatDtos)
                 {
-                    _chatStore.Upsert(chatDto.ToVM(currentUser.Id));
+                    _chatStore.Upsert(chatDto.ToVM());
                 }
             }
         }
@@ -188,10 +188,19 @@ namespace HY.MAUI.PageModels.Login
                 if (resp?.IsSucc == true)
                 {
                     var messageDtos = resp.GetValue<List<MessageDto>>("Messages") ?? [];
-                    foreach (var messageDto in messageDtos)
+
+                    if (chat.Type == ChatType.Private)
                     {
-                        var messageVM = messageDto.ToVM(currentUser.Id);
-                        _messageStore.Insert(chat.Id, messageVM);
+                        foreach (var messageDto in messageDtos)
+                        {
+                            var contact = _contactStore.GetContact(messageDto.Sender_Id);
+                            var messageVM = messageDto.ToVM(currentUser.Id, contact?.Avatar, contact?.Nickname);
+                            _messageStore.Insert(chat.Id, messageVM);
+                        }
+                    }
+                    else if (chat.Type == ChatType.Group)
+                    {
+                        throw new NotImplementedException("群聊消息加载未实现");
                     }
                 }
             }

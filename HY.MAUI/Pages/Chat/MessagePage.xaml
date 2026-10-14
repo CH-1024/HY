@@ -80,7 +80,7 @@
     <Shell.TitleView>
         <Grid ColumnDefinitions="*,auto,auto,*">
             <Label Grid.Column="1" Text="{Binding Title}" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
-            <Ellipse Grid.Column="2" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="10" HeightRequest="10" Margin="5,0,0,0">
+            <Ellipse Grid.Column="2" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="8" HeightRequest="8" Margin="5,0,0,0">
                 <Ellipse.Triggers>
 
                     <DataTrigger TargetType="Ellipse" Binding="{Binding CurrentContact}" Value="{x:Null}">
