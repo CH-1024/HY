@@ -55,10 +55,10 @@ namespace HY.ApiService.Hubs
             var deviceId = _deviceId;
             var platform = _devicePlatform;
 
-            var isOnline = await _redisConnectionService.IsOnlineAsync(userId);
+            var isOnline = await _redisConnectionService.IsUserOnlineAsync(userId);
             if (!isOnline)
             {
-                await _loginService.UpdateLoginDeviceOnline(userId, deviceId, true);
+                await _chatNotificationService.UserOnlineNotify(userId);
             }
 
             var oldConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, platform);
@@ -81,10 +81,10 @@ namespace HY.ApiService.Hubs
 
             await _redisConnectionService.RemoveConnectionAsync(userId, platform, Context.ConnectionId);
 
-            var isOnline = await _redisConnectionService.IsOnlineAsync(userId);
+            var isOnline = await _redisConnectionService.IsUserOnlineAsync(userId);
             if (!isOnline)
             {
-                await _loginService.UpdateLoginDeviceOnline(userId, deviceId, false);
+                await _chatNotificationService.UserOfflineNotify(userId);
             }
 
             var isCalling = await _redisCallService.IsUserPlatformCalling(userId, platform);

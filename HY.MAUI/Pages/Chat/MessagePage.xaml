@@ -77,9 +77,26 @@
         </Grid>
     </Shell.TitleView>-->
 
-
     <Shell.TitleView>
-        <Label Text="{Binding Title}" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+        <Grid ColumnDefinitions="*,auto,auto,*">
+            <Label Grid.Column="1" Text="{Binding Title}" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+            <Ellipse Grid.Column="2" MinimumHeightRequest="0" MinimumWidthRequest="0" WidthRequest="10" HeightRequest="10" Margin="5,0,0,0">
+                <Ellipse.Triggers>
+
+                    <DataTrigger TargetType="Ellipse" Binding="{Binding CurrentContact}" Value="{x:Null}">
+                        <Setter Property="IsVisible" Value="False"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Ellipse" Binding="{Binding CurrentContact.Is_Online}" Value="True">
+                        <Setter Property="Fill" Value="LightGreen"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Ellipse" Binding="{Binding CurrentContact.Is_Online}" Value="False">
+                        <Setter Property="Fill" Value="LightGray"/>
+                    </DataTrigger>
+
+                </Ellipse.Triggers>
+
+            </Ellipse>
+        </Grid>
     </Shell.TitleView>
 
     <ContentPage.ToolbarItems>

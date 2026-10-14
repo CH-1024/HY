@@ -11,8 +11,8 @@ namespace HY.ApiService.Services
         Task RemoveConnectionAsync(long userId, int platform, string connectionId);
         Task<List<string>> GetAllPlatformConnectionIdsAsync(long userId);
         Task<List<string>> GetOtherPlatformConnectionIdsAsync(long userId, int platform);
-        Task<bool> IsOnlineAsync(long userId);
-        Task<bool> IsOnlineAsync(long userId, int platform);
+        Task<bool> IsUserOnlineAsync(long userId);
+        Task<bool> IsPlatformOnlineAsync(long userId, int platform);
     }
 
 
@@ -113,14 +113,15 @@ namespace HY.ApiService.Services
             return result;
         }
 
-        public async Task<bool> IsOnlineAsync(long userId)
+        public async Task<bool> IsUserOnlineAsync(long userId)
         {
-            var connectionIds = await GetAllPlatformConnectionIdsAsync(userId);
+            var pkey = PlatformsKey(userId);
 
-            return connectionIds.Count > 0;
+            var count = await _redis.SetLengthAsync(pkey);
+            return count > 0;
         }
 
-        public async Task<bool> IsOnlineAsync(long userId, int platform)
+        public async Task<bool> IsPlatformOnlineAsync(long userId, int platform)
         {
             var connectionId = await GetConnectionIdAsync(userId, platform);
 

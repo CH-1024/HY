@@ -18,6 +18,14 @@ namespace HY.MAUI.Models
         public UserStatus? Contact_Status { get; set; }                          // 联系人状态
         public RelationRequestStatus Relation_Request_Status { get; set; }       // 关系请求状态
         public RelationStatus Relation_Status { get; set; }                      // 关系状态
-        //public DateTime? Created_At { get; set; }
+        public DateTime? Created_At { get; set; }
+
+        private bool is_Online;
+        public bool Is_Online
+        {
+            get { return is_Online; }
+            set { SetProperty(ref is_Online, value); }
+        }
+
     }
 }

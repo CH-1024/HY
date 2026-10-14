@@ -37,9 +37,10 @@ namespace HY.ApiService.Services
         private readonly IUserRepository _userRepository;
         private readonly IContactRepository _contactRepository;
         private readonly IContactRequestRepository _contactRequestRepository;
+        private readonly IRedisConnectionService _redisConnectionService;
 
 
-        public ContactService(ISqlSugarClient db, IChatRepository chatRepository, IMessageRepository messageRepository, IUserRepository userRepository, IContactRepository contactRepository, IContactRequestRepository contactRequestRepository)
+        public ContactService(ISqlSugarClient db, IChatRepository chatRepository, IMessageRepository messageRepository, IUserRepository userRepository, IContactRepository contactRepository, IContactRequestRepository contactRequestRepository, IRedisConnectionService redisConnectionService)
         {
             _db = db;
 
@@ -48,6 +49,7 @@ namespace HY.ApiService.Services
             _userRepository = userRepository;
             _contactRepository = contactRepository;
             _contactRequestRepository = contactRequestRepository;
+            _redisConnectionService = redisConnectionService;
         }
 
 
@@ -103,6 +105,7 @@ namespace HY.ApiService.Services
                     contactDto.Nickname = contact.Nickname;
                     contactDto.Avatar = contact.Avatar;
                     contactDto.Region = contact.Region;
+                    contactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(contact.Id);
                 }
 
                 if (contactRequestMap.TryGetValue(contactDto.Contact_Request_Id.Value, out var contactRequest))
@@ -130,11 +133,12 @@ namespace HY.ApiService.Services
             else
             {
                 contactDto = contactEntity.Adapt<ContactDto>();
-                //contactDto.Contact_HYid = target.HYid;    // 通过targetId查到的联系人不显示其HYid
+                //contactDto.Contact_HYid = target.HYid;    // 通过 targetId 查到的联系人不显示其HYid
                 contactDto.Nickname = target.Nickname;
                 contactDto.Avatar = target.Avatar;
                 contactDto.Region = target.Region;
                 contactDto.Contact_Status = target.Status;
+                //contactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(target.Id);    // 通过 targetId 查到的联系人不显示其Online状态
 
                 var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactEntity.Contact_Request_Id);
                 contactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
@@ -169,11 +173,12 @@ namespace HY.ApiService.Services
             else
             {
                 contactDto = contactEntity.Adapt<ContactDto>();
-                //contactDto.Contact_HYid = target.HYid;    // 通过identity查到的联系人不显示其HYid
+                //contactDto.Contact_HYid = target.HYid;    // 通过 identity 查到的联系人不显示其HYid
                 contactDto.Nickname = target.Nickname;
                 contactDto.Avatar = target.Avatar;
                 contactDto.Region = target.Region;
                 contactDto.Contact_Status = target.Status;
+                //contactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(target.Id);    // 通过 identity 查到的联系人不显示其Online状态
 
                 var contactRequestEntity = await _contactRequestRepository.GetContactRequestById(contactEntity.Contact_Request_Id);
                 contactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
@@ -272,6 +277,7 @@ namespace HY.ApiService.Services
                     senderContactDto.Avatar = receiver.Avatar;
                     senderContactDto.Region = receiver.Region;
                     senderContactDto.Contact_Status = receiver.Status;
+                    senderContactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(receiver.Id);
                     senderContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
                     #endregion
 
@@ -287,6 +293,7 @@ namespace HY.ApiService.Services
                     receiverContactDto.Avatar = sender.Avatar;
                     receiverContactDto.Region = sender.Region;
                     receiverContactDto.Contact_Status = sender.Status;
+                    receiverContactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(sender.Id);
                     receiverContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
                     #endregion
 
@@ -483,6 +490,7 @@ namespace HY.ApiService.Services
                     senderContactDto.Avatar = receiver.Avatar;
                     senderContactDto.Region = receiver.Region;
                     senderContactDto.Contact_Status = receiver.Status;
+                    senderContactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(receiver.Id);
                     senderContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
                     #endregion
 
@@ -515,6 +523,7 @@ namespace HY.ApiService.Services
                     receiverContactDto.Avatar = sender.Avatar;
                     receiverContactDto.Region = sender.Region;
                     receiverContactDto.Contact_Status = sender.Status;
+                    receiverContactDto.Is_Online = await _redisConnectionService.IsUserOnlineAsync(sender.Id);
                     receiverContactDto.Relation_Request_Status = contactRequestEntity.Relation_Request_Status;
                     #endregion
 
@@ -707,7 +716,8 @@ namespace HY.ApiService.Services
                 Contact_Status = null,
                 Relation_Request_Status = RelationRequestStatus.None,
                 Relation_Status = RelationStatus.None,
-                Created_At = null
+                Created_At = null,
+                Is_Online = false
             };
         }
 
