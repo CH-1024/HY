@@ -117,8 +117,8 @@ namespace HY.ApiService.Services
             if ((callDto!.CallerId == userId && callDto!.CallerPlatform == platform) || 
                 (callDto!.CalleeId == userId && callDto!.CalleePlatform == platform))
             {
-                return callDto.CallState == CallStatus.Calling &&
-                       callDto.CallState == CallStatus.Accepted &&
+                return callDto.CallState == CallStatus.Calling ||
+                       callDto.CallState == CallStatus.Accepted ||
                        callDto.CallState == CallStatus.Connected;
             }
 
@@ -181,6 +181,7 @@ namespace HY.ApiService.Services
             // 建立用户 → CallId 索引
             transaction.StringSetAsync(callerKey, callDto.CallId);
             transaction.StringSetAsync(calleeKey, callDto.CallId);
+
             // 建立过期索引
             transaction.StringSetAsync(expireKey, callDto.CallId);
 
@@ -338,12 +339,17 @@ namespace HY.ApiService.Services
                 return null;
 
             var transaction = _redis.CreateTransaction();
-            // 删除通话记录和索引
+
+            // 删除过期索引
+            transaction.KeyDeleteAsync(ExpireKey(callDto.CallId));
+
+            // 取消过期时间
             transaction.KeyPersistAsync(CallKey(callDto.CallId));
             transaction.KeyPersistAsync(UserKey(callDto.CallerId));
             transaction.KeyPersistAsync(UserKey(callDto.CalleeId));
-            transaction.KeyPersistAsync(ExpireKey(callDto.CallId));
-            if (!await transaction.ExecuteAsync()) return null;
+
+            if (!await transaction.ExecuteAsync())
+                return null;
 
             var callKey = CallKey(callId);
 

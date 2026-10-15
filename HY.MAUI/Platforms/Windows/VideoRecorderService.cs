@@ -79,9 +79,9 @@ namespace HY.MAUI.Platforms.Windows
 
         public void GotVideoFrame(IPEndPoint remoteEndPoint, uint timestamp, byte[] payload, VideoFormat format)
         {
-            if (_isStarting || _isTesting)
+            if (IsStarting)
             {
-                var decodedFrames = _videoEncoder.DecodeVideo(payload, VideoPixelFormatsEnum.I420, VideoCodecsEnum.VP8) ?? [];
+                var decodedFrames = _videoEncoder.DecodeVideo(payload, VideoPixelFormatsEnum.I420, _formatManager.SelectedFormat.Codec) ?? [];
                 foreach (var decodedFrame in decodedFrames)
                 {
                     OnVideoSinkDecodedSample(decodedFrame.Sample, decodedFrame.Width, decodedFrame.Height, VideoPixelFormatsEnum.Bgr);
@@ -92,10 +92,10 @@ namespace HY.MAUI.Platforms.Windows
 
         public async Task<bool> StartTesting()
         {
-            if (_isStarting || _isTesting) return false;
+            if (IsStarting) return false;
 
             testSource = new VideoTestPatternSource(_videoEncoder);
-            testSource.SetVideoSourceFormat(testSource.GetVideoSourceFormats().Find(x => x.Codec == VideoCodecsEnum.VP8));
+            testSource.SetVideoSourceFormat(_formatManager.SelectedFormat);
 
             testSource.OnVideoSourceEncodedSample += (dur, sample) => OnVideoSourceEncodedSample?.Invoke(dur, sample);
             testSource.OnVideoSourceRawSample += (dur, width, height, sample, format) =>
@@ -113,7 +113,7 @@ namespace HY.MAUI.Platforms.Windows
 
         public async Task<bool> StartRecording()
         {
-            if (_isStarting || _isTesting) return false;
+            if (IsStarting) return false;
 
             // 1. 初始化 MediaCapture 对象
             _mediaCapture = new MediaCapture();
@@ -147,7 +147,7 @@ namespace HY.MAUI.Platforms.Windows
 
         public async Task<bool> StopRecording()
         {
-            if (!(_isStarting || _isTesting)) return false;
+            if (!IsStarting) return false;
 
             if (_isTesting)
             {
