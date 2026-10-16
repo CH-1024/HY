@@ -23,6 +23,7 @@ namespace HY.MAUI.Communication.RTC
         ChatHubSignalR _chatHub;
 
         private IVideoRecorderService _videoService;
+        private IAudioRecorderService _audioService;
 
         private RTCConfiguration _configuration;
         private RTCPeerConnection _peerConnection;
@@ -36,6 +37,7 @@ namespace HY.MAUI.Communication.RTC
         {
             _chatHub = MauiProgram.Services.GetService<ChatHubSignalR>()!;
             _videoService = MauiProgram.Services.GetService<IVideoRecorderService>()!;
+            _audioService = MauiProgram.Services.GetService<IAudioRecorderService>()!;
 
             var useTurnServer = false;
             var gatherTime = 2000;
@@ -298,25 +300,6 @@ namespace HY.MAUI.Communication.RTC
             await Task.CompletedTask;
         }
 
-        private void OnConnectionStateChange(RTCPeerConnectionState state)
-        {
-            OnConnectionStateChanged?.Invoke(state);
-
-            switch (state)
-            {
-                case RTCPeerConnectionState.connected:
-                    if (_isTest) _videoService?.StartTesting();
-                    else _videoService?.StartRecording();
-                    break;
-                case RTCPeerConnectionState.failed:
-                    _peerConnection?.Close("ice disconnection");
-                    break;
-                case RTCPeerConnectionState.closed:
-                    _videoService?.StopRecording();
-                    break;
-            }
-        }
-
         private async void OnSendIce(RTCIceCandidate candidate)
         {
             if (candidate.type == RTCIceCandidateType.host || candidate.type == RTCIceCandidateType.prflx) return;
@@ -331,9 +314,48 @@ namespace HY.MAUI.Communication.RTC
             await _chatHub.SendIce(_callId, JsonSerializer.Serialize(ice));
         }
 
+        private void Video_OnConnectionStateChange(RTCPeerConnectionState state)
+        {
+            OnConnectionStateChanged?.Invoke(state);
+
+            switch (state)
+            {
+                case RTCPeerConnectionState.connected:
+                    if (_isTest) _videoService?.StartTesting();
+                    else _videoService?.StartRecording();
+                    _audioService?.StartRecording();
+                    break;
+                case RTCPeerConnectionState.failed:
+                    _peerConnection?.Close("ice disconnection");
+                    break;
+                case RTCPeerConnectionState.closed:
+                    _videoService?.StopRecording();
+                    _audioService?.StopRecording();
+                    break;
+            }
+        }
+
+        private void Audio_OnConnectionStateChange(RTCPeerConnectionState state)
+        {
+            OnConnectionStateChanged?.Invoke(state);
+
+            switch (state)
+            {
+                case RTCPeerConnectionState.connected:
+                    _audioService?.StartRecording();
+                    break;
+                case RTCPeerConnectionState.failed:
+                    _peerConnection?.Close("ice disconnection");
+                    break;
+                case RTCPeerConnectionState.closed:
+                    _audioService?.StopRecording();
+                    break;
+            }
+        }
 
 
-        public Task Initialize(string callId, bool isTest = false)
+
+        public Task Video_Initialize(string callId, bool isTest = false)
         {
             _callId = callId;
             _isTest = isTest;
@@ -345,25 +367,60 @@ namespace HY.MAUI.Communication.RTC
             _peerConnection = new RTCPeerConnection(_configuration);
 
             _peerConnection.onicecandidate += OnSendIce;
-            _peerConnection.onconnectionstatechange += OnConnectionStateChange;
+            _peerConnection.onconnectionstatechange += Video_OnConnectionStateChange;
 
             #region VP8
+            _audioService.SetAudioEncoder(new AudioEncoder());
             _videoService.SetVideoEncoder(new VP8Codec());
 
             // 本地
+            _audioService.OnAudioSourceEncodedSample += _peerConnection.SendAudio;
             _videoService.OnVideoSourceEncodedSample += _peerConnection.SendVideo;
             _videoService.OnVideoSourceRawSample += (dur, width, height, sample, format) => OnLocalVideoFrameReceived?.Invoke(dur, width, height, sample, format);
 
             // 远程
+            _peerConnection.OnAudioFrameReceived += _audioService.GotAudioFrame;
             _peerConnection.OnVideoFrameReceived += _videoService.GotVideoFrame;
             _videoService.OnVideoSinkDecodedSample += (sample, width, height, format) => OnRemoteVideoFrameReceived?.Invoke(sample, width, height, format);
             #endregion
+
+
+            var audioTrack = new MediaStreamTrack(_audioService.GetSelectedFormat(), MediaStreamStatusEnum.SendRecv);
+            _peerConnection.addTrack(audioTrack);
 
             var videoSourceTrack = new MediaStreamTrack(_videoService.GetSelectedFormat(), MediaStreamStatusEnum.SendOnly);
             _peerConnection.addTrack(videoSourceTrack);
 
             var videoSinkTrack = new MediaStreamTrack(_videoService.GetSelectedFormat(), MediaStreamStatusEnum.RecvOnly);
             _peerConnection.addTrack(videoSinkTrack);
+
+            return Task.CompletedTask;
+        }
+
+        public Task Audio_Initialize(string callId)
+        {
+            _callId = callId;
+
+            _chatHub.OnReceiveIce_ChatHub += HandleIce;
+            _chatHub.OnReceiveOffer_ChatHub += HandleOffer;
+            _chatHub.OnReceiveAnswer_ChatHub += HandleAnswer;
+
+            _peerConnection = new RTCPeerConnection(_configuration);
+
+            _peerConnection.onicecandidate += OnSendIce;
+            _peerConnection.onconnectionstatechange += Audio_OnConnectionStateChange;
+
+            _audioService.SetAudioEncoder(new AudioEncoder());
+
+            // 本地
+            _audioService.OnAudioSourceEncodedSample += _peerConnection.SendAudio;
+
+            // 远程
+            _peerConnection.OnAudioFrameReceived += _audioService.GotAudioFrame;
+
+
+            var audioTrack = new MediaStreamTrack(_audioService.GetSelectedFormat(), MediaStreamStatusEnum.SendRecv);
+            _peerConnection.addTrack(audioTrack);
 
             return Task.CompletedTask;
         }
@@ -382,6 +439,11 @@ namespace HY.MAUI.Communication.RTC
             _chatHub.OnReceiveOffer_ChatHub -= HandleOffer;
             _chatHub.OnReceiveAnswer_ChatHub -= HandleAnswer;
 
+            if (_audioService != null)
+            {
+                _audioService.StopRecording();
+                _audioService = null;
+            }
             if (_videoService != null)
             {
                 _videoService.StopRecording();

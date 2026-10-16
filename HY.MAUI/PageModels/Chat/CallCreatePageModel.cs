@@ -58,24 +58,37 @@ namespace HY.MAUI.PageModels.Chat
             if (callId == _callId)
             {
                 var _webRTC = new WebRTCService();
-                await _webRTC.Initialize(_callId!);
-
-                var parameters = new Dictionary<string, object>
-                {
-                    { "WebRTC", _webRTC },
-                    { "IsCaller", true },
-                    { "CallId", callId },
-                    { "TargetAvatar", CalleeAvatar },
-                    { "TargetName", CalleeName },
-                    { "StartAt", start },
-                };
 
                 if (_createCallRequest.CallType == CallType.Video)
                 {
+                    await _webRTC.Video_Initialize(_callId!);
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "WebRTC", _webRTC },
+                        { "IsCaller", true },
+                        { "CallId", callId },
+                        { "TargetAvatar", CalleeAvatar },
+                        { "TargetName", CalleeName },
+                        { "StartAt", start },
+                    };
+
                     await Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
                 }
                 else if (_createCallRequest.CallType == CallType.Voice)
                 {
+                    await _webRTC.Audio_Initialize(_callId!);
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "WebRTC", _webRTC },
+                        { "IsCaller", true },
+                        { "CallId", callId },
+                        { "TargetAvatar", CalleeAvatar },
+                        { "TargetName", CalleeName },
+                        { "StartAt", start },
+                    };
+
                     await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
                 }
             }

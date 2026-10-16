@@ -55,24 +55,37 @@ namespace HY.MAUI.PageModels.Chat
             if (callId == _receiveCallRequest.CallId)
             {
                 var _webRTC = new WebRTCService();
-                await _webRTC.Initialize(_receiveCallRequest.CallId);
-
-                var parameters = new Dictionary<string, object>
-                {
-                    { "WebRTC", _webRTC },
-                    { "IsCaller", false },
-                    { "CallId", _receiveCallRequest.CallId },
-                    { "TargetAvatar", CallerAvatar },
-                    { "TargetName", CallerName },
-                    { "StartAt", start},
-                };
 
                 if (_receiveCallRequest.CallType == CallType.Video)
                 {
+                    await _webRTC.Video_Initialize(_receiveCallRequest.CallId);
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "WebRTC", _webRTC },
+                        { "IsCaller", false },
+                        { "CallId", _receiveCallRequest.CallId },
+                        { "TargetAvatar", CallerAvatar },
+                        { "TargetName", CallerName },
+                        { "StartAt", start},
+                    };
+
                     await Shell.Current.GoToAsync($"../{nameof(CallStartVideoPage)}", false, parameters);
                 }
                 else if (_receiveCallRequest.CallType == CallType.Voice)
                 {
+                    await _webRTC.Audio_Initialize(_receiveCallRequest.CallId);
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "WebRTC", _webRTC },
+                        { "IsCaller", false },
+                        { "CallId", _receiveCallRequest.CallId },
+                        { "TargetAvatar", CallerAvatar },
+                        { "TargetName", CallerName },
+                        { "StartAt", start},
+                    };
+
                     await Shell.Current.GoToAsync($"../{nameof(CallStartVoicePage)}", false, parameters);
                 }
             }

@@ -49,6 +49,7 @@
 	<!--允许录像-->
 	<key>NSCameraUsageDescription</key>
 	<string>PROVIDE YOUR REASON HERE</string>
+	<!-- 允许访问麦克风 -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>PROVIDE YOUR REASON HERE</string>
 	

@@ -1,0 +1,295 @@
+﻿using AudioToolbox;
+using AVFoundation;
+using HY.MAUI.Services.Interfaces;
+using SIPSorceryMedia.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Channels;
+using AudioFormat = SIPSorceryMedia.Abstractions.AudioFormat;
+
+namespace HY.MAUI.Platforms.MacCatalyst
+{
+    public class AudioRecorderService : IAudioRecorderService
+    {
+        private InputAudioQueue _inputAudioQueue;
+        private AVAudioSession _avAudioSession;
+        private OutputAudioQueue _outputAudioQueue;
+
+
+        CancellationTokenSource _cts;
+        IAudioEncoder _audioEncoder;
+        MediaFormatManager<AudioFormat> _formatManager;
+        Channel<short[]> _audioInputQueue;
+        Channel<byte[]> _audioOutputQueue;
+
+        public bool IsStarting { get; private set; }
+
+        public event Action<uint, byte[]> OnAudioSourceEncodedSample;
+
+
+
+        public void SetAudioEncoder(IAudioEncoder encoder)
+        {
+            _audioEncoder = encoder;
+            _formatManager = new MediaFormatManager<AudioFormat>(IAudioRecorderService.SupportedFormats);
+
+            // 默认OPUS
+            _formatManager.SetSelectedFormat(IAudioRecorderService.SupportedFormats.Find(x => x.Codec == AudioCodecsEnum.OPUS));
+        }
+
+        public void RestrictFormats(Func<AudioFormat, bool> filter)
+        {
+            _formatManager.RestrictFormats(filter);
+        }
+
+        public void SetAudioFormat(AudioFormat format)
+        {
+            _formatManager.SetSelectedFormat(format);
+        }
+
+        public AudioFormat GetSelectedFormat()
+        {
+            return _formatManager.SelectedFormat;
+        }
+
+        public List<AudioFormat> GetAudioFormats()
+        {
+            return _formatManager.GetSourceFormats();
+        }
+
+
+        public void GotAudioFrame(EncodedAudioFrame encodedAudioFrame)
+        {
+            if (!IsStarting) return;
+
+            var audioFormat = encodedAudioFrame.AudioFormat;
+
+            if (_audioEncoder != null && !audioFormat.IsEmpty())
+            {
+                var pcmSample = _audioEncoder.DecodeAudio(encodedAudioFrame.EncodedAudio, audioFormat);
+                byte[] pcmBytes = pcmSample.SelectMany(BitConverter.GetBytes).ToArray();
+
+                _audioOutputQueue.Writer.TryWrite(pcmBytes);
+            }
+        }
+
+
+
+
+
+        public async Task<bool> StartRecording()
+        {
+            if (IsStarting) return false;
+
+            var audioFormat = AudioStreamBasicDescription.CreateLinearPCM(
+                48000, // 48kHz
+                1,     // 单声道
+                16);   // 16-bit PCM
+
+            _inputAudioQueue = new InputAudioQueue(audioFormat);
+            _inputAudioQueue.InputCompleted += OnInputCompleted;
+            _outputAudioQueue = new OutputAudioQueue(audioFormat);
+            _outputAudioQueue.BufferCompleted += OnBufferCompleted;
+
+            const int bufferSize = 4096;
+            for (int i = 0; i < 2; i++)
+            {
+                var bufferPtr = IntPtr.Zero;
+
+                _inputAudioQueue.AllocateBuffer(bufferSize, out bufferPtr);
+                _inputAudioQueue.EnqueueBuffer(bufferPtr, bufferSize, null);
+
+                _outputAudioQueue.AllocateBuffer(bufferSize, out bufferPtr);
+                _outputAudioQueue.EnqueueBuffer(bufferPtr, bufferSize, null);
+            }
+
+            _audioInputQueue = Channel.CreateBounded<short[]>(new BoundedChannelOptions(8)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = BoundedChannelFullMode.DropOldest
+            });
+            _audioOutputQueue = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(8)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = BoundedChannelFullMode.DropOldest
+            });
+
+            _cts = new CancellationTokenSource();
+            _ = Task.Run(async () => await ProcessAudioAsync(_cts.Token));
+
+            _inputAudioQueue.Start();
+            _outputAudioQueue.Start();
+
+            IsStarting = true;
+
+            return true;
+        }
+
+
+        public async Task<bool> StopRecording()
+        {
+            if (!IsStarting) return false;
+
+            IsStarting = false;
+
+            _inputAudioQueue.InputCompleted -= OnInputCompleted;
+            _inputAudioQueue?.Stop(true);
+            _outputAudioQueue.BufferCompleted -= OnBufferCompleted;
+            _outputAudioQueue.Stop(true);
+
+            await _cts.CancelAsync();
+
+            _inputAudioQueue?.Dispose();
+            _outputAudioQueue.Dispose();
+
+            _inputAudioQueue = null;
+            _outputAudioQueue = null;
+
+            _audioInputQueue = null;
+            _audioOutputQueue = null;
+
+            return true;
+        }
+
+
+
+
+
+
+
+
+        private async Task ProcessAudioAsync(CancellationToken cancellationToken)
+        {
+            short[] frame = new short[960];
+            int offset = 0;
+
+            await foreach (var chunk in _audioInputQueue.Reader.ReadAllAsync(cancellationToken))
+            {
+                int sourceOffset = 0;
+
+                while (sourceOffset < chunk.Length)
+                {
+                    int count = Math.Min(frame.Length - offset, chunk.Length - sourceOffset);
+
+                    Array.Copy(chunk, sourceOffset, frame, offset, count);
+
+                    offset += count;
+                    sourceOffset += count;
+
+                    if (offset == frame.Length)
+                    {
+                        if (OnAudioSourceEncodedSample != null && _audioEncoder != null && !_formatManager.SelectedFormat.IsEmpty())
+                        {
+                            lock (_audioEncoder)
+                            {
+                                var encodedBuffer = _audioEncoder.EncodeAudio(frame, _formatManager.SelectedFormat);
+                                if (encodedBuffer != null)
+                                {
+                                    OnAudioSourceEncodedSample?.Invoke(20, encodedBuffer);
+                                }
+                            }
+                        }
+
+                        frame = new short[960];
+                        offset = 0;
+                    }
+                }
+            }
+        }
+
+        private void OnInputCompleted(object? sender, InputCompletedEventArgs e)
+        {
+            if (!IsStarting)
+                return;
+
+            try
+            {
+                int byteCount = (int)e.Buffer.AudioDataByteSize;
+
+                if (byteCount <= 0)
+                    return;
+
+                // 16-bit PCM，每个采样占 2 字节
+                int sampleCount = byteCount / sizeof(short);
+
+                if (sampleCount <= 0)
+                    return;
+
+                // 防止异常的奇数字节数
+                byteCount = sampleCount * sizeof(short);
+
+                byte[] pcmBytes = new byte[byteCount];
+                Marshal.Copy(e.Buffer.AudioData, pcmBytes, 0, byteCount);
+
+                short[] pcmSamples = new short[sampleCount];
+
+                Buffer.BlockCopy(pcmBytes, 0, pcmSamples, 0, byteCount);
+
+                _audioInputQueue.Writer.TryWrite(pcmSamples);
+            }
+            finally
+            {
+                // 录音仍在运行时，重新入队以继续采集
+                if (IsStarting)
+                {
+                    _inputAudioQueue?.EnqueueBuffer(e.IntPtrBuffer, null);
+                }
+            }
+        }
+
+        private unsafe void OnBufferCompleted(object? sender, BufferCompletedEventArgs e)
+        {
+            if (!IsStarting) return;
+
+            var buffer = e.UnsafeBuffer;
+            int capacity = (int)buffer->AudioDataBytesCapacity;
+
+            try
+            {
+                if (_audioOutputQueue.Reader.TryRead(out var pcmSamples) && pcmSamples.Length > 0)
+                {
+                    int byteCount = pcmSamples.Length * sizeof(short);
+
+                    // 不能超出 AudioQueue 缓冲区容量
+                    if (byteCount > capacity)
+                    {
+                        // 当前整块数据放不下，不能直接复制
+                        // 这里选择丢弃该块，避免内存越界
+                        byteCount = 0;
+                    }
+                    else
+                    {
+                        // short[] -> PCM 字节
+                        byte[] pcmBytes = new byte[byteCount];
+
+                        Buffer.BlockCopy(pcmSamples, 0, pcmBytes, 0, byteCount);
+
+                        Marshal.Copy(pcmBytes, 0, buffer->AudioData, byteCount);
+                    }
+
+                    if (byteCount > 0)
+                    {
+                        _outputAudioQueue.EnqueueBuffer(e.IntPtrBuffer, byteCount, null);
+                        return;
+                    }
+                }
+
+                // 没有数据时，输出静音，避免播放旧缓冲区内容
+                if (capacity > 0)
+                {
+                    new Span<byte>((void*)buffer->AudioData, capacity).Clear();
+                }
+
+                _outputAudioQueue.EnqueueBuffer(e.IntPtrBuffer, capacity, null);
+            }
+            catch (Exception ex)
+            {
+                //System.Diagnostics.Debug.WriteLine($"音频播放缓冲区处理失败：{ex}");
+            }
+        }
+    }
+}
