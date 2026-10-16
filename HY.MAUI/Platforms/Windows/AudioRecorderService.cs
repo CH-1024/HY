@@ -224,7 +224,7 @@ namespace HY.MAUI.Platforms.Windows
                                 var encodedBuffer = _audioEncoder.EncodeAudio(frame, _formatManager.SelectedFormat);
                                 if (encodedBuffer != null)
                                 {
-                                    OnAudioSourceEncodedSample?.Invoke(20, encodedBuffer);
+                                    OnAudioSourceEncodedSample?.Invoke(960, encodedBuffer);
                                 }
                             }
                         }
@@ -288,11 +288,13 @@ namespace HY.MAUI.Platforms.Windows
             {
                 AudioFrame frame = new AudioFrame((uint)pcmBytes.Length);
 
-                using AudioBuffer buffer = frame.LockBuffer(AudioBufferAccessMode.Write);
-                using IMemoryBufferReference reference = buffer.CreateReference();
-
-                reference.As<IMemoryBufferByteAccess>().GetBuffer(out var dataPtr, out var capacity);
-                Marshal.Copy(pcmBytes, 0, (nint)dataPtr, pcmBytes.Length);
+                using (AudioBuffer buffer = frame.LockBuffer(AudioBufferAccessMode.Write))
+                using (IMemoryBufferReference reference = buffer.CreateReference())
+                {
+                    // 获取缓冲区指针并复制数据
+                    reference.As<IMemoryBufferByteAccess>().GetBuffer(out var dataPtr, out var capacity);
+                    Marshal.Copy(pcmBytes, 0, (nint)dataPtr, pcmBytes.Length);
+                }
 
                 _frameInputNode.AddFrame(frame);
             }
