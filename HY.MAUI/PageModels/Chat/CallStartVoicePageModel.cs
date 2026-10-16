@@ -9,6 +9,7 @@ using HY.MAUI.Mapping;
 using HY.MAUI.Models.MsgVM;
 using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
+using SIPSorcery.Net;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -146,9 +147,9 @@ namespace HY.MAUI.PageModels.Chat
         }
 
         bool _hasConnected;
-        private async void OnConnectionStateChanged_WebRTC(SIPSorcery.Net.RTCPeerConnectionState state)
+        private async void OnConnectionStateChanged_WebRTC(RTCPeerConnectionState state)
         {
-            if (state == SIPSorcery.Net.RTCPeerConnectionState.connected)
+            if (state == RTCPeerConnectionState.connected)
             {
                 if (_isCaller && !_hasConnected)
                 {
@@ -157,15 +158,15 @@ namespace HY.MAUI.PageModels.Chat
                 }
                 StatusColor = Colors.LightGreen;
             }
-            else if (state == SIPSorcery.Net.RTCPeerConnectionState.connecting)
+            else if (state == RTCPeerConnectionState.connecting)
             {
                 StatusColor = Colors.Orange;
             }
-            else if (state == SIPSorcery.Net.RTCPeerConnectionState.disconnected)
+            else if (state == RTCPeerConnectionState.disconnected)
             {
                 StatusColor = Colors.Red;
             }
-            else if (state == SIPSorcery.Net.RTCPeerConnectionState.closed)
+            else if (state == RTCPeerConnectionState.closed)
             {
                 StatusColor = Colors.Gray;
             }
@@ -210,6 +211,7 @@ namespace HY.MAUI.PageModels.Chat
             _chatHub.OnReceiveMessage_ChatHub -= OnReceiveMessage_ChatHub;
 
             _webRTC.OnConnectionStateChanged -= OnConnectionStateChanged_WebRTC;
+
             _webRTC.Dispose();
             _webRTC = null;
         }

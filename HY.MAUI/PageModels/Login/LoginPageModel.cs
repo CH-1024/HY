@@ -62,14 +62,14 @@ namespace HY.MAUI.PageModels.Login
                 _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问相机！", "退出");
                 return;
             }
-            // if (!await Request_Microphone_Async())
-            // {
-            //     _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问麦克风！", "退出");
-            //     return;
-            // }
-            
-            
-            
+            if (!await Request_Microphone_Async())
+            {
+                _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问麦克风！", "退出");
+                return;
+            }
+
+
+
             //var p1 = await _loginApi.Ping1();
             //var p2 = await _loginApi.Ping2();
 
