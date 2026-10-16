@@ -93,17 +93,19 @@ namespace HY.MAUI.Platforms.MacCatalyst
             _outputAudioQueue = new OutputAudioQueue(audioFormat);
             _outputAudioQueue.BufferCompleted += OnBufferCompleted;
 
-            const int bufferSize = 4096;
-            for (int i = 0; i < 2; i++)
+            const int bufferSize = 1920;
+            for (int i = 0; i < 3; i++)
             {
-                var bufferPtr = IntPtr.Zero;
+                unsafe
+                {
+                    _inputAudioQueue.AllocateBuffer(bufferSize, out AudioQueueBuffer* inputBuffer);
+                    _inputAudioQueue.EnqueueBuffer((nint)inputBuffer, bufferSize, null);
 
-                _inputAudioQueue.AllocateBuffer(bufferSize, out bufferPtr);
-                _inputAudioQueue.EnqueueBuffer(bufferPtr, bufferSize, null);
-
-                _outputAudioQueue.AllocateBuffer(bufferSize, out bufferPtr);
-                _outputAudioQueue.EnqueueBuffer(bufferPtr, bufferSize, null);
+                    _outputAudioQueue.AllocateBuffer(bufferSize, out AudioQueueBuffer* outputBuffer);
+                    _outputAudioQueue.EnqueueBuffer((nint)outputBuffer, bufferSize, null);
+                }
             }
+
 
             _audioInputQueue = Channel.CreateBounded<short[]>(new BoundedChannelOptions(8)
             {
@@ -189,7 +191,7 @@ namespace HY.MAUI.Platforms.MacCatalyst
                                 var encodedBuffer = _audioEncoder.EncodeAudio(frame, _formatManager.SelectedFormat);
                                 if (encodedBuffer != null)
                                 {
-                                    OnAudioSourceEncodedSample?.Invoke(20, encodedBuffer);
+                                    OnAudioSourceEncodedSample?.Invoke(960, encodedBuffer);
                                 }
                             }
                         }
@@ -243,42 +245,33 @@ namespace HY.MAUI.Platforms.MacCatalyst
 
         private unsafe void OnBufferCompleted(object? sender, BufferCompletedEventArgs e)
         {
-            if (!IsStarting) return;
+            if (!IsStarting || _outputAudioQueue == null)
+                return;
 
             var buffer = e.UnsafeBuffer;
             int capacity = (int)buffer->AudioDataBytesCapacity;
 
             try
             {
-                if (_audioOutputQueue.Reader.TryRead(out var pcmSamples) && pcmSamples.Length > 0)
+                if (_audioOutputQueue.Reader.TryRead(out var pcmBytes) && pcmBytes.Length > 0)
                 {
-                    int byteCount = pcmSamples.Length * sizeof(short);
+                    int byteCount = pcmBytes.Length;
 
-                    // 不能超出 AudioQueue 缓冲区容量
-                    if (byteCount > capacity)
+                    if (byteCount <= capacity)
                     {
-                        // 当前整块数据放不下，不能直接复制
-                        // 这里选择丢弃该块，避免内存越界
-                        byteCount = 0;
-                    }
-                    else
-                    {
-                        // short[] -> PCM 字节
-                        byte[] pcmBytes = new byte[byteCount];
-
-                        Buffer.BlockCopy(pcmSamples, 0, pcmBytes, 0, byteCount);
-
                         Marshal.Copy(pcmBytes, 0, buffer->AudioData, byteCount);
-                    }
 
-                    if (byteCount > 0)
-                    {
                         _outputAudioQueue.EnqueueBuffer(e.IntPtrBuffer, byteCount, null);
+
                         return;
                     }
+
+                    //// 数据大于单个播放缓冲区容量时，
+                    //// 不应直接复制，否则会发生越界。
+                    //System.Diagnostics.Debug.WriteLine($"PCM 数据超出缓冲区容量：" + $"Data={byteCount}, Capacity={capacity}");
                 }
 
-                // 没有数据时，输出静音，避免播放旧缓冲区内容
+                // 无数据时清空缓冲区，避免播放旧数据。
                 if (capacity > 0)
                 {
                     new Span<byte>((void*)buffer->AudioData, capacity).Clear();
@@ -291,5 +284,6 @@ namespace HY.MAUI.Platforms.MacCatalyst
                 //System.Diagnostics.Debug.WriteLine($"音频播放缓冲区处理失败：{ex}");
             }
         }
+
     }
 }
