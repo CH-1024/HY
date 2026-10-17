@@ -13,12 +13,13 @@ namespace HY.MAUI.Platforms.MacCatalyst
 {
     public class AudioRecorderService : IAudioRecorderService
     {
-        private InputAudioQueue _inputAudioQueue;
         private AVAudioSession _avAudioSession;
+        private InputAudioQueue _inputAudioQueue;
         private OutputAudioQueue _outputAudioQueue;
 
 
         CancellationTokenSource _cts;
+        Task _processAudioTask;
         IAudioEncoder _audioEncoder;
         MediaFormatManager<AudioFormat> _formatManager;
         Channel<short[]> _audioInputQueue;
@@ -106,7 +107,6 @@ namespace HY.MAUI.Platforms.MacCatalyst
                 }
             }
 
-
             _audioInputQueue = Channel.CreateBounded<short[]>(new BoundedChannelOptions(8)
             {
                 SingleReader = true,
@@ -121,7 +121,7 @@ namespace HY.MAUI.Platforms.MacCatalyst
             });
 
             _cts = new CancellationTokenSource();
-            _ = Task.Run(async () => await ProcessAudioAsync(_cts.Token));
+            _processAudioTask = Task.Run(async () => await ProcessAudioAsync(_cts.Token));
 
             _inputAudioQueue.Start();
             _outputAudioQueue.Start();
@@ -138,15 +138,19 @@ namespace HY.MAUI.Platforms.MacCatalyst
 
             IsStarting = false;
 
-            _inputAudioQueue.InputCompleted -= OnInputCompleted;
+            _inputAudioQueue?.InputCompleted -= OnInputCompleted;
+            _outputAudioQueue?.BufferCompleted -= OnBufferCompleted;
             _inputAudioQueue?.Stop(true);
-            _outputAudioQueue.BufferCompleted -= OnBufferCompleted;
-            _outputAudioQueue.Stop(true);
+            _outputAudioQueue?.Stop(true);
 
             await _cts.CancelAsync();
+            await _processAudioTask;
 
             _inputAudioQueue?.Dispose();
-            _outputAudioQueue.Dispose();
+            _outputAudioQueue?.Dispose();
+
+            _cts = null;
+            _processAudioTask = null;
 
             _inputAudioQueue = null;
             _outputAudioQueue = null;
@@ -205,21 +209,18 @@ namespace HY.MAUI.Platforms.MacCatalyst
 
         private void OnInputCompleted(object? sender, InputCompletedEventArgs e)
         {
-            if (!IsStarting)
-                return;
+            if (!IsStarting) return;
 
             try
             {
                 int byteCount = (int)e.Buffer.AudioDataByteSize;
 
-                if (byteCount <= 0)
-                    return;
+                if (byteCount <= 0) return;
 
                 // 16-bit PCM，每个采样占 2 字节
                 int sampleCount = byteCount / sizeof(short);
 
-                if (sampleCount <= 0)
-                    return;
+                if (sampleCount <= 0) return;
 
                 // 防止异常的奇数字节数
                 byteCount = sampleCount * sizeof(short);
@@ -235,18 +236,13 @@ namespace HY.MAUI.Platforms.MacCatalyst
             }
             finally
             {
-                // 录音仍在运行时，重新入队以继续采集
-                if (IsStarting)
-                {
-                    _inputAudioQueue?.EnqueueBuffer(e.IntPtrBuffer, null);
-                }
+                _inputAudioQueue?.EnqueueBuffer(e.IntPtrBuffer, null);
             }
         }
 
         private unsafe void OnBufferCompleted(object? sender, BufferCompletedEventArgs e)
         {
-            if (!IsStarting || _outputAudioQueue == null)
-                return;
+            if (!IsStarting || _outputAudioQueue == null) return;
 
             var buffer = e.UnsafeBuffer;
             int capacity = (int)buffer->AudioDataBytesCapacity;
@@ -261,23 +257,16 @@ namespace HY.MAUI.Platforms.MacCatalyst
                     {
                         Marshal.Copy(pcmBytes, 0, buffer->AudioData, byteCount);
 
-                        _outputAudioQueue.EnqueueBuffer(e.IntPtrBuffer, byteCount, null);
+                        _outputAudioQueue?.EnqueueBuffer(e.IntPtrBuffer, byteCount, null);
 
                         return;
                     }
-
-                    //// 数据大于单个播放缓冲区容量时，
-                    //// 不应直接复制，否则会发生越界。
-                    //System.Diagnostics.Debug.WriteLine($"PCM 数据超出缓冲区容量：" + $"Data={byteCount}, Capacity={capacity}");
                 }
 
                 // 无数据时清空缓冲区，避免播放旧数据。
-                if (capacity > 0)
-                {
-                    new Span<byte>((void*)buffer->AudioData, capacity).Clear();
-                }
+                if (capacity > 0) new Span<byte>((void*)buffer->AudioData, capacity).Clear();
 
-                _outputAudioQueue.EnqueueBuffer(e.IntPtrBuffer, capacity, null);
+                _outputAudioQueue?.EnqueueBuffer(e.IntPtrBuffer, capacity, null);
             }
             catch (Exception ex)
             {

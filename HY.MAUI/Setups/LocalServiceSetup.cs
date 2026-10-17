@@ -42,8 +42,8 @@ namespace HY.MAUI.Setups
 //            services.AddSingleton<IAudioRecorderService, Platforms.Android.AudioRecorderService>();
 #elif MACCATALYST
             services.AddSingleton<IAudioRecorderService, Platforms.MacCatalyst.AudioRecorderService>();
-//#elif IOS
-//            services.AddSingleton<IAudioRecorderService, Platforms.iOS.AudioRecorderService>();
+#elif IOS
+            services.AddSingleton<IAudioRecorderService, Platforms.iOS.AudioRecorderService>();
 #endif
 
         }

@@ -208,26 +208,20 @@ namespace HY.MAUI.Platforms.iOS
 
             testSource?.Dispose();
             testSource = null;
-
+            
             _videoOutput?.SetSampleBufferDelegate(null, null);
-            _videoOutput?.Dispose();
-            _videoOutput = null;
 
             _delegate?.Dispose();
             _delegate = null;
-
+            
             _deviceInput?.Dispose();
             _deviceInput = null;
-
-            foreach (var _input in _captureSession.Inputs)
-            {
-                _captureSession.RemoveInput(_input);
-                _input.Dispose();
-            }
+            _videoOutput?.Dispose();
+            _videoOutput = null;
 
             _captureSession?.Dispose();
             _captureSession = null;
-
+            
             _isStarting = false;
             _isTesting = false;
 
