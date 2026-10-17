@@ -384,7 +384,6 @@ namespace HY.MAUI.Communication.RTC
             _videoService.OnVideoSinkDecodedSample += (sample, width, height, format) => OnRemoteVideoFrameReceived?.Invoke(sample, width, height, format);
             #endregion
 
-
             var audioTrack = new MediaStreamTrack(_audioService.GetSelectedFormat(), MediaStreamStatusEnum.SendRecv);
             _peerConnection.addTrack(audioTrack);
 
@@ -418,7 +417,6 @@ namespace HY.MAUI.Communication.RTC
             // 远程
             _peerConnection.OnAudioFrameReceived += _audioService.GotAudioFrame;
 
-
             var audioTrack = new MediaStreamTrack(_audioService.GetSelectedFormat(), MediaStreamStatusEnum.SendRecv);
             _peerConnection.addTrack(audioTrack);
 
@@ -442,25 +440,27 @@ namespace HY.MAUI.Communication.RTC
             if (_audioService != null)
             {
                 _audioService.StopRecording();
-                _audioService = null;
             }
             if (_videoService != null)
             {
                 _videoService.StopRecording();
-                _videoService = null;
             }
-
             if (_configuration != null)
             {
                 //_configuration.Dispose();
-                _configuration = null;
             }
             if (_peerConnection != null)
             {
                 _peerConnection.close();
-                _peerConnection.Dispose();
-                _peerConnection = null;
             }
+            
+            _peerConnection.Dispose();
+            
+            _chatHub = null;
+            _audioService = null;
+            _videoService = null;
+            _configuration = null;
+            _peerConnection = null;
         }
 
     }

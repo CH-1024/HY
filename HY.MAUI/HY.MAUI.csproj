@@ -20,7 +20,7 @@
 		<NoWarn>MCTEXP001</NoWarn>
 		
 		<!-- Display name -->
-		<ApplicationTitle>HY.MAUI</ApplicationTitle>
+		<ApplicationTitle>Hoyi</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>net.hoyi.hy</ApplicationId>
