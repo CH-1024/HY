@@ -47,45 +47,21 @@ namespace HY.MAUI.Models
 
 
 
-
-
-
-        public string Unread_Count_Show => unread_Count > 99 ? "99+" : $"{unread_Count}";
-        public bool Unread_Count_Visible => unread_Count > 0;
-
-        public MessageType? Last_Msg_Type => Last_Msg switch
-        {
-            TextMessageVM => MessageType.Text,
-            ImageMessageVM => MessageType.Image,
-            FileMessageVM => MessageType.File,
-            VoiceMessageVM => MessageType.Voice,
-            VideoMessageVM => MessageType.Video,
-            SystemMessageVM => MessageType.System,
-            CallVoiceMessageVM => MessageType.VoiceCall,
-            CallVideoMessageVM => MessageType.VideoCall,
-            _ => null
-        };
-
-        public DateTime? Last_Msg_Time => Last_Msg != null ? DateTime.SpecifyKind(Last_Msg.Created_At, DateTimeKind.Utc).ToLocalTime() : null;
-
-        public string? Last_Msg_Brief => Last_Msg switch
-        {
-            TextMessageVM textVM => textVM.Content?.Length > 20 ? textVM.Content.Replace("\r", "").Replace("\n", "").Substring(0, 20) + "..." : textVM.Content?.Replace("\r", "").Replace("\n", ""),
-            ImageMessageVM => "[图片]",
-            FileMessageVM => "[文件]",
-            VoiceMessageVM => "[语音]",
-            VideoMessageVM => "[视频]",
-            SystemMessageVM sysVM=> sysVM.Text?.Length > 20 ? sysVM.Text.Substring(0, 20) + "..." : sysVM.Text,
-            CallVoiceMessageVM => "[语音通话]",
-            CallVideoMessageVM => "[视频通话]",
-            _ => null
-        };
-
-
-
+        
 
 
         // 扩展
         public bool IsMsgEnd { get; set; } = false;
+        
+        public string Unread_Count_Show => unread_Count > 99 ? "99+" : $"{unread_Count}";
+        
+        public bool Unread_Count_Visible => unread_Count > 0;
+        
+        public DateTime? Last_Msg_Time => Last_Msg?.Msg_Created_LocalTime;
+
+        public MessageType? Last_Msg_Type => Last_Msg?.Msg_Type;
+
+        public string? Last_Msg_Brief => Last_Msg?.Msg_Brief;
+
     }
 }

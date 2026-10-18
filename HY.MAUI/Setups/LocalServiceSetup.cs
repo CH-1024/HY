@@ -24,6 +24,15 @@ namespace HY.MAUI.Setups
             services.AddSingleton<ContactRequestStore>();
             services.AddSingleton<MessageStore>();
 
+            
+#if IOS || MACCATALYST
+            Microsoft.Maui.Handlers.SearchBarHandler.Mapper.AppendToMapping("CancelButtonColor", (handler, view) =>
+            {
+                handler.PlatformView.SetShowsCancelButton(false, false);
+            });
+#endif
+            
+            
 #if WINDOWS
             services.AddSingleton<IVideoRecorderService, Platforms.Windows.VideoRecorderService>();
 #elif ANDROID
@@ -33,19 +42,29 @@ namespace HY.MAUI.Setups
 #elif IOS
             services.AddSingleton<IVideoRecorderService, Platforms.iOS.VideoRecorderService>();
 #endif
-
-
-
+            
+            
 #if WINDOWS
             services.AddSingleton<IAudioRecorderService, Platforms.Windows.AudioRecorderService>();
-//#elif ANDROID
-//            services.AddSingleton<IAudioRecorderService, Platforms.Android.AudioRecorderService>();
+#elif ANDROID
+            services.AddSingleton<IAudioRecorderService, Platforms.Android.AudioRecorderService>();
 #elif MACCATALYST
             services.AddSingleton<IAudioRecorderService, Platforms.MacCatalyst.AudioRecorderService>();
 #elif IOS
             services.AddSingleton<IAudioRecorderService, Platforms.iOS.AudioRecorderService>();
 #endif
-
+            
+            
+#if ANDROID
+            services.AddTransient<INotificationManagerService, Platforms.Android.NotificationManagerService>();
+#elif IOS
+            services.AddTransient<INotificationManagerService, Platforms.iOS.NotificationManagerService>();
+#elif MACCATALYST
+            services.AddTransient<INotificationManagerService, Platforms.MacCatalyst.NotificationManagerService>();
+#elif WINDOWS
+            services.AddTransient<INotificationManagerService, Platforms.Windows.NotificationManagerService>();          
+#endif
+            
         }
     }
 }

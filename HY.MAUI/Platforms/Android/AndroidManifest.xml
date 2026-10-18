@@ -8,7 +8,8 @@
 
 	<!--允许录像-->
 	<uses-permission android:name="android.permission.CAMERA" />
+	<!-- 允许访问麦克风 -->
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-	
-	
+	<!-- 允许通知 -->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

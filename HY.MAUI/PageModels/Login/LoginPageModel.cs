@@ -67,7 +67,11 @@ namespace HY.MAUI.PageModels.Login
                 _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问麦克风！", "退出");
                 return;
             }
-
+            if (!await Request_PostNotifications_Async())
+            {
+                _ = Shell.Current.DisplayAlertAsync("提示", $"请允许访问通知！", "退出");
+                return;
+            }
 
 
             //var p1 = await _loginApi.Ping1();
@@ -120,6 +124,16 @@ namespace HY.MAUI.PageModels.Login
             if (status != PermissionStatus.Granted)
             {
                 return await Permissions.RequestAsync<Permissions.Microphone>() == PermissionStatus.Granted;
+            }
+            return true;
+        }
+        
+        async Task<bool> Request_PostNotifications_Async()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+            if (status != PermissionStatus.Granted)
+            {
+                return await Permissions.RequestAsync<Permissions.PostNotifications>() == PermissionStatus.Granted;
             }
             return true;
         }

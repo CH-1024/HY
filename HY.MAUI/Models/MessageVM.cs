@@ -3,6 +3,7 @@ using HY.MAUI.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using HY.MAUI.Models.MsgVM;
 
 namespace HY.MAUI.Models
 {
@@ -24,10 +25,35 @@ namespace HY.MAUI.Models
             set { SetProperty(ref message_Status, value); }
         }
 
-        //public string? Type { get; set; }                   // 1文本 2图片 3文件 4语音 5视频
-        //public string? Content { get; set; }
-        //public string? Extra { get; set; }
-        //public int Avatar_InColumn { get; set; }
-        //public LayoutOptions Content_Horizontal { get; set; }
+        
+        
+        // 扩展
+        public DateTime Msg_Created_LocalTime => DateTime.SpecifyKind(this.Created_At, DateTimeKind.Utc).ToLocalTime();
+
+        public MessageType? Msg_Type => this switch
+        {
+            TextMessageVM => MessageType.Text,
+            ImageMessageVM => MessageType.Image,
+            FileMessageVM => MessageType.File,
+            VoiceMessageVM => MessageType.Voice,
+            VideoMessageVM => MessageType.Video,
+            SystemMessageVM => MessageType.System,
+            CallVoiceMessageVM => MessageType.VoiceCall,
+            CallVideoMessageVM => MessageType.VideoCall,
+            _ => null
+        };
+        
+        public string? Msg_Brief => this switch
+        {
+            TextMessageVM textVM => textVM.Content?.Length > 20 ? textVM.Content.Replace("\r", "").Replace("\n", "").Substring(0, 20) + "..." : textVM.Content?.Replace("\r", "").Replace("\n", ""),
+            ImageMessageVM => "[图片]",
+            FileMessageVM => "[文件]",
+            VoiceMessageVM => "[语音]",
+            VideoMessageVM => "[视频]",
+            SystemMessageVM sysVM=> sysVM.Text?.Length > 20 ? sysVM.Text.Substring(0, 20) + "..." : sysVM.Text,
+            CallVoiceMessageVM => "[语音通话]",
+            CallVideoMessageVM => "[视频通话]",
+            _ => null
+        };
     }
 }

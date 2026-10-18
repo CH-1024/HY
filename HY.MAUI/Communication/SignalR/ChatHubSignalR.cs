@@ -27,6 +27,7 @@ namespace HY.MAUI.Communication.SignalR
         private readonly IGlobalCache _globalCache;
         private readonly ILoginService _loginService;
         private readonly ITokenProvider _tokenProvider;
+        private readonly INotificationManagerService _notificationManager;
 
         private readonly ChatStore _chatStore;
         private readonly ContactStore _contactStore;
@@ -38,12 +39,14 @@ namespace HY.MAUI.Communication.SignalR
 
 
         public ChatHubSignalR(IServiceProvider serviceProvider, IGlobalCache globalCache, ILoginService loginService, ITokenProvider tokenProvider,
+                              INotificationManagerService notificationManager,
                               ChatStore chatStore, ContactStore contactStore, ContactRequestStore contactRequestStore, MessageStore messageStore)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _loginService = loginService;
             _tokenProvider = tokenProvider;
+            _notificationManager = notificationManager;
 
             _chatStore = chatStore;
             _contactStore = contactStore;
@@ -339,6 +342,7 @@ namespace HY.MAUI.Communication.SignalR
         private async Task<bool> OnReceiveMessage(MessageDto messageDto)
         {
             var currentUser = _globalCache.GetCurrentUser();
+            MessageVM? messageVM = null;
 
             var chat = _chatStore.GetChat(currentUser.Id, messageDto);
             if (chat != null && chat.Type == ChatType.Private)
@@ -346,7 +350,7 @@ namespace HY.MAUI.Communication.SignalR
                 // 私聊 从联系人列表获取发送者信息
 
                 var contact = _contactStore.GetContact(messageDto.Sender_Id);
-                var messageVM = messageDto.ToVM(currentUser.Id, contact?.Avatar, contact?.Nickname);
+                messageVM = messageDto.ToVM(currentUser.Id, contact?.Avatar, contact?.Nickname);
                 _messageStore.Add(chat.Id, messageVM);
 
                 chat.Last_Msg = messageVM;
@@ -362,24 +366,38 @@ namespace HY.MAUI.Communication.SignalR
             {
                 return false;
             }
-
-            if (OnReceiveMessage_ChatHub == null) return false;
-
-            return await UI.Run(async () =>
+            
+            bool result = false;
+            
+            var handlers = OnReceiveMessage_ChatHub?.GetInvocationList() ?? [];
+            if (handlers.Length > 0)
             {
-                bool result = false;
-                var handlers = OnReceiveMessage_ChatHub.GetInvocationList();
-
-                foreach (var handler in handlers)
+                result = await UI.Run(async () =>
                 {
-                    if (handler is Func<MessageDto, Task<bool>> func)
-                    {
-                        result |= await func(messageDto);
-                    }
-                }
+                    bool handled = false;
 
-                return result;
-            });
+                    foreach (var handler in handlers)
+                    {
+                        if (handler is Func<MessageDto, Task<bool>> func)
+                        {
+                            handled |= await func(messageDto);
+                        }
+                    }
+
+                    return handled;
+                });
+            }
+
+            // 不是自己发的消息且未读
+            if (!messageVM.IsSelf && !result)
+            {
+#if ANDROID || IOS
+                Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(250));
+#endif
+                _notificationManager.SendNotification(messageVM.Sender_Nickname, messageVM.Msg_Brief);
+            }
+
+            return result;
         }
 
         private void OnRecallMessage(MessageDto messageDto)
