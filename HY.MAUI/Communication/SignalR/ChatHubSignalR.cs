@@ -394,7 +394,11 @@ namespace HY.MAUI.Communication.SignalR
 #if ANDROID || IOS
                 Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(250));
 #endif
-                _notificationManager.SendNotification(messageVM.Sender_Nickname, messageVM.Msg_Brief);
+                try
+                {
+                    _notificationManager.SendNotification(messageVM.Sender_Nickname, messageVM.Msg_Brief);
+                }
+                catch{ }
             }
 
             return result;

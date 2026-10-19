@@ -27,15 +27,13 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="扫一扫" Order="Secondary" Priority="0" />
-        <ToolbarItem Text="收付款" Order="Secondary" Priority="1" />
     </ContentPage.ToolbarItems>
 
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
         <ScrollView>
 
             <Grid RowDefinitions="Auto,*" RowSpacing="10">
-
-                <SearchBar Margin="0"/>
+                <SearchBar x:Name="searchBar" Margin="0" Focused="SearchBar_OnFocused"/>
 
                 <CollectionView Grid.Row="1" ItemsSource="{Binding ChatCollection}" SelectedItem="{Binding SelectedChat}" SelectionChangedCommand="{Binding SelectionChangedCommand}" SelectionMode="Single">
                     <CollectionView.ItemsLayout>

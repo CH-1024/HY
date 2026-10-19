@@ -34,9 +34,9 @@
 
             <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
 
-                <SearchBar Margin="0"/>
+                <SearchBar x:Name="searchBar" Margin="0" Focused="SearchBar_OnFocused"/>
 
-                <Picker Grid.Row="1" Margin="0" Title="类型：">
+                <Picker Grid.Row="1" Margin="0" Title="类型：" SelectedIndex="0">
                     <Picker.Items>
                         <x:String>好友</x:String>
                         <x:String>群组</x:String>

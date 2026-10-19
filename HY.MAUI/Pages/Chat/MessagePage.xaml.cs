@@ -50,8 +50,9 @@ public partial class MessagePage : ContentPage
             // ±ﬂøÚ“ı”∞
             //Shadow = new Shadow
             //{
-            //    Brush = Brush.Green,
-            //    Opacity = 0.8f
+            //    Brush = Brush.Black,
+            //    Offset = new Point(0, 0),
+            //    Opacity = 1f
             //}
         };
 

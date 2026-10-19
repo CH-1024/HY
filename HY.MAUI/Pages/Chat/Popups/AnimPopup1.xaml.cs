@@ -4,29 +4,37 @@ namespace HY.MAUI.Pages.Chat.Popups;
 
 public partial class AnimPopup1 : Popup
 {
-    // 弹窗高度
+    public double TotalTranslateY => PopLength + BottomMargin;
     public double PopLength => 400;
+    private double BottomMargin => 80;
+    private double DismissThreshold => 100;
 
     public AnimPopup1()
     {
         InitializeComponent();
     }
 
+
+
+    async Task Exit(string? result = null)
+    {
+        await content.TranslateToAsync(0, TotalTranslateY, easing: Easing.CubicOut);
+        await this.CloseAsync();
+    }
+
     async void OnAnimateEntry(object sender, EventArgs e)
     {
-        await content.TranslateToAsync(0, 0, easing: Easing.CubicIn);
+        await content.TranslateToAsync(0, BottomMargin, easing: Easing.CubicIn);
     }
 
     async void OnAnimateExit(object sender, EventArgs e)
     {
-        await content.TranslateToAsync(0, PopLength, easing: Easing.CubicOut);
-        await this.CloseAsync();
+        await Exit();
     }
 
     async void OnAnimateExit(object sender, TappedEventArgs e)
     {
-        await content.TranslateToAsync(0, PopLength, easing: Easing.CubicOut);
-        await this.CloseAsync();
+        await Exit();
     }
 
     #region 拖动
@@ -57,9 +65,6 @@ public partial class AnimPopup1 : Popup
     #region 下滑动画
 
     private double _startTranslationY;
-    private double _panStartY;
-
-    private const double DismissThreshold = 150;
 
     private void OnContentPanUpdated(object sender, PanUpdatedEventArgs e)
     {
@@ -68,7 +73,6 @@ public partial class AnimPopup1 : Popup
             case GestureStatus.Started:
                 // 记录开始拖动时的位置
                 _startTranslationY = content.TranslationY;
-                _panStartY = 0;
                 break;
 
             case GestureStatus.Running:
@@ -90,42 +94,35 @@ public partial class AnimPopup1 : Popup
         // e.TotalY：
         // 向下拖 > 0
         // 向上拖 < 0
-        var newY = _startTranslationY + totalY;
 
         // 不允许继续向上拖出屏幕
-        newY = Math.Max(0, newY);
+        if (totalY < 0) return;
+
+        var newY = _startTranslationY + totalY;
 
         content.TranslationY = newY;
     }
 
     private async void HandlePanCompleted()
     {
-        var currentY = content.TranslationY;
+        var diffY = content.TranslationY - _startTranslationY;
 
         // 向下拖超过阈值 -> 关闭
-        if (currentY >= DismissThreshold)
+        if (diffY >= DismissThreshold)
         {
-            await CloseByDrag();
+            await Exit();
         }
         else
         {
             // 没超过阈值 -> 弹回原位
-            await content.TranslateToAsync(0, _panStartY, easing: Easing.CubicOut);
+            await content.TranslateToAsync(0, _startTranslationY, easing: Easing.CubicOut);
         }
     }
 
     private async void HandlePanCanceled()
     {
         // 取消 -> 弹回原位
-        await content.TranslateToAsync(0, _panStartY, easing: Easing.CubicOut);
-    }
-
-    private async Task CloseByDrag()
-    {
-        // 直接滑到底部
-        await content.TranslateToAsync(0, PopLength, easing: Easing.CubicIn);
-
-        await this.CloseAsync();
+        await content.TranslateToAsync(0, _startTranslationY, easing: Easing.CubicOut);
     }
 
     #endregion

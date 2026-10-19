@@ -2,6 +2,8 @@
 using HY.MAUI.Services;
 using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
+using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,15 +26,25 @@ namespace HY.MAUI.Setups
             services.AddSingleton<ContactRequestStore>();
             services.AddSingleton<MessageStore>();
 
-            
+
+#if WINDOWS
+            Microsoft.Maui.Handlers.ScrollViewHandler.Mapper.AppendToMapping(nameof(IScrollView.Content), (handler, view) =>
+            {
+                if (handler.PlatformView?.Content is ContentPanel panel)
+                {
+                    panel.IsTabStop = true;
+                }
+            });
+#endif
+
 #if IOS || MACCATALYST
             Microsoft.Maui.Handlers.SearchBarHandler.Mapper.AppendToMapping("CancelButtonColor", (handler, view) =>
             {
                 handler.PlatformView.SetShowsCancelButton(false, false);
             });
 #endif
-            
-            
+
+
 #if WINDOWS
             services.AddSingleton<IVideoRecorderService, Platforms.Windows.VideoRecorderService>();
 #elif ANDROID
@@ -62,7 +74,7 @@ namespace HY.MAUI.Setups
 #elif MACCATALYST
             services.AddTransient<INotificationManagerService, Platforms.MacCatalyst.NotificationManagerService>();
 #elif WINDOWS
-            services.AddTransient<INotificationManagerService, Platforms.Windows.NotificationManagerService>();          
+            services.AddTransient<INotificationManagerService, Platforms.Windows.NotificationManagerService>();
 #endif
             
         }

@@ -9,9 +9,9 @@ namespace HY.MAUI.Pages.Contact;
 
 public partial class ContactDetailPage : ContentPage
 {
-	public ContactDetailPage(ContactDetailPageModel contactDetail)
-	{
-		InitializeComponent();
+    public ContactDetailPage(ContactDetailPageModel contactDetail)
+    {
+        InitializeComponent();
 
         BindingContext = contactDetail;
     }
@@ -37,17 +37,14 @@ public partial class ContactDetailPage : ContentPage
             // 边框阴影
             //Shadow = new Shadow
             //{
-            //    Brush = Brush.Green,
-            //    Opacity = 0.8f
+            //    Brush = Brush.Black,
+            //    Offset = new Point(0, 0),
+            //    Opacity = 1f
             //}
         };
 
         var pop = new SelectCallPopup();
-        var result = await this.ShowPopupAsync<string>(pop, option, CancellationToken.None);
-        if (result.WasDismissedByTappingOutsideOfPopup)
-        {
-            return;
-        }
+        var result = await this.ShowPopupAsync<string?>(pop, option, CancellationToken.None);
         if (result.Result == "Voice")
         {
             if (BindingContext is ContactDetailPageModel vm)

@@ -1,6 +1,6 @@
 using HY.MAUI.Services.Interfaces;
 
-namespace HY.MAUI;
+namespace HY.MAUI.Platforms.Windows;
 
 public class NotificationManagerService : INotificationManagerService
 {

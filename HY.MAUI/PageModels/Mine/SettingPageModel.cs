@@ -36,12 +36,6 @@ namespace HY.MAUI.PageModels.Mine
         }
 
 
-        [RelayCommand]
-        async Task Profile()
-        {
-            await Shell.Current.GoToAsync(nameof(ProfilePage), true);
-        }
-
 
     }
 }

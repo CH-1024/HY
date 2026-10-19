@@ -9,6 +9,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Mine"
              xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
              x:DataType="pm:SettingPageModel">
 
 
@@ -64,32 +65,12 @@
     </ContentPage.ToolbarItems>-->
 
 
-    <VerticalStackLayout Spacing="10">
-        <Button Style="{StaticResource IconBtn1}" Text="个人资料" Command="{Binding ProfileCommand}" Margin="10"/>
 
-        <Grid ColumnDefinitions="auto,auto,auto" HorizontalOptions="Center">
-            <Label x:Name="dark" Grid.Column="0" Text="Dark" MinimumWidthRequest="0" WidthRequest="48" VerticalOptions="Center"/>
-            <Switch Grid.Column="1" Margin="0" MinimumWidthRequest="0" WidthRequest="52" VerticalOptions="Center" Scale="1.5" Toggled="OnToggled">
-                <VisualStateManager.VisualStateGroups>
-                    <VisualStateGroupList>
-                        <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="On">
-                                <VisualState.Setters>
-                                    <Setter Property="ThumbColor" Value="MediumSpringGreen" />
-                                    <Setter TargetName="dark" Property="Opacity" Value="0.5" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="Off">
-                                <VisualState.Setters>
-                                    <Setter Property="ThumbColor" Value="Black" />
-                                    <Setter TargetName="light" Property="Opacity" Value="0.5" />
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateGroupList>
-                </VisualStateManager.VisualStateGroups>
-            </Switch>
-            <Label x:Name="light" Grid.Column="2" Text="Light" MinimumWidthRequest="0" VerticalOptions="Center"/>
+    <VerticalStackLayout Spacing="10">
+
+        <Grid ColumnDefinitions="10,*,auto,10" HeightRequest="40">
+            <Label Grid.Column="1" Text="主题：" VerticalOptions="Center" FontSize="Body"/>
+            <controls:ThemeSwitch Grid.Column="2" HorizontalOptions="Center" VerticalOptions="Center" />
         </Grid>
 
     </VerticalStackLayout>

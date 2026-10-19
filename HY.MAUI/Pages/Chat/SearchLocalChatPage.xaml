@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Chat.SearchLocalChatPage"
+             xmlns:local="clr-namespace:HY.MAUI.Pages.Chat"
+             x:Name="_SearchLocalChatPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Chat"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             x:DataType="pm:SearchLocalChatPageModel"
+             Loaded="SearchChatPage_OnLoaded">
+
+    <ContentPage.Behaviors>
+        <!-- <toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ChatPage}, x:DataType=ContentPage}"/> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ChatPage}, x:DataType=ContentPage}"/> -->
+        <!-- <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ChatPage}, x:DataType=ContentPage}" /> -->
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ChatPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <Shell.TitleView>
+        <Label Margin="-30,0,0,0" Text="搜索" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+    </Shell.TitleView>
+
+    <!-- <ContentPage.ToolbarItems> -->
+    <!--     <ToolbarItem Text="扫一扫" Order="Secondary" Priority="0" /> -->
+    <!-- </ContentPage.ToolbarItems> -->
+
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="10">
+        <SearchBar x:Name="searchBar" Margin="0"/>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding ChatCollection}" SelectedItem="{Binding SelectedChat}" SelectionMode="Single">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:ChatVM">
+                    <Border Padding="5" StrokeThickness="0">
+                        <Grid ColumnDefinitions="50,*" ColumnSpacing="5">
+                            <toolkit:AvatarView ImageSource="{Binding Target_Avatar}" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+                            <Label Grid.Column="1" Text="{Binding Target_Name}" FontSize="Body" Padding="0" VerticalOptions="Start"/>
+
+                            <BoxView Grid.Column="1" Color="{StaticResource Gray800}" HeightRequest="1" HorizontalOptions="Fill" VerticalOptions="End" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
