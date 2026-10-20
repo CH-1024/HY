@@ -1,6 +1,6 @@
 <div align="center">
 
-# Hoyi · HY
+# Hoyi
 
 ### 一个用 .NET 构建的跨平台实时通信项目
 
@@ -22,7 +22,7 @@
 
 ## ✨ 项目简介
 
-**HY（Hoyi）** 是一个持续开发中的跨平台通信应用。客户端采用 **.NET MAUI**，后端采用 **ASP.NET Core**，通过实时通信与音视频技术连接不同设备。
+**Hoyi（简称HY）** 是一个持续开发中的跨平台通信应用。客户端采用 **.NET MAUI**，后端采用 **ASP.NET Core**，通过实时通信与音视频技术连接不同设备。
 
 项目不仅包含客户端 UI，也公开了服务端源码，适合体验跨平台应用开发、实时消息推送，以及实时视频通话相关实现。
 
@@ -40,7 +40,6 @@
 | 📹 实时视频通话 | ✅ | 平台原生摄像头采集、VP8 编码与 P2P 实时传输 |
 | 🎙️ 实时语音通话 | ✅ | 通过平台原生音频接口采集，统一编码并实时传输 |
 
-
 > 语音通话与视频通话均已完成开发。音频采集采用平台原生实现，并通过统一的编码与传输流程接入实时通话；实际体验效果仍会受到网络环境、设备性能、系统权限和 NAT 类型等因素影响。
 
 ## 📱 跨平台支持
@@ -55,6 +54,79 @@
 | Windows | `net10.0-windows10.0.19041.0` |
 
 > Windows 目标框架由 Windows 环境下的项目配置启用。iOS、Mac Catalyst 的真机调试和发布还需要相应的 Apple 开发环境、签名证书及描述文件。
+
+## 🖼️ 流程与界面展示
+
+图片均来自 [`docs/images`](./docs/images/)，使用缩略图网格布局，减少页面纵向占用；需要查看细节时可打开原图。
+
+### 业务流程（1–10）
+
+<table>
+  <tbody>
+  <tr>
+    <td width="20%" align="center" valign="top"><strong>流程 1：注册</strong><br><img src="./docs/images/流程1注册.png" alt="流程 1：注册" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 2：登录</strong><br><img src="./docs/images/流程2登录.png" alt="流程 2：登录" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 3：添加联系人</strong><br><img src="./docs/images/流程3添加联系人.png" alt="流程 3：添加联系人" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 4：搜索联系人</strong><br><img src="./docs/images/流程4搜索联系人.png" alt="流程 4：搜索联系人" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 5：发送好友申请</strong><br><img src="./docs/images/流程5发送好友申请.png" alt="流程 5：发送好友申请" width="135" /></td>
+  </tr>
+  <tr>
+    <td width="20%" align="center" valign="top"><strong>流程 6：查看申请状态</strong><br><img src="./docs/images/流程6查看申请状态.png" alt="流程 6：查看申请状态" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 7：查看好友请求</strong><br><img src="./docs/images/流程7查看好友请求.png" alt="流程 7：查看好友请求" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 8：同意好友请求</strong><br><img src="./docs/images/流程8同意好友请求.png" alt="流程 8：同意好友请求" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 9：查看联系人</strong><br><img src="./docs/images/流程9查看联系人.png" alt="流程 9：查看联系人" width="135" /></td>
+    <td width="20%" align="center" valign="top"><strong>流程 10：查看聊天</strong><br><img src="./docs/images/流程10查看聊天.png" alt="流程 10：查看聊天" width="135" /></td>
+  </tr>
+  </tbody>
+</table>
+
+### 跨平台界面
+
+<table>
+  <tbody>
+    <tr>
+      <td width="50%" valign="top">
+        <h4 align="center">🪟 Windows</h4>
+        <p align="center"><img src="./docs/images/Windows主界面展示.png" alt="Windows 主界面" width="195" />&#160;<img src="./docs/images/Windows对话展示.png" alt="Windows 对话界面" width="195" /></p>
+      </td>
+      <td width="50%" valign="top">
+        <h4 align="center">💻 macOS（Mac Catalyst）</h4>
+        <p align="center"><img src="./docs/images/Mac对话效果.png" alt="macOS 对话界面" width="300" /></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" valign="top">
+        <h4 align="center">🤖 Android</h4>
+        <p align="center"><img src="./docs/images/Android主界面展示.png" alt="Android 主界面" width="205" /> <img src="./docs/images/Android对话展示.png" alt="Android 对话界面" width="205" /></p>
+      </td>
+      <td width="50%" valign="top">
+        <h4 align="center">🍎 iOS</h4>
+        <p align="center"><img src="./docs/images/IOS输入展示.png" alt="iOS 输入界面" width="205" /> <img src="./docs/images/IOS消息提示.png" alt="iOS 消息提示" width="205" /></p>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top">
+        <h4 align="center">🔄 iOS / macOS 共用界面</h4>
+        <p align="center"><img src="./docs/images/IOS和Mac主界面展示.png" alt="iOS 与 macOS 主界面" width="360" /> <img src="./docs/images/IOS和Mac聊天界面展示.png" alt="iOS 与 macOS 聊天界面" width="360" /></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### 实时音视频通话
+
+<table>
+  <tbody>
+    <tr>
+      <td width="25%" align="center" valign="top"><strong>iOS / macOS 视频</strong><br><img src="./docs/images/IOS&amp;Mac视频效果.png" alt="iOS 与 macOS 视频通话效果" width="210" /></td>
+      <td width="25%" align="center" valign="top"><strong>iOS / macOS 呼叫</strong><br><img src="./docs/images/IOS和Mac呼叫效果.png" alt="iOS 与 macOS 呼叫效果" width="210" /></td>
+      <td width="25%" align="center" valign="top"><strong>Windows / Android 视频</strong><br><img src="./docs/images/Windows&amp;Android视频效果.png" alt="Windows 与 Android 视频通话效果" width="210" /></td>
+      <td width="25%" align="center" valign="top"><strong>语音电话</strong><br><img src="./docs/images/语音电话效果.png" alt="语音电话效果" width="210" /></td>
+    </tr>
+  </tbody>
+</table>
+
+---
 
 ## 🧰 技术栈
 
@@ -213,7 +285,7 @@ iOS 真机部署通常还需要有效的 Apple Developer 账号、签名证书�
 
 服务端源码位于 `HY.ApiService`。自行部署前，请先检查项目配置文件，并根据实际环境配置数据库连接、Redis、证书密钥、服务监听地址、HTTPS 与客户端访问地址。
 
-> **注意：** 服务端需要FFMPEG完整可访问路径，用来解析上传的视频文件。
+> **注意：** 服务端需要FFMPEG环境支持。
 
 ```bash
 dotnet restore HY.ApiService/HY.ApiService.csproj
