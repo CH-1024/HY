@@ -12,7 +12,7 @@
     xmlns:contact="clr-namespace:HY.MAUI.Pages.Contact"
     xmlns:mine="clr-namespace:HY.MAUI.Pages.Mine"
     Shell.FlyoutBehavior="Flyout"
-    Shell.FlyoutWidth="280"
+    Shell.FlyoutWidth="250"
     x:DataType="local:AppShellModel">
 
     <Shell.Resources>
@@ -72,9 +72,9 @@
 
     <!--FlyoutItems背景-->
     <Shell.FlyoutBackgroundImageAspect>AspectFill</Shell.FlyoutBackgroundImageAspect>
-    <Shell.FlyoutBackgroundImage>
+    <!--<Shell.FlyoutBackgroundImage>
         <FileImageSource File="splash.svg" />
-    </Shell.FlyoutBackgroundImage>
+    </Shell.FlyoutBackgroundImage>-->
 
 
     <!--浮出控件-->

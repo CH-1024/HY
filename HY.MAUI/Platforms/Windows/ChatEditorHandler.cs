@@ -23,6 +23,9 @@ public class ChatEditorHandler : EditorHandler
             chatView.PreviewKeyDown += chatView.OnPreviewKeyDown;
         }
 
+        platformView.TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap;
+        platformView.AcceptsReturn = true;
+
         // 移除 WinUI 底部强调线
         platformView.Resources["TextControlBorderBrushFocused"] = null;
         platformView.Resources["TextControlBorderBrushPointerOver"] = null;

@@ -25,14 +25,6 @@ namespace HY.MAUI.Controls
 
         public ChatEditor()
         {
-            #region andorid
-            //// 拦截回车按键
-            //platformView.KeyPress += (s, e) =>
-            //{
-            //    if (e.KeyCode == Android.Views.Keycode.Enter)
-            //        e.Handled = true;
-            //};
-            #endregion
         }
 
 

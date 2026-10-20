@@ -550,12 +550,12 @@ namespace HY.MAUI.PageModels.Chat
         [RelayCommand]
         async Task SendVideoCall()
         {
-            var isOnline = await _loginApi.Ping();
-            if (!isOnline)
-            {
-                await Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "网络连接不可用", "确定");
-                return;
-            }
+            //var isOnline = await _loginApi.Ping();
+            //if (!isOnline)
+            //{
+            //    await Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "网络连接不可用", "确定");
+            //    return;
+            //}
 
             var request = new CreateCallRequest
             {

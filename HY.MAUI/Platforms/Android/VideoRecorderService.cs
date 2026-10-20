@@ -139,13 +139,18 @@ namespace HY.MAUI.Platforms.Android
             _frameAnalyzer = new FrameAnalyzer(this);
             _imageAnalysis.SetAnalyzer(Executors.NewSingleThreadExecutor(), _frameAnalyzer);
 
-            var lifecycleOwner = (ILifecycleOwner)Platform.CurrentActivity;
-            var cameraSelector = CameraSelector.DefaultFrontCamera;
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                var activity = Platform.CurrentActivity ?? throw new InvalidOperationException("Activity 不可用");
 
-            _cameraProvider.UnbindAll();
+                var lifecycleOwner = (ILifecycleOwner)activity;
+                var cameraSelector = CameraSelector.DefaultFrontCamera;
 
-            // 绑定帧分析
-            _cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector/*, preview*/, _imageAnalysis);
+                _cameraProvider.UnbindAll();
+
+                // 绑定帧分析
+                _cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector/*, preview*/, _imageAnalysis);
+            });
 
             _isStarting = true;
 
@@ -162,18 +167,18 @@ namespace HY.MAUI.Platforms.Android
             }
             else
             {
-                await _cameraProvider.ShutdownAsync().GetAsync();
+                await MainThread.InvokeOnMainThreadAsync(() => _cameraProvider?.UnbindAll());
             }
 
             testSource?.Dispose();
             testSource = null;
 
-            _cameraProvider?.UnbindAll();
+            // 停止帧分析并释放资源
+            _imageAnalysis?.ClearAnalyzer();
 
             _frameAnalyzer?.Dispose();
             _frameAnalyzer = null;
 
-            _imageAnalysis?.ClearAnalyzer();
             _imageAnalysis?.Dispose();
             _imageAnalysis = null;
 
