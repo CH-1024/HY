@@ -68,9 +68,9 @@
 
     <VerticalStackLayout Spacing="10">
 
-        <Grid ColumnDefinitions="10,*,auto,10" HeightRequest="40">
-            <Label Grid.Column="1" Text="主题：" VerticalOptions="Center" FontSize="Body"/>
-            <controls:ThemeSwitch Grid.Column="2" HorizontalOptions="Center" VerticalOptions="Center" />
+        <Grid ColumnDefinitions="*,*" HeightRequest="40">
+            <Label Grid.Column="0" Text="主题：" VerticalOptions="Center" FontSize="Body"/>
+            <controls:ThemeSwitch Grid.Column="1" VerticalOptions="Center" />
         </Grid>
 
     </VerticalStackLayout>

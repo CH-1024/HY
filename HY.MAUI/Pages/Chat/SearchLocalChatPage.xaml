@@ -38,6 +38,15 @@
                 <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
             </CollectionView.ItemsLayout>
 
+            <CollectionView.EmptyView>
+                <ContentView>
+                    <StackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="No results matched your filter." Margin="10,25,10,10" FontAttributes="Bold" FontSize="18" HorizontalOptions="Fill" HorizontalTextAlignment="Center" />
+                        <Label Text="Try a broader filter?" FontAttributes="Italic" FontSize="12" HorizontalOptions="Fill" HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </ContentView>
+            </CollectionView.EmptyView>
+            
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="m:ChatVM">
                     <Border Padding="5" StrokeThickness="0">

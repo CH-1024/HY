@@ -1,7 +1,7 @@
 ﻿using HY.MAUI.Dtos;
 using HY.MAUI.Extensions;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Models;
-using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;

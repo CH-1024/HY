@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Models;
 using HY.MAUI.Pages.Contact;
 using HY.MAUI.Pages.Mine;
-using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;

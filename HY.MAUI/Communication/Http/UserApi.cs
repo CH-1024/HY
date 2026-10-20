@@ -1,4 +1,6 @@
 ﻿using HY.MAUI.Communication.Http.Requests;
+using HY.MAUI.Models;
+using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
@@ -16,7 +18,7 @@ namespace HY.MAUI.Communication.Http
 
         public async Task<Response?> Register(string nickname, string username, string password, string email, string phone)
         {
-            var param = new RegisterRequest
+            var param = new RegisterUserRequest
             {
                 Nickname = nickname,
                 Username = username,
@@ -30,12 +32,18 @@ namespace HY.MAUI.Communication.Http
 
         public async Task<Response?> UpdateHead(string url)
         {
+            return await PostAsync($"{ApiUrl.UpdateHead}?url={url}");
+        }
+
+        public async Task<Response?> UpdateProfile(string nickname, string email, string phone)
+        {
             var param = new UpdateUserRequest
             {
-                Avatar = url,
+                Nickname = nickname,
+                Email = email,
+                Phone = phone
             };
-
-            return await PatchAsJsonAsync(ApiUrl.UpdateHead, param);
+            return await PostAsJsonAsync(ApiUrl.UpdateProfile, param);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using HY.MAUI.Dtos;
 using HY.MAUI.Enums;
 using HY.MAUI.Models;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;

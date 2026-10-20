@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace HY.MAUI.Services.Interfaces
+namespace HY.MAUI.Interfaces
 {
     public interface IAudioRecorderService
     {

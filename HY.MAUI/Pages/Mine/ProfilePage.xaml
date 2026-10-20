@@ -9,6 +9,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pm="clr-namespace:HY.MAUI.PageModels.Mine"
              xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
              x:DataType="pm:ProfilePageModel">
 
 
@@ -83,25 +84,26 @@
                 <Button Text="✎" WidthRequest="36" HeightRequest="36" CornerRadius="18" FontSize="30" Padding="0" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="End" Command="{Binding ChangeAvatarCommand}"/>
             </Grid>-->
 
-            <!-- 姓名 -->
             <VerticalStackLayout>
                 <Label Text="姓名" FontSize="14" TextColor="Gray"/>
                 <Entry Text="{Binding RealName}" Placeholder="请输入姓名"/>
             </VerticalStackLayout>
 
-            <!-- 昵称 -->
             <VerticalStackLayout>
                 <Label Text="昵称" FontSize="14" TextColor="Gray"/>
-                <Entry Text="{Binding NickName}" Placeholder="请输入昵称"/>
+                <Entry Text="{Binding CurrentUser.Nickname}" Placeholder="请输入昵称"/>
             </VerticalStackLayout>
 
-            <!-- 备注 -->
             <VerticalStackLayout>
-                <Label Text="备注" FontSize="14" TextColor="Gray"/>
-                <Editor Text="{Binding Remark}" Placeholder="备注信息" AutoSize="TextChanges" HeightRequest="100"/>
+                <Label Text="手机号" FontSize="14" TextColor="Gray"/>
+                <Entry Text="{Binding CurrentUser.Phone}" Placeholder="请输入手机号"/>
             </VerticalStackLayout>
 
-            <!-- 保存按钮 -->
+            <VerticalStackLayout>
+                <Label Text="邮箱" FontSize="14" TextColor="Gray"/>
+                <Entry Text="{Binding CurrentUser.Email}" Placeholder="请输入邮箱"/>
+            </VerticalStackLayout>
+
             <Button Style="{StaticResource IconBtn1}" Text="保存" Command="{Binding SaveCommand}"/>
 
         </VerticalStackLayout>

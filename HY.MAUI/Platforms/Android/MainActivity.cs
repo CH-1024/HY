@@ -3,7 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 
 namespace HY.MAUI.Platforms.Android
 {

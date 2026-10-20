@@ -3,27 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="HY.MAUI.Controls.ThemeSwitch">
 
-    <Grid ColumnDefinitions="Auto,Auto,Auto" HorizontalOptions="Center" VerticalOptions="Center">
+    <Grid ColumnDefinitions="Auto,Auto,Auto" HorizontalOptions="Start" VerticalOptions="Center">
 
         <Label x:Name="DarkLabel"
                Grid.Column="0"
                Text="Dark"
+               Margin="0"
+               Padding="0"
                MinimumWidthRequest="0"
-               WidthRequest="48"
                VerticalOptions="Center" />
 
         <Switch x:Name="ThemeSwitchControl"
                 Grid.Column="1"
-                Margin="0"
+                Margin="5,0"
                 MinimumWidthRequest="0"
-                WidthRequest="52"
                 VerticalOptions="Center"
-                Scale="1.5"
                 Toggled="OnToggled" />
 
         <Label x:Name="LightLabel"
                Grid.Column="2"
                Text="Light"
+               Margin="0"
+               Padding="0"
                MinimumWidthRequest="0"
                VerticalOptions="Center" />
 

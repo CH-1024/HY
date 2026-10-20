@@ -3,15 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace HY.MAUI.Services.Interfaces
+namespace HY.MAUI.Interfaces
 {
     public interface IGlobalCache
     {
-        void SetCache(string key, object value);
-        T? GetCache<T>(string key);
-
-
-        UserVM GetCurrentUser();
         void SetCurrentUser(UserVM userVM);
+        UserVM GetCurrentUser();
+        void UpdateCurrentUser(UserVM currentUser);
     }
 }

@@ -13,7 +13,7 @@ using HY.MAUI.Pages.Contact;
 using HY.MAUI.Pages.Login;
 using HY.MAUI.Pages.Mine;
 using HY.MAUI.Services;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Setups;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;

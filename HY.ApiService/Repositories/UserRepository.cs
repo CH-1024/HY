@@ -21,7 +21,7 @@ namespace HY.ApiService.Repositories
         Task<bool> ExistsEmail(string email);
         Task<bool> ExistsPhone(string phone);
 
-        Task<bool> UpdateHead(long userId, string url);
+        Task<bool> Update(UserEntity user);
     }
 
     public class UserRepository : IUserRepository
@@ -114,10 +114,9 @@ namespace HY.ApiService.Repositories
 
 
 
-
-        public async Task<bool> UpdateHead(long userId, string url)
+        public async Task<bool> Update(UserEntity user)
         {
-            var result = await _db.Updateable<UserEntity>().SetColumns(u => u.Avatar == url).Where(u => u.Id == userId).ExecuteCommandAsync();
+            var result = await _db.Updateable(user).ExecuteCommandAsync();
             return result > 0;
         }
 

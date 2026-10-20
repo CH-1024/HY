@@ -1,6 +1,6 @@
 ﻿using HY.MAUI.Communication.Http.Requests;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Services;
-using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;

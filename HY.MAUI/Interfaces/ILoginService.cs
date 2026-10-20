@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 
-namespace HY.MAUI.Services.Interfaces
+namespace HY.MAUI.Interfaces
 {
     public interface ILoginService
     {

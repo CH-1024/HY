@@ -1,4 +1,4 @@
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 
 namespace HY.MAUI.Platforms.Windows;
 

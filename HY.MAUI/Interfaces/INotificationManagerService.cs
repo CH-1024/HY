@@ -1,4 +1,4 @@
-namespace HY.MAUI.Services.Interfaces;
+namespace HY.MAUI.Interfaces;
 
 public interface INotificationManagerService
 {

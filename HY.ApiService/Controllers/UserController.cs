@@ -2,9 +2,11 @@
 using HY.ApiService.Enums;
 using HY.ApiService.Models;
 using HY.ApiService.Services;
+using HY.ApiService.Tools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace HY.ApiService.Controllers
 {
@@ -23,7 +25,7 @@ namespace HY.ApiService.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequest registerRequest)
         {
             RegisterResult result;
 
@@ -46,12 +48,41 @@ namespace HY.ApiService.Controllers
         }
 
         [Authorize]
-        [HttpPatch("update/head")]
-        public async Task<IActionResult> UpdateHead([FromBody] UpdateUserRequest updateUserRequest)
+        [HttpPost("update/head")]
+        public async Task<IActionResult> UpdateHead(string url)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            var result = await _userService.UpdateHead(userId, updateUserRequest.Avatar);
+            if (!RegexHelper.IsValidUrl(url))
+            {
+                return Ok(new Response(false, "头像 URL 无效"));
+            }
+
+            var result = await _userService.UpdateHead(userId, url);
+
+            return Ok(new Response(result));
+        }
+
+        [Authorize]
+        [HttpPost("update/profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest updateUserRequest)
+        {
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            if (!RegexHelper.IsValidNickname(updateUserRequest.Nickname))
+            {
+                return Ok(new Response(false, "昵称格式不正确"));
+            }
+            else if (!RegexHelper.IsValidPhone(updateUserRequest.Phone))
+            {
+                return Ok(new Response(false, "手机号格式不正确"));
+            }
+            else if (!RegexHelper.IsValidEmail(updateUserRequest.Email))
+            {
+                return Ok(new Response(false, "邮箱格式不正确"));
+            }
+
+            var result = await _userService.UpdateProfile(userId, updateUserRequest);
 
             return Ok(new Response(result));
         }

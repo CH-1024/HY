@@ -7,7 +7,7 @@ using AndroidX.Core.Content;
 using AndroidX.Lifecycle;
 using Bumptech.Glide.Util;
 using CommunityToolkit.Maui.Core;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using Java.Lang;
 using Java.Nio;
 using Java.Util.Concurrent;

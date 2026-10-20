@@ -1,5 +1,5 @@
-﻿using HY.MAUI.Models;
-using HY.MAUI.Services.Interfaces;
+﻿using HY.MAUI.Interfaces;
+using HY.MAUI.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,26 +12,42 @@ namespace HY.MAUI.Services
         private static readonly ConcurrentDictionary<string, object> _cache = new ConcurrentDictionary<string, object>();
         private static readonly string CurrentUserKey = "CurrentUser";
 
-        public void SetCache(string key, object value)
+        private void SetCache(string key, object value)
         {
             _cache[key] = value;
         }
 
-        public T? GetCache<T>(string key)
+        private T? GetCache<T>(string key)
         {
             return _cache.TryGetValue(key, out var value) ? (T)value : default;
         }
 
-
-        public UserVM GetCurrentUser()
-        {
-            return GetCache<UserVM>(CurrentUserKey)!;
-        }
 
         public void SetCurrentUser(UserVM userVM)
         {
             SetCache(CurrentUserKey, userVM);
         }
 
+        public UserVM GetCurrentUser()
+        {
+            return GetCache<UserVM>(CurrentUserKey) ?? throw new InvalidOperationException("当前用户尚未初始化");
+        }
+
+        public void UpdateCurrentUser(UserVM currentUser)
+        {
+            var existingUser = GetCurrentUser();
+            if (existingUser != null)
+            {
+                existingUser.Id = currentUser.Id;
+                existingUser.HYid = currentUser.HYid;
+                existingUser.Nickname = currentUser.Nickname;
+                existingUser.Avatar = currentUser.Avatar;
+                existingUser.Phone = currentUser.Phone;
+                existingUser.Email = currentUser.Email;
+                existingUser.Region = currentUser.Region;
+                existingUser.Status = currentUser.Status;
+                existingUser.Created_At = currentUser.Created_At;
+            }
+        }
     }
 }

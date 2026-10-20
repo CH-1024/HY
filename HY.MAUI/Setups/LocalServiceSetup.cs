@@ -1,6 +1,6 @@
 ﻿using HY.MAUI.Communication.SendQueue;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Services;
-using HY.MAUI.Services.Interfaces;
 using HY.MAUI.Stores;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
@@ -30,10 +30,7 @@ namespace HY.MAUI.Setups
 #if WINDOWS
             Microsoft.Maui.Handlers.ScrollViewHandler.Mapper.AppendToMapping(nameof(IScrollView.Content), (handler, view) =>
             {
-                if (handler.PlatformView?.Content is ContentPanel panel)
-                {
-                    panel.IsTabStop = true;
-                }
+                if (handler.PlatformView?.Content is ContentPanel panel) panel.IsTabStop = true;
             });
 #endif
 

@@ -84,10 +84,10 @@
             <Border StrokeShape="RoundRectangle 10" Padding="15">
                 <VerticalStackLayout Spacing="12">
 
-                    <!--<Grid ColumnDefinitions="50,*">
-                        <Label Text="HYID：" TextColor="Gray"/>
-                        <Label Grid.Column="1" Text="{Binding ContactInfo.HYid}"/>
-                    </Grid>-->
+                    <Grid ColumnDefinitions="50,*">
+                        <Label Text="HYID：" TextColor="Gray" FontSize="Caption"/>
+                        <controls:SelectableLabel Grid.Column="1" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" Text="{Binding ContactInfo.Contact_HYid}"/>
+                    </Grid>
 
                     <Grid ColumnDefinitions="50,*">
                         <Label Text="状态：" TextColor="Gray" FontSize="Caption"/>
@@ -104,10 +104,6 @@
                         <Label Grid.Column="1" Text="{Binding ContactInfo.Remark}" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" LineBreakMode="NoWrap"/>
                     </Grid>
 
-                    <Grid ColumnDefinitions="50,*">
-                        <Label Text="HYID：" TextColor="Gray" FontSize="Caption"/>
-                        <controls:SelectableLabel Grid.Column="1" TextColor="Gray" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Caption" Text="{Binding ContactInfo.Contact_HYid}"/>
-                    </Grid>
                 </VerticalStackLayout>
             </Border>
 

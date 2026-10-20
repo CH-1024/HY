@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 using Android.Media;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using SIPSorceryMedia.Abstractions;
 using AudioFormat = SIPSorceryMedia.Abstractions.AudioFormat;
 using Encoding = Android.Media.Encoding;

@@ -28,10 +28,10 @@
 
             <VerticalStackLayout Margin="0" Padding="30" Spacing="15">
                 <Label Text="Hello, World!" />
-                <Button Text="Done" Clicked="OnAnimateExit"/>
+                <!-- <Button Text="Done" Clicked="OnAnimateExit"/> -->
             </VerticalStackLayout>
         </Border>
 
     </Grid>
-    
+
 </toolkit:Popup>

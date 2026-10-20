@@ -1,4 +1,4 @@
-﻿using HY.MAUI.Services.Interfaces;
+﻿using HY.MAUI.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;

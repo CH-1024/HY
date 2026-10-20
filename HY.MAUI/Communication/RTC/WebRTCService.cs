@@ -1,6 +1,6 @@
 ﻿using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using SIPSorcery.Media;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;

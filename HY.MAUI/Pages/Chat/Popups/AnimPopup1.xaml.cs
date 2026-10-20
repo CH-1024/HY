@@ -27,11 +27,6 @@ public partial class AnimPopup1 : Popup
         await content.TranslateToAsync(0, BottomMargin, easing: Easing.CubicIn);
     }
 
-    async void OnAnimateExit(object sender, EventArgs e)
-    {
-        await Exit();
-    }
-
     async void OnAnimateExit(object sender, TappedEventArgs e)
     {
         await Exit();

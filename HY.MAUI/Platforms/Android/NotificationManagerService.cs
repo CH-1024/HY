@@ -4,7 +4,7 @@ using Android.Content;
 using Android.Graphics;
 using Android.OS;
 using AndroidX.Core.App;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 
 namespace HY.MAUI.Platforms.Android;
 

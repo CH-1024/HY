@@ -1,5 +1,5 @@
 using Foundation;
-using HY.MAUI.Services.Interfaces;
+using HY.MAUI.Interfaces;
 using UserNotifications;
 
 namespace HY.MAUI.Platforms.MacCatalyst;

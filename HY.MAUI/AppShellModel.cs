@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HY.MAUI.Interfaces;
 using HY.MAUI.Models;
 using HY.MAUI.Models.MsgVM;
 using HY.MAUI.Pages.Chat;
 using HY.MAUI.Pages.Shells;
-using HY.MAUI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
