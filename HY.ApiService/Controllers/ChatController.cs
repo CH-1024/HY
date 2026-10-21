@@ -11,11 +11,14 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class ChatController : ControllerBase
     {
+        readonly IChatNotificationService _chatNotificationService;
+
         readonly IChatService _chatService;
 
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatNotificationService chatNotificationService, IChatService chatService)
         {
+            _chatNotificationService = chatNotificationService;
             _chatService = chatService;
         }
 
@@ -44,6 +47,7 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> ReadAll(long chatId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var bol = await _chatService.IsUserOwnerChat(userId, chatId);
             if (!bol)
@@ -52,6 +56,11 @@ namespace HY.ApiService.Controllers
             }
 
             var result = await _chatService.ClearChatUnread(chatId);
+            if (result)
+            {
+                await _chatNotificationService.ReadAllNotify(userId, chatId, platform);
+            }
+
             return Ok(new Response(result));
         }
 

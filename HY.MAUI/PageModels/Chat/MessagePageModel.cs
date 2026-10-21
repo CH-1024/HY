@@ -147,7 +147,7 @@ namespace HY.MAUI.PageModels.Chat
                 UnreadCount = 0;
                 ShowUnread = false;
 
-                _dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(50),() =>
+                _dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(50), () =>
                 {
                     _collectionView.ScrollTo(MessageCollection.LastOrDefault(), position: ScrollToPosition.End, animate: true);
                 });
@@ -200,8 +200,9 @@ namespace HY.MAUI.PageModels.Chat
             {
                 _ = Task.Run(async () =>
                 {
-                    var resp = await _chatApi.ReadAll(_currentChat.Id);
-                    if (resp?.IsSucc == true) _currentChat.Unread_Count = 0;
+                    var chat = _currentChat;
+                    var resp = await _chatApi.ReadAll(chat.Id);
+                    if (resp?.IsSucc == true) chat.Unread_Count = 0;
                 });
             }
         }
@@ -359,7 +360,7 @@ namespace HY.MAUI.PageModels.Chat
             }
             else if (cmd?.Command == CommandNames.DownloadFile)
             {
-                
+
             }
         }
 

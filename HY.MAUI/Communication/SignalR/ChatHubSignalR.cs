@@ -200,8 +200,11 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<long>("UserOnline", OnUserOnline);
             _connection?.On<long>("UserOffline", OnUserOffline);
 
+            _connection?.On<long>("ReadAll", OnReadAll);
+
             _connection?.On<MessageDto, bool>("ReceiveMessage", OnReceiveMessage);
             _connection?.On<MessageDto>("RecallMessage", OnRecallMessage);
+            _connection?.On<MessageDto>("DeleteMessage", OnDeleteMessage);
 
             _connection?.On<ReceiveCallRequest>("ReceiveCall", OnReceiveCall);
             _connection?.On<string>("CallCanceled", OnCallCanceled);
@@ -218,6 +221,7 @@ namespace HY.MAUI.Communication.SignalR
 
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?, bool>("RequestContact", OnRequestContact);
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
+            _connection?.On<long>("DeleteContact", OnDeleteContact);
 
             _connection?.On<string>("ForceLogout", OnForceLogout);
         }
@@ -306,14 +310,6 @@ namespace HY.MAUI.Communication.SignalR
         #region HubMethods
 
         public event Func<MessageDto, Task<bool>> OnReceiveMessage_ChatHub;
-        public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
-        public event Action<string> OnCallCanceled_ChatHub;
-        public event Action<string, DateTime> OnCallAccepted_ChatHub;
-        public event Action<string> OnCallRejected_ChatHub;
-        public event Action<string> OnCallAbnormal_ChatHub;
-        public event Action<string> OnCallHangUp_ChatHub;
-        public event Action<string> OnCallHandled_ChatHub;
-        public event Action<string> OnCallExpiry_ChatHub;
 
         private void OnUserOnline(long userId)
         {
@@ -337,6 +333,12 @@ namespace HY.MAUI.Communication.SignalR
             {
                 contact.Is_Online = false;
             }
+        }
+
+        private void OnReadAll(long chatId)
+        {
+            var chat = _chatStore.GetChat(chatId);
+            if (chat != null) chat.Unread_Count = 0;
         }
 
         private async Task<bool> OnReceiveMessage(MessageDto messageDto)
@@ -366,9 +368,9 @@ namespace HY.MAUI.Communication.SignalR
             {
                 return false;
             }
-            
+
             bool result = false;
-            
+
             var handlers = OnReceiveMessage_ChatHub?.GetInvocationList() ?? [];
             if (handlers.Length > 0)
             {
@@ -398,7 +400,7 @@ namespace HY.MAUI.Communication.SignalR
                 {
                     _notificationManager.SendNotification(messageVM.Sender_Nickname, messageVM.Msg_Brief);
                 }
-                catch{ }
+                catch { }
             }
 
             return result;
@@ -414,6 +416,25 @@ namespace HY.MAUI.Communication.SignalR
                 if (message != null)
                 {
                     message.Message_Status = MessageStatus.Recalled;
+                }
+                if (chat.Last_Msg?.Id == messageDto.Id)
+                {
+                    chat.Last_Msg = message;
+                    chat.Is_Deleted = false;
+                }
+            }
+        }
+
+        private void OnDeleteMessage(MessageDto messageDto)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            var chat = _chatStore.GetChat(currentUser.Id, messageDto);
+            if (chat != null)
+            {
+                var message = _messageStore.GetMessages(chat.Id).FirstOrDefault(m => m.Id == messageDto.Id);
+                if (message != null)
+                {
+                    message.Message_Status = MessageStatus.Deleted;
                 }
                 if (chat.Last_Msg?.Id == messageDto.Id)
                 {
@@ -461,11 +482,31 @@ namespace HY.MAUI.Communication.SignalR
             }
         }
 
+        private void OnDeleteContact(long contactId)
+        {
+            _chatStore.Remove(ChatType.Private, contactId);
+            _contactStore.Remove(contactId);
+        }
+
         private async void OnForceLogout(string message)
         {
             await StopAsync();
         }
 
+        #endregion
+
+
+
+        #region Call
+
+        public event Action<ReceiveCallRequest> OnReceiveCall_ChatHub;
+        public event Action<string> OnCallCanceled_ChatHub;
+        public event Action<string, DateTime> OnCallAccepted_ChatHub;
+        public event Action<string> OnCallRejected_ChatHub;
+        public event Action<string> OnCallAbnormal_ChatHub;
+        public event Action<string> OnCallHangUp_ChatHub;
+        public event Action<string> OnCallHandled_ChatHub;
+        public event Action<string> OnCallExpiry_ChatHub;
 
         private void OnReceiveCall(ReceiveCallRequest request)
         {
@@ -509,9 +550,7 @@ namespace HY.MAUI.Communication.SignalR
 
         #endregion
 
-
-
-        #region WebRTC
+        #region RTC信令
 
         public event Action<string> OnReceiveIce_ChatHub;
         public event Action<string> OnReceiveOffer_ChatHub;

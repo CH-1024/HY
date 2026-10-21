@@ -100,12 +100,13 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> RequestContact(long contactId, int source, string? message)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var result = await _contactService.RequestContact(userId, contactId, source, message);
             if (result == null) return Ok(new Response(false, "请求联系人失败"));
 
             // 通知接收方
-            await _chatNotificationService.RequestContactNotify(contactId, result!);
+            await _chatNotificationService.RequestContactNotify(result!, platform);
 
             return Ok(new Response(true)
             {
@@ -124,12 +125,13 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> RespondContact(long contactRequestId, RespondContactHandle handle)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var result = await _contactService.RespondContact(userId, contactRequestId, handle);
             if (result == null) return Ok(new Response(false, "处理联系人请求失败"));
 
             // 通知接收方
-            await _chatNotificationService.RespondContactNotify(handle, result!);
+            await _chatNotificationService.RespondContactNotify(handle, result!, platform);
 
             ContactRequestDto? contactRequest = null;
             ContactDto? receiverContact = null;
@@ -169,8 +171,13 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> DeleteContact(long targetId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var result = await _contactService.DeleteContact(userId, targetId);
+            if (result.IsSucc)
+            {
+                await _chatNotificationService.DeleteContactNotify(userId, targetId, platform);
+            }
 
             return Ok(new Response(result.IsSucc, result.Error));
         }

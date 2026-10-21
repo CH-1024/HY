@@ -17,8 +17,11 @@ namespace HY.ApiService.Services
         Task UserOnlineNotify(long currentUserId);
         Task UserOfflineNotify(long currentUserId);
 
+        Task ReadAllNotify(long userId, long chatId, int platform);
+
         Task SendMessageNotify(MessageDto messageDto, int platform);
         Task RecallMessageNotify(MessageDto messageDto, int platform);
+        Task DeleteMessageNotify(long currentUserId, MessageDto messageDto, int platform);
 
         Task CreateCallNotify(CallInfo callDto);
         Task CancelCallNotify(CallInfo callDto);
@@ -29,8 +32,9 @@ namespace HY.ApiService.Services
         Task ExpiryCallNotify(CallInfo callDto);
         Task SendCallMessageNotify(MessageDto messageDto);
 
-        Task RequestContactNotify(long contactId, RequestContactReturn result);
-        Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result);
+        Task RequestContactNotify(RequestContactReturn result, int platform);
+        Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result, int platform);
+        Task DeleteContactNotify(long currentUserId, long contactId, int platform);
     }
 
 
@@ -122,6 +126,32 @@ namespace HY.ApiService.Services
                     }
                 });
             }
+        }
+
+
+        public async Task ReadAllNotify(long currentUserId, long chatId, int platform)
+        {
+            #region 通知自己其他在线设备
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("ReadAll", chatId, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "全部已读失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
         }
 
 
@@ -290,7 +320,7 @@ namespace HY.ApiService.Services
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto, cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -307,7 +337,7 @@ namespace HY.ApiService.Services
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto, cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -355,7 +385,7 @@ namespace HY.ApiService.Services
                     {
                         try
                         {
-                            await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                            await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -372,7 +402,7 @@ namespace HY.ApiService.Services
                 {
                     try
                     {
-                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto);
+                        await _chatHub.Clients.Client(connectionId).SendAsync("RecallMessage", messageDto, cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -384,6 +414,30 @@ namespace HY.ApiService.Services
             }
         }
 
+        public async Task DeleteMessageNotify(long currentUserId, MessageDto messageDto, int platform)
+        {
+            #region 通知自己其他在线设备
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("DeleteMessage", messageDto, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "删除信息失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
+        }
 
 
         public async Task CreateCallNotify(CallInfo callDto)
@@ -500,7 +554,7 @@ namespace HY.ApiService.Services
             {
                 try
                 {
-                    await _chatHub.Clients.Client(connectionId).SendAsync("CallCanceled", callId);
+                    await _chatHub.Clients.Client(connectionId).SendAsync("CallCanceled", callId, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -568,12 +622,18 @@ namespace HY.ApiService.Services
             var start = callDto.StartAt!.Value;
 
 
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
             #region 通知对方在线设备
             var userId = currentUserId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
             var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
 
             var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
-            if (!string.IsNullOrEmpty(userConnectionId)) await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, CancellationToken.None);
+            if (!string.IsNullOrEmpty(userConnectionId)) await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallHangUp", callId, parallelOptions.CancellationToken);
             #endregion
         }
 
@@ -618,12 +678,18 @@ namespace HY.ApiService.Services
             await SendCallMessageNotify(messageDto);
 
 
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
             #region 通知对方在线设备
             var userId = currentUserId == callDto.CallerId ? callDto.CalleeId : callDto.CallerId;
             var userPlatform = currentUserId == callDto.CallerId ? callDto.CalleePlatform : callDto.CallerPlatform;
 
             var userConnectionId = await _redisConnectionService.GetConnectionIdAsync(userId, userPlatform);
-            if (!string.IsNullOrEmpty(userConnectionId)) await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallAbnormal", callId, CancellationToken.None);
+            if (!string.IsNullOrEmpty(userConnectionId)) await _chatHub.Clients.Client(userConnectionId!).SendAsync("CallAbnormal", callId, parallelOptions.CancellationToken);
             #endregion
         }
 
@@ -675,7 +741,7 @@ namespace HY.ApiService.Services
 
             #region 通知呼叫方在线设备
             var callerConnectionId = await _redisConnectionService.GetConnectionIdAsync(callerId, callerPlatform);
-            if (!string.IsNullOrEmpty(callerConnectionId)) await _chatHub.Clients.Client(callerConnectionId!).SendAsync("CallExpiry", callId, CancellationToken.None);
+            if (!string.IsNullOrEmpty(callerConnectionId)) await _chatHub.Clients.Client(callerConnectionId!).SendAsync("CallExpiry", callId, parallelOptions.CancellationToken);
             #endregion
 
             #region 通知被呼叫方在线设备
@@ -761,9 +827,18 @@ namespace HY.ApiService.Services
 
 
 
-        public async Task RequestContactNotify(long contactId, RequestContactReturn result)
+        public async Task RequestContactNotify(RequestContactReturn result, int platform)
         {
-            var hasSuccess = 0;
+            long currentUserId = result.contactRequest.Sender_Id;
+            long contactId = result.contactRequest.Receiver_Id;
+            ContactRequestDto? contactRequest = result.contactRequest;
+            ContactDto? senderContact = result.senderContact;
+            ChatDto? senderChat = result.senderChat;
+            MessageDto? senderMessage = result.senderMessage;
+            ContactDto? receiverContact = result.receiverContact;
+            ChatDto? receiverChat = result.receiverChat;
+            MessageDto? receiverMessage = result.receiverMessage;
+
             var parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = 20,
@@ -771,14 +846,31 @@ namespace HY.ApiService.Services
             };
 
 
-            #region 通知对方所有在线设备
+            #region 通知自己其他在线设备
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("RequestContact", contactRequest, senderContact, senderChat, senderMessage, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "请求联系人同步失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
 
+
+            #region 通知对方所有在线设备
+            var hasSuccess = 0;
             var contactConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(contactId);
             await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
             {
                 try
                 {
-                    var success = await _chatHub.Clients.Client(connectionId).InvokeAsync<bool>("RequestContact", result.contactRequest, result.receiverContact, result.receiverChat, result.receiverMessage, CancellationToken.None);
+                    var success = await _chatHub.Clients.Client(connectionId).InvokeAsync<bool>("RequestContact", contactRequest, receiverContact, receiverChat, receiverMessage, cancellationToken);
                     if (success) Interlocked.Exchange(ref hasSuccess, 1);
                 }
                 catch (Exception ex)
@@ -793,35 +885,46 @@ namespace HY.ApiService.Services
             {
                 await _chatService.ClearChatUnread(result.receiverMessage!.Sender_Id, result.receiverMessage!.Target_Id, ChatType.Private);
             }
-
             #endregion
         }
 
-        public async Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result)
+        public async Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result, int platform)
         {
+            long currentUserId = 0;
             long contactId = 0;
             ContactRequestDto? contactRequest = null;
             ContactDto? senderContact = null;
             ChatDto? senderChat = null;
             MessageDto? senderMessage = null;
+            ContactDto? receiverContact = null;
+            ChatDto? receiverChat = null;
+            MessageDto? receiverMessage = null;
 
             if (handle == RespondContactHandle.Revoked)
             {
+                currentUserId = result.contactRequest.Sender_Id;
                 contactId = result.contactRequest.Receiver_Id;
                 contactRequest = result.contactRequest;
             }
             else if (handle == RespondContactHandle.Declined)
             {
+                currentUserId = result.contactRequest.Receiver_Id;
                 contactId = result.contactRequest.Sender_Id;
                 contactRequest = result.contactRequest;
             }
             else if (handle == RespondContactHandle.Accepted)
             {
+                currentUserId = result.contactRequest.Receiver_Id;
                 contactId = result.contactRequest.Sender_Id;
                 contactRequest = result.contactRequest;
+
                 senderContact = result.senderContact;
                 senderChat = result.senderChat;
                 senderMessage = result.senderMessage;
+
+                receiverContact = result.receiverContact;
+                receiverChat = result.receiverChat;
+                receiverMessage = result.receiverMessage;
             }
 
             var parallelOptions = new ParallelOptions
@@ -830,12 +933,31 @@ namespace HY.ApiService.Services
                 CancellationToken = CancellationToken.None
             };
 
+
+            #region 通知自己其他在线设备
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("RespondContact", contactRequest, receiverContact, receiverChat, receiverMessage, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "回复联系人同步失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
+
+
+            #region 通知对方所有在线设备
             var contactConnectionIds = await _redisConnectionService.GetAllPlatformConnectionIdsAsync(contactId);
             await Parallel.ForEachAsync(contactConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
             {
                 try
                 {
-                    await _chatHub.Clients.Client(connectionId).SendAsync("RespondContact", contactRequest, senderContact, senderChat, senderMessage);
+                    await _chatHub.Clients.Client(connectionId).SendAsync("RespondContact", contactRequest, senderContact, senderChat, senderMessage, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -843,6 +965,32 @@ namespace HY.ApiService.Services
                     // _logger.LogError(ex, "回复联系人失败，ConnectionId: {ConnectionId}", connectionId);
                 }
             });
+            #endregion
+        }
+
+        public async Task DeleteContactNotify(long currentUserId, long contactId, int platform)
+        {
+            #region 通知自己其他在线设备
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("DeleteContact", contactId, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "删除联系人失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
         }
     }
 }

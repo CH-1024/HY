@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using SqlSugar;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,7 +57,7 @@ namespace HY.ApiService.Controllers
 
             return Ok(new Response(true)
             {
-                Data = new Dictionary<string, object?> 
+                Data = new Dictionary<string, object?>
                 {
                     { "Messages",  messages}
                 }
@@ -159,12 +160,16 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> DeleteMessage(long messageId)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var messageDto = await _messageService.GetMessageById(userId, messageId);
             if (messageDto == null) return Ok(new Response(false, "消息不存在"));
 
             var result = await _messageService.InsertMessageAction(userId, messageId, MessageActionType.Delete);
             if (!result) return Ok(new Response(false, "删除消息失败"));
+
+            // 通知接收方
+            await _chatNotificationService.DeleteMessageNotify(userId, messageDto, platform);
 
             return Ok(new Response(true));
         }

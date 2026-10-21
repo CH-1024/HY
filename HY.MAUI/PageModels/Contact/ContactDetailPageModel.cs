@@ -143,7 +143,9 @@ namespace HY.MAUI.PageModels.Contact
 
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "删除成功！", "确定");
                 await Shell.Current.GoToAsync("..", true);
+                return;
             }
+            _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", $"删除失败！{resp?.Msg}", "确定");
         }
     }
 }
