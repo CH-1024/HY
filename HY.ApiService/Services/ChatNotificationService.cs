@@ -1,4 +1,5 @@
-﻿using HY.ApiService.Dtos;
+﻿using HY.ApiService.Controllers.Requests;
+using HY.ApiService.Dtos;
 using HY.ApiService.Enums;
 using HY.ApiService.Hubs;
 using HY.ApiService.Hubs.Requests;
@@ -35,6 +36,9 @@ namespace HY.ApiService.Services
         Task RequestContactNotify(RequestContactReturn result, int platform);
         Task RespondContactNotify(RespondContactHandle handle, RespondContactReturn result, int platform);
         Task DeleteContactNotify(long currentUserId, long contactId, int platform);
+
+        Task UpdateHeadNotify(long userId, string url, int platform);
+        Task UpdateProfileNotify(long userId, UpdateUserRequest updateUserRequest, int platform);
     }
 
 
@@ -826,7 +830,6 @@ namespace HY.ApiService.Services
         }
 
 
-
         public async Task RequestContactNotify(RequestContactReturn result, int platform)
         {
             long currentUserId = result.contactRequest.Sender_Id;
@@ -992,5 +995,57 @@ namespace HY.ApiService.Services
             });
             #endregion
         }
+
+
+        public async Task UpdateHeadNotify(long currentUserId, string url, int platform)
+        {
+            #region 通知自己其他在线设备
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("UpdateHead", url, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "更新头像失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
+        }
+
+        public async Task UpdateProfileNotify(long currentUserId, UpdateUserRequest updateUserRequest, int platform)
+        {
+            #region 通知自己其他在线设备
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 20,
+                CancellationToken = CancellationToken.None
+            };
+
+            var otherPlatformConnectionIds = await _redisConnectionService.GetOtherPlatformConnectionIdsAsync(currentUserId, platform);
+            await Parallel.ForEachAsync(otherPlatformConnectionIds, parallelOptions, async (connectionId, cancellationToken) =>
+            {
+                try
+                {
+                    await _chatHub.Clients.Client(connectionId).SendAsync("UpdateProfile", updateUserRequest, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // 记录日志
+                    // _logger.LogError(ex, "更新个人信息失败，ConnectionId: {ConnectionId}", connectionId);
+                }
+            });
+            #endregion
+        }
+
     }
 }

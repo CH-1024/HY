@@ -83,7 +83,7 @@ namespace HY.MAUI.Communication
 
 
 
-        // ImageVM
+        // Image
         public static string? Get_Origin_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/origin/{file_Id}";
         public static string? Get_Compress_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/compress/{file_Id}";
         public static string? Get_Thumb_Image(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/image/thumb/{file_Id}";
@@ -91,7 +91,7 @@ namespace HY.MAUI.Communication
 
 
 
-        // VideoVM
+        // Video
         public static string? Get_Origin_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/origin/{file_Id}";
         public static string? Get_Compress_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/compress/{file_Id}";
         public static string? Get_Cover_Video(string? file_Id) => file_Id == null ? null : $"{HttpBase}/file/video/cover/{file_Id}";

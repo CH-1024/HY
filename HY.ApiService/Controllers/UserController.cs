@@ -5,8 +5,8 @@ using HY.ApiService.Services;
 using HY.ApiService.Tools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HY.ApiService.Controllers
 {
@@ -14,11 +14,14 @@ namespace HY.ApiService.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
+        readonly IChatNotificationService _chatNotificationService;
+
         readonly IUserService _userService;
 
 
-        public UserController(IUserService userService)
+        public UserController(IChatNotificationService chatNotificationService, IUserService userService)
         {
+            _chatNotificationService = chatNotificationService;
             _userService = userService;
         }
 
@@ -52,6 +55,7 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> UpdateHead(string url)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             if (!RegexHelper.IsValidUrl(url))
             {
@@ -59,6 +63,10 @@ namespace HY.ApiService.Controllers
             }
 
             var result = await _userService.UpdateHead(userId, url);
+            if (!result) return Ok(new Response(false, "头像更新失败"));
+
+            // 通知接收方
+            await _chatNotificationService.UpdateHeadNotify(userId, url, platform);
 
             return Ok(new Response(result));
         }
@@ -68,6 +76,7 @@ namespace HY.ApiService.Controllers
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest updateUserRequest)
         {
             var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             if (!RegexHelper.IsValidNickname(updateUserRequest.Nickname))
             {
@@ -83,6 +92,10 @@ namespace HY.ApiService.Controllers
             }
 
             var result = await _userService.UpdateProfile(userId, updateUserRequest);
+            if (!result) return Ok(new Response(false, "信息更新失败"));
+
+            // 通知接收方
+            await _chatNotificationService.UpdateProfileNotify(userId, updateUserRequest, platform);
 
             return Ok(new Response(result));
         }

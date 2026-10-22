@@ -174,10 +174,10 @@ namespace HY.ApiService.Controllers
             var platform = int.Parse(User.FindFirst("DevicePlatform")!.Value);
 
             var result = await _contactService.DeleteContact(userId, targetId);
-            if (result.IsSucc)
-            {
-                await _chatNotificationService.DeleteContactNotify(userId, targetId, platform);
-            }
+            if (result?.IsSucc != true) return Ok(new Response(false, "删除联系人失败"));
+
+            // 通知接收方
+            await _chatNotificationService.DeleteContactNotify(userId, targetId, platform);
 
             return Ok(new Response(result.IsSucc, result.Error));
         }

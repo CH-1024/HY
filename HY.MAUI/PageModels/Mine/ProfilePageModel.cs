@@ -95,7 +95,6 @@ namespace HY.MAUI.PageModels.Mine
             await _loginService.SetCurrentUser(currentUser);
 
             _messageStore.UpdateUserHead(currentUser.Id, url);
-
         }
 
 

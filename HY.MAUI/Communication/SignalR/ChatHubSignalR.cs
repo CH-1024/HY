@@ -1,5 +1,6 @@
 ﻿using HY.MAUI.Communication.Auth;
 using HY.MAUI.Communication.Http;
+using HY.MAUI.Communication.Http.Requests;
 using HY.MAUI.Communication.SignalR.Requests;
 using HY.MAUI.Configurations;
 using HY.MAUI.Dtos;
@@ -223,6 +224,9 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.On<ContactRequestDto, ContactDto?, ChatDto?, MessageDto?>("RespondContact", OnRespondContact);
             _connection?.On<long>("DeleteContact", OnDeleteContact);
 
+            _connection?.On<string>("UpdateHead", OnUpdateHead);
+            _connection?.On<UpdateUserRequest>("UpdateProfile", OnUpdateProfile);
+
             _connection?.On<string>("ForceLogout", OnForceLogout);
         }
 
@@ -239,8 +243,11 @@ namespace HY.MAUI.Communication.SignalR
             _connection?.Remove("UserOnline");
             _connection?.Remove("UserOffline");
 
+            _connection?.Remove("ReadAll");
+
             _connection?.Remove("ReceiveMessage");
             _connection?.Remove("RecallMessage");
+            _connection?.Remove("DeleteMessage");
 
             _connection?.Remove("ReceiveCall");
             _connection?.Remove("CallCanceled");
@@ -257,6 +264,10 @@ namespace HY.MAUI.Communication.SignalR
 
             _connection?.Remove("RequestContact");
             _connection?.Remove("RespondContact");
+            _connection?.Remove("DeleteContact");
+
+            _connection?.Remove("UpdateHead");
+            _connection?.Remove("UpdateProfile");
 
             _connection?.Remove("ForceLogout");
         }
@@ -488,6 +499,30 @@ namespace HY.MAUI.Communication.SignalR
             _contactStore.Remove(contactId);
         }
 
+        private async void OnUpdateHead(string url)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            currentUser.Avatar = url;
+
+            _globalCache.UpdateCurrentUser(currentUser);
+
+            await _loginService.SetCurrentUser(currentUser);
+
+            _messageStore.UpdateUserHead(currentUser.Id, url);
+        }
+
+        private async void OnUpdateProfile(UpdateUserRequest request)
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            currentUser.Nickname = request.Nickname;
+            currentUser.Phone = request.Phone;
+            currentUser.Email = request.Email;
+
+            _globalCache.UpdateCurrentUser(currentUser);
+
+            await _loginService.SetCurrentUser(currentUser);
+        }
+
         private async void OnForceLogout(string message)
         {
             await StopAsync();
@@ -549,6 +584,8 @@ namespace HY.MAUI.Communication.SignalR
         }
 
         #endregion
+
+
 
         #region RTC信令
 
