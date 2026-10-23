@@ -14,21 +14,8 @@ namespace HY.MAUI.Communication.Http
 {
     public class ContactApi : BaseApi
     {
-        private readonly IGlobalCache _globalCache;
-
-        private readonly ContactRequestStore _contactRequestStore;
-        private readonly ContactStore _contactStore;
-        private readonly ChatStore _chatStore;
-        private readonly MessageStore _messageStore;
-
-        public ContactApi(HttpClient http, IGlobalCache globalCache, ContactRequestStore contactRequestStore, ContactStore contactStore, ChatStore chatStore, MessageStore messageStore) : base(http)
+        public ContactApi(HttpClient http) : base(http)
         {
-            _globalCache = globalCache;
-
-            _contactRequestStore = contactRequestStore;
-            _contactStore = contactStore;
-            _chatStore = chatStore;
-            _messageStore = messageStore;
         }
 
 
@@ -52,50 +39,14 @@ namespace HY.MAUI.Communication.Http
             return await GetAsync($"{ApiUrl.SearchContact}?identity={identity}");
         }
 
-        public async Task RequestContact(long contactId, int source, string msg)
+        public async Task<Response?> RequestContact(long contactId, int source, string msg)
         {
-            var resp = await PostAsync($"{ApiUrl.RequestContact}?contactId={contactId}&source={source}&message={msg}");
-            if (resp?.IsSucc != true) return;
-
-            var currentUser = _globalCache.GetCurrentUser();
-            var contactRequestDto = resp.GetValue<ContactRequestDto>("ContactRequest")!;
-            var contactDto = resp.GetValue<ContactDto>("Contact");
-            var chatDto = resp.GetValue<ChatDto>("Chat");
-            var messageDto = resp.GetValue<MessageDto>("Message");
-
-            _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
-
-            if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
-            {
-                _contactStore.Upsert(contactDto!.ToVM());
-
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
-
-                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id, contactDto!.Avatar, contactDto!.Nickname));
-            }
+            return await PostAsync($"{ApiUrl.RequestContact}?contactId={contactId}&source={source}&message={msg}");
         }
 
-        public async Task RespondContact(long contactRequestId, RespondContactHandle handle)
+        public async Task<Response?> RespondContact(long contactRequestId, RespondContactHandle handle)
         {
-            var resp = await PostAsync($"{ApiUrl.RespondContact}?contactRequestId={contactRequestId}&handle={handle}");
-            if (resp?.IsSucc != true) return;
-
-            var currentUser = _globalCache.GetCurrentUser();
-            var contactRequestDto = resp.GetValue<ContactRequestDto>("ContactRequest")!;
-            var contactDto = resp.GetValue<ContactDto>("Contact");
-            var chatDto = resp.GetValue<ChatDto>("Chat");
-            var messageDto = resp.GetValue<MessageDto>("Message");
-
-            _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
-
-            if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
-            {
-                _contactStore.Upsert(contactDto!.ToVM());
-
-                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
-
-                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id, contactDto!.Avatar, contactDto!.Nickname));
-            }
+            return await PostAsync($"{ApiUrl.RespondContact}?contactRequestId={contactRequestId}&handle={handle}");
         }
 
         public async Task<Response?> DeleteContact(long targetId)

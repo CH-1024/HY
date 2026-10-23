@@ -46,6 +46,34 @@ namespace HY.MAUI.PageModels.Contact
             set { SetProperty(ref selectedContact, value); }
         }
 
+        private bool request_Count_Visible = false;
+        public bool Request_Count_Visible
+        {
+            get { return request_Count_Visible; }
+            set { SetProperty(ref request_Count_Visible, value); }
+        }
+
+        private string request_Count_Show = "";
+        public string Request_Count_Show
+        {
+            get { return request_Count_Show; }
+            set { SetProperty(ref request_Count_Show, value); }
+        }
+
+        private bool respond_Count_Visible = false;
+        public bool Respond_Count_Visible
+        {
+            get { return respond_Count_Visible; }
+            set { SetProperty(ref respond_Count_Visible, value); }
+        }
+
+        private string respond_Count_Show = "";
+        public string Respond_Count_Show
+        {
+            get { return respond_Count_Show; }
+            set { SetProperty(ref respond_Count_Show, value); }
+        }
+
         public ContactPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ContactStore contactStore, ContactRequestStore contactRequestStore)
         {
             _serviceProvider = serviceProvider;
@@ -91,8 +119,20 @@ namespace HY.MAUI.PageModels.Contact
             //{
             //    await Refresh();
             //}
+
+
+            //Request_Count_Visible = _contactRequestStore.GetRequestCount() > 0;
+            //Request_Count_Show = _contactRequestStore.GetRequestCount() is int count ? count.ToString() : "";
+
+            //Respond_Count_Visible = _contactRequestStore.GetRespondCount() > 0;
+            //Respond_Count_Show = _contactRequestStore.GetRespondCount() is int count2 ? count2.ToString() : "";
         }
 
+
+        [RelayCommand]
+        async Task Disappearing()
+        {
+        }
 
         [RelayCommand]
         async Task Refresh()
@@ -129,6 +169,27 @@ namespace HY.MAUI.PageModels.Contact
                 //{ "ContactInfo", SelectedContact }
             };
             await Shell.Current.GoToAsync(nameof(SearchContactPage), true, parameters);
+        }
+
+
+        [RelayCommand]
+        async Task Request()
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "Type", "申请中" }
+            };
+            await Shell.Current.GoToAsync(nameof(ContactRequestDetailPage), true, parameters);
+        }
+
+        [RelayCommand]
+        async Task Respond()
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "Type", "待同意" }
+            };
+            await Shell.Current.GoToAsync(nameof(ContactRequestDetailPage), true, parameters);
         }
 
     }

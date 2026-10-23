@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HY.MAUI.Pages.Contact.ContactRequestDetailPage"
+             x:Name="_ContactRequestDetailPage"
+             Shell.NavBarIsVisible="{OnIdiom Phone=True, Desktop=True}"
+             Shell.TabBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pm="clr-namespace:HY.MAUI.PageModels.Contact"
+             xmlns:m="clr-namespace:HY.MAUI.Models"
+             xmlns:controls="clr-namespace:HY.MAUI.Controls"
+             x:DataType="pm:ContactRequestDetailPageModel">
+
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="IconBtn1" TargetType="Button">
+                <Setter Property="MinimumHeightRequest" Value="0"/>
+                <Setter Property="MinimumWidthRequest" Value="0"/>
+                <Setter Property="HeightRequest" Value="{OnIdiom Desktop=50, Phone=60}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#111111, Light=#EEEEEE}"/>
+                <Setter Property="ContentLayout" Value="Top,0"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="FontSize" Value="Micro"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="HorizontalOptions" Value="Fill"/>
+                <Setter Property="VerticalOptions" Value="Fill"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
+    <ContentPage.Behaviors>
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedTo" Command="{Binding NavigatedToCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactRequestDetailPage}, x:DataType=ContentPage}"/>-->
+        <!--<toolkit:EventToCommandBehavior EventName="NavigatedFrom" Command="{Binding NavigatedFromCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactRequestDetailPage}, x:DataType=ContentPage}"/>-->
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding AppearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactRequestDetailPage}, x:DataType=ContentPage}"/>
+        <!--<toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding DisappearingCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactRequestDetailPage}, x:DataType=ContentPage}" />-->
+    </ContentPage.Behaviors>
+
+    <!--<Shell.BackButtonBehavior>
+        <BackButtonBehavior IsEnabled="False" IsVisible="False" />
+    </Shell.BackButtonBehavior>
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="50,*,50">
+            <Button HeightRequest="40" Grid.Column="0" Text="＜" Command="{Binding GoBackCommand}" BindingContext="{Binding Path=BindingContext, Source={x:Reference _ContactRequestDetailPage}, x:DataType=ContentPage}" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0"/>
+            <Label  HeightRequest="40" Grid.Column="1" Text="联系人资料" TextColor="{StaticResource PrimaryDark}" FontSize="Title" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+            <Button HeightRequest="40" Grid.Column="2" Text="…" Clicked="Button_Clicked" TextColor="Gray" FontSize="Title" FontAttributes="Bold" BackgroundColor="Transparent" HorizontalOptions="End" VerticalOptions="Center" Padding="0" Margin="0"/>
+
+            <BoxView Grid.ColumnSpan="3" HeightRequest="1" Color="#292929" VerticalOptions="End"/>
+        </Grid>
+    </Shell.TitleView>-->
+
+    <Shell.TitleView>
+        <Label Margin="{OnPlatform WinUI='0,0,0,0', Default='-30,0,0,0'}" Text="{Binding Title}" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+    </Shell.TitleView>
+
+    <!--<ContentPage.ToolbarItems>
+        <ToolbarItem Text="备注" Order="Secondary" Priority="0" />
+        <ToolbarItem Text="拉黑" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="删除" Order="Secondary" Priority="2" Command="{Binding DeleteContactCommand}"/>
+    </ContentPage.ToolbarItems>-->
+
+
+    <ScrollView>
+        <Grid>
+            <CollectionView Grid.Row="1" ItemsSource="{Binding ContactRequestCollection}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:ContactRequestVM">
+                        <Border Padding="5" StrokeThickness="0.5">
+
+                            <Grid ColumnDefinitions="50,*,auto,auto,auto,auto" ColumnSpacing="0" HeightRequest="50">
+
+                                <toolkit:AvatarView Grid.Column="0" BackgroundColor="Black" Stroke="Transparent" CornerRadius="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Start" VerticalOptions="Center" Padding="0" Margin="0">
+                                    <toolkit:AvatarView.Triggers>
+                                        <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="True">
+                                            <Setter Property="ImageSource" Value="{Binding Receiver_Avatar}"/>
+                                        </DataTrigger>
+
+                                        <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding IsSelf}" Value="False">
+                                            <Setter Property="ImageSource" Value="{Binding Sender_Avatar}"/>
+                                        </DataTrigger>
+                                    </toolkit:AvatarView.Triggers>
+
+                                    <toolkit:AvatarView.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Path=BindingContext.ContactDetailCommand, Source={x:Reference _ContactRequestDetailPage}}" CommandParameter="{Binding .}"/>
+                                    </toolkit:AvatarView.GestureRecognizers>
+                                </toolkit:AvatarView>
+
+                                <Grid RowDefinitions="*,*" Grid.Column="1">
+                                    <Label FontSize="16" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                                                <Setter Property="Text" Value="{Binding Receiver_Nickname}"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
+                                                <Setter Property="Text" Value="{Binding Sender_Nickname}"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label Grid.Row="1" TextColor="Gray" FontSize="Body" Padding="0" Margin="10,0,0,0" HorizontalOptions="Start" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="True">
+                                                <Setter Property="Text" Value="{Binding Message, StringFormat='我：{0}'}"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelf}" Value="False">
+                                                <Setter Property="Text" Value="{Binding Message, StringFormat='招呼：{0}'}"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Grid>
+
+                                <Label Grid.Column="2" FontSize="16" Padding="0" Margin="10,0" HorizontalOptions="End" VerticalOptions="Center">
+                                    <Label.Triggers>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Pending"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="等待验证"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Pending"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="收到请求"/>
+                                        </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Revoked"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已撤销"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Revoked"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已撤销"/>
+                                        </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Declined"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已拒绝"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Declined"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已拒绝"/>
+                                        </MultiTrigger>
+
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Accepted"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="对方已同意"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger TargetType="Label">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Accepted"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Text" Value="请求已同意"/>
+                                        </MultiTrigger>
+
+                                    </Label.Triggers>
+                                </Label>
+
+                                <Button Grid.Column="3" Command="{Binding Path=BindingContext.RespondContact_AcceptedCommand, Source={x:Reference _ContactRequestDetailPage}}" CommandParameter="{Binding .}" FontSize="16" Padding="5" Margin="0" MinimumHeightRequest="0" MinimumWidthRequest="0" HorizontalOptions="End" VerticalOptions="Center" BackgroundColor="Black" TextColor="White" CornerRadius="3" IsVisible="False">
+                                    <Button.Triggers>
+                                        <MultiTrigger TargetType="Button">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Pending"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="IsVisible" Value="True"/>
+                                            <Setter Property="Text" Value="同意"/>
+                                        </MultiTrigger>
+                                    </Button.Triggers>
+                                </Button>
+
+                                <Button Grid.Column="4" Command="{Binding Path=BindingContext.RespondContact_DeclinedCommand, Source={x:Reference _ContactRequestDetailPage}}" CommandParameter="{Binding .}" FontSize="16" Padding="5" Margin="10,0,0,0" MinimumHeightRequest="0" MinimumWidthRequest="0" HorizontalOptions="End" VerticalOptions="Center" BackgroundColor="Black" TextColor="White" CornerRadius="3" IsVisible="False">
+                                    <Button.Triggers>
+                                        <MultiTrigger TargetType="Button">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="False"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Pending"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="IsVisible" Value="True"/>
+                                            <Setter Property="Text" Value="拒绝"/>
+                                        </MultiTrigger>
+                                    </Button.Triggers>
+                                </Button>
+
+                                <Button Grid.Column="5" Command="{Binding Path=BindingContext.RespondContact_RevokedCommand, Source={x:Reference _ContactRequestDetailPage}}" CommandParameter="{Binding .}" FontSize="16" Padding="5" Margin="0" MinimumHeightRequest="0" MinimumWidthRequest="0" HorizontalOptions="End" VerticalOptions="Center" BackgroundColor="Black" TextColor="White" CornerRadius="3" IsVisible="False">
+                                    <Button.Triggers>
+                                        <MultiTrigger TargetType="Button">
+                                            <MultiTrigger.Conditions>
+                                                <BindingCondition Binding="{Binding IsSelf}" Value="True"/>
+                                                <BindingCondition Binding="{Binding Relation_Request_Status}" Value="Pending"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="IsVisible" Value="True"/>
+                                            <Setter Property="Text" Value="撤销"/>
+                                        </MultiTrigger>
+                                    </Button.Triggers>
+                                </Button>
+
+                            </Grid>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

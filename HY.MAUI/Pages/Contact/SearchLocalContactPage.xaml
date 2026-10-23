@@ -23,7 +23,7 @@
     </ContentPage.Behaviors>
 
     <Shell.TitleView>
-        <Label Margin="-30,0,0,0" Text="搜索" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+        <Label Margin="{OnPlatform WinUI='0,0,0,0', Default='-30,0,0,0'}" Text="搜索" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <!-- <ContentPage.ToolbarItems> -->

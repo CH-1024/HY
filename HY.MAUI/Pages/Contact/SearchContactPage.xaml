@@ -36,7 +36,7 @@
     </Shell.TitleView>-->
 
     <Shell.TitleView>
-        <Label Margin="-30,0,0,0" Text="添加联系人" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
+        <Label Margin="{OnPlatform WinUI='0,0,0,0', Default='-30,0,0,0'}" Text="添加联系人" TextColor="{StaticResource White}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="Body"/>
     </Shell.TitleView>
 
     <!--<ContentPage.ToolbarItems>
@@ -47,10 +47,13 @@
     <ScrollView>
 
         <Grid RowDefinitions="Auto,*" RowSpacing="10">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+            </Grid.GestureRecognizers>
 
             <SearchBar x:Name="searchBar" Margin="0" SearchCommand="{Binding SearchContactCommand}" SearchCommandParameter="{Binding Text, Source={RelativeSource Self}}" Placeholder="请输入 HYID / 手机号" />
 
-            <CollectionView Grid.Row="1" ItemsSource="{Binding ContactRequestCollection}" SelectionMode="None">
+            <!--<CollectionView Grid.Row="1" ItemsSource="{Binding ContactRequestCollection}" SelectionMode="None">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout ItemSpacing="0" Orientation="Vertical"/>
                 </CollectionView.ItemsLayout>
@@ -211,7 +214,7 @@
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
-            </CollectionView>
+            </CollectionView>-->
 
         </Grid>
 

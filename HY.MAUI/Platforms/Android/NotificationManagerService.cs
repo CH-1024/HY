@@ -135,8 +135,8 @@ public class NotificationManagerService : INotificationManagerService
             .SetContentIntent(pendingIntent)
             .SetContentTitle(title)
             .SetContentText(message)
-            .SetLargeIcon(BitmapFactory.DecodeResource(Platform.AppContext.Resources, Resource.Drawable.dotnet_logo))
-            .SetSmallIcon(Resource.Drawable.message_small);
+            .SetLargeIcon(BitmapFactory.DecodeResource(Platform.AppContext.Resources, Microsoft.Maui.Resource.Drawable.dotnet_logo))
+            .SetSmallIcon(Microsoft.Maui.Resource.Drawable.message_small);
 
         Notification notification = builder.Build();
         compatManager.Notify(messageId++, notification);  

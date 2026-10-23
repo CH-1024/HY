@@ -20,7 +20,7 @@
 		<NoWarn>MCTEXP001</NoWarn>
 		
 		<!-- Display name -->
-		<ApplicationTitle>Hoyi</ApplicationTitle>
+		<ApplicationTitle>HY.MAUI</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>net.hoyi.hy</ApplicationId>
@@ -148,6 +148,9 @@
 	  <MauiXaml Update="AppShell_Desktop.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Controls\BadgeView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Controls\ImageBubble.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -206,6 +209,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Chat\MessagePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Contact\ContactRequestDetailPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Contact\Popups\SelectCallPopup.xaml">

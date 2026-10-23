@@ -1,4 +1,7 @@
-﻿using HY.MAUI.Models;
+﻿using CommunityToolkit.Maui.Core.Extensions;
+using HY.MAUI.Enums;
+using HY.MAUI.Interfaces;
+using HY.MAUI.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +11,13 @@ namespace HY.MAUI.Stores
 {
     public class ContactRequestStore
     {
+        readonly IGlobalCache _globalCache;
+
+        public ContactRequestStore(IGlobalCache globalCache)
+        {
+            _globalCache = globalCache;
+        }
+
         public ObservableCollection<ContactRequestVM> ContactRequests { get; } = new();
 
         public void Upsert(ContactRequestVM contactRequestVM)
@@ -43,5 +53,30 @@ namespace HY.MAUI.Stores
             ContactRequests.Clear();
         }
 
+
+
+        public int GetRequestCount()
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            return ContactRequests.Where(cr => cr.Relation_Request_Status == RelationRequestStatus.Pending && cr.Sender_Id == currentUser.Id).Count();
+        }
+
+        public int GetRespondCount()
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            return ContactRequests.Where(cr => cr.Relation_Request_Status == RelationRequestStatus.Pending  && cr.Receiver_Id == currentUser.Id).Count();
+        }
+
+        public ObservableCollection<ContactRequestVM> GetRequestCollection()
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            return ContactRequests.Where(cr => /*cr.Relation_Request_Status == RelationRequestStatus.Pending &&*/ cr.Sender_Id == currentUser.Id).OrderByDescending(v => v.Created_At).ToObservableCollection();
+        }
+
+        public ObservableCollection<ContactRequestVM> GetRespondCollection()
+        {
+            var currentUser = _globalCache.GetCurrentUser();
+            return ContactRequests.Where(cr => /*cr.Relation_Request_Status == RelationRequestStatus.Pending &&*/ cr.Receiver_Id == currentUser.Id).ToObservableCollection();
+        }
     }
 }

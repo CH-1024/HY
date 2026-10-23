@@ -2,8 +2,12 @@
 using CommunityToolkit.Mvvm.Input;
 using HY.MAUI.Communication.Http;
 using HY.MAUI.Communication.SignalR;
+using HY.MAUI.Dtos;
+using HY.MAUI.Enums;
 using HY.MAUI.Interfaces;
+using HY.MAUI.Mapping;
 using HY.MAUI.Models;
+using HY.MAUI.Stores;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,6 +22,11 @@ namespace HY.MAUI.PageModels.Contact
         private readonly IGlobalCache _globalCache;
         private readonly ContactApi _contactApi;
 
+        private readonly ContactRequestStore _contactRequestStore;
+        private readonly ContactStore _contactStore;
+        private readonly ChatStore _chatStore;
+        private readonly MessageStore _messageStore;
+
         private readonly ChatHubSignalR _chatHub;
 
         private ContactVM strangerInfo = null;
@@ -29,11 +38,16 @@ namespace HY.MAUI.PageModels.Contact
 
 
 
-        public StrangerDetailPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ChatHubSignalR chatHub)
+        public StrangerDetailPageModel(IServiceProvider serviceProvider, IGlobalCache globalCache, ContactApi contactApi, ContactRequestStore contactRequestStore, ContactStore contactStore, ChatStore chatStore, MessageStore messageStore, ChatHubSignalR chatHub)
         {
             _serviceProvider = serviceProvider;
             _globalCache = globalCache;
             _contactApi = contactApi;
+
+            _contactRequestStore = contactRequestStore;
+            _contactStore = contactStore;
+            _chatStore = chatStore;
+            _messageStore = messageStore;
 
             _chatHub = chatHub;
         }
@@ -63,9 +77,36 @@ namespace HY.MAUI.PageModels.Contact
             }
 
             var sayHi = await Application.Current!.Windows[0].Page!.DisplayPromptAsync("发送好友请求", null, "确定", "取消", "打个招呼吧~", 30);
-            if (sayHi != null)
+            if (sayHi == null) return;
+
+            var result = await _contactApi.RequestContact(StrangerInfo.Contact_Id, _source, sayHi);
+            if (result?.IsSucc != true)
             {
-                await _contactApi.RequestContact(StrangerInfo.Contact_Id, _source, sayHi);
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", $"请求失败[{result?.Msg}]", "确定");
+                return;
+            }
+
+            var contactRequestDto = result.GetValue<ContactRequestDto>("ContactRequest")!;
+            var contactDto = result.GetValue<ContactDto>("Contact");
+            var chatDto = result.GetValue<ChatDto>("Chat");
+            var messageDto = result.GetValue<MessageDto>("Message");
+
+            _contactRequestStore.Upsert(contactRequestDto.ToVM(currentUser.Id));
+
+            if (contactRequestDto.Relation_Request_Status == RelationRequestStatus.Accepted)
+            {
+                _contactStore.Upsert(contactDto!.ToVM());
+
+                _chatStore.UpsertAndSetTop(chatDto!.ToVM());
+
+                _messageStore.Add(chatDto!.Id, messageDto!.ToVM(currentUser.Id, contactDto!.Avatar, contactDto!.Nickname));
+
+                await Shell.Current.GoToAsync("..", true);
+                _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "你们已经成为好友了", "确定");
+            }
+            else
+            {
+                await Shell.Current.GoToAsync("..", true);
                 _ = Application.Current!.Windows[0].Page!.DisplayAlertAsync("提示", "请求已发送", "确定");
             }
 

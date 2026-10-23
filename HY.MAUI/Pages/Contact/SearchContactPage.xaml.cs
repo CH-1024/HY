@@ -18,4 +18,13 @@ public partial class SearchContactPage : ContentPage
             await searchBar.ShowSoftInputAsync(CancellationToken.None);
         }
     }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        if (searchBar.IsSoftInputShowing())
+        {
+            await searchBar.HideSoftInputAsync(CancellationToken.None);
+        }
+    }
+
 }

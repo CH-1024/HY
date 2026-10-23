@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="HY.MAUI.Controls.BadgeView"
+    x:Name="Root"
+    HorizontalOptions="Start"
+    VerticalOptions="Center">
+
+    <Border
+        BackgroundColor="{Binding BadgeColor, Source={x:Reference Root}}"
+        MinimumWidthRequest="22"
+        HeightRequest="22"
+        Margin="0"
+        Padding="3,0">
+
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="11" StrokeThickness="0" />
+        </Border.StrokeShape>
+
+        <Border.Shadow>
+            <Shadow Brush="Black" Offset="0,0" Radius="5" Opacity="1" />
+        </Border.Shadow>
+
+        <Label
+            Text="{Binding Text, Source={x:Reference Root}}"
+            TextColor="{Binding TextColor, Source={x:Reference Root}}"
+            FontSize="Micro"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            HorizontalTextAlignment="Center"
+            VerticalTextAlignment="Center"
+            Padding="0"
+            Margin="0" />
+
+    </Border>
+</ContentView>

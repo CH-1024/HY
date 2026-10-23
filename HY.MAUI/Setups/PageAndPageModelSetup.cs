@@ -57,6 +57,7 @@ namespace HY.MAUI.Setups
             services.AddTransientWithShellRoute<SearchLocalContactPage, SearchLocalContactPageModel>(nameof(SearchLocalContactPage));
             services.AddTransientWithShellRoute<SearchContactPage, SearchContactPageModel>(nameof(SearchContactPage));
             services.AddTransientWithShellRoute<ContactDetailPage, ContactDetailPageModel>(nameof(ContactDetailPage));
+            services.AddTransientWithShellRoute<ContactRequestDetailPage, ContactRequestDetailPageModel>(nameof(ContactRequestDetailPage));
             services.AddTransientWithShellRoute<StrangerDetailPage, StrangerDetailPageModel>(nameof(StrangerDetailPage));
             services.AddTransientWithShellRoute<SettingPage, SettingPageModel>(nameof(SettingPage));
             services.AddTransientWithShellRoute<ProfilePage, ProfilePageModel>(nameof(ProfilePage));
